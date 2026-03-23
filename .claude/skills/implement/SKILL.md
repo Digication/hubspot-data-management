@@ -64,11 +64,12 @@ When building a **brand-new app**, suggest from these preferred technologies (ad
 | Language | TypeScript (strict mode) | For both frontend and backend |
 | Frontend framework | React | Latest stable version |
 | UI library | Material UI (MUI) | With @mui/icons-material for icons |
-| Backend server | GraphQL Yoga | For GraphQL APIs |
-| GraphQL client | Apollo Client | With graphql-codegen for typed hooks |
-| Code generation | graphql-codegen | Auto-generate types and hooks from schema |
-| ORM | TypeORM | For SQL databases |
-| Database | DynamoDB (DynamoDB Local for dev) | Or SQLite for simpler needs |
+| GraphQL schema | TypeGraphQL | Code-first, decorator-based — pairs with TypeORM |
+| GraphQL server | GraphQL Yoga | Runtime for serving the TypeGraphQL schema |
+| GraphQL client | Apollo Client | With graphql-codegen for typed client hooks |
+| Code generation | graphql-codegen | Client-side only — generates types/hooks from introspected schema |
+| ORM | TypeORM | Decorator-based entities, PostgreSQL driver |
+| Database | PostgreSQL | Portable across all deployment tiers (local Docker, Railway, AWS RDS) |
 | Real-time | SSE (Server-Sent Events) | Preferred over WebSockets for subscriptions |
 | Unit testing | Vitest | Fast, TypeScript-native |
 | E2E testing | Playwright | Cross-browser, reliable |
@@ -87,19 +88,20 @@ When building a **brand-new app**, suggest from these preferred technologies (ad
 
 ## Infrastructure & CI/CD
 
-Not every app needs infrastructure. Determine the deployment tier first, then apply the appropriate level.
+Not every app needs cloud infrastructure. Determine the deployment tier first, then apply the appropriate level.
 
 ### Deployment Tier Detection
 
-| Signal | Tier | What to do |
-|---|---|---|
-| "prototype", "local only", "just for me", "demo", no mention of deployment | **Local only** | No cloud infra needed. Add Docker Compose for reproducible local dev if useful. |
-| "deploy", "production", "share with team", "users will access" | **Deployed** | Add infrastructure + CI/CD phases to the plan. |
-| Unclear | **Ask the user** | "Do you need this deployed to the cloud, or is local-only fine for now?" |
+| Signal | Tier | Platform | What to do |
+|---|---|---|---|
+| "prototype", "local only", "just for me", "demo", no mention of deployment | **Local** | Docker Compose | PostgreSQL in container. No cloud infra. See [DOCKER.md](references/DOCKER.md). |
+| "deploy", "share", non-developer user, simple hosting needs | **Simple cloud** | Railway | `railway up` deploy with managed PostgreSQL. See [INFRASTRUCTURE_RAILWAY.md](references/INFRASTRUCTURE_RAILWAY.md). |
+| "production", "scale", "enterprise", advanced user, CI/CD needs | **Production** | AWS + SST | Full infrastructure with GitHub Actions CI/CD. See [INFRASTRUCTURE_AWS.md](references/INFRASTRUCTURE_AWS.md). |
+| Unclear | **Ask** | — | "How do you want to run this? Locally only, simple cloud deploy, or full production setup?" |
 
 ### Docker Development Environment
 
-For any tier, consider adding a Docker-based dev environment when the app has system-level dependencies (databases, browsers, native tools) or when a one-command reproducible setup benefits the team.
+For **all tiers**, consider adding a Docker-based dev environment. Even apps deploying to Railway or AWS benefit from a consistent local dev setup with Docker.
 
 | Signal | Docker? | Notes |
 |---|---|---|
@@ -110,41 +112,16 @@ For any tier, consider adding a Docker-based dev environment when the app has sy
 
 When adding Docker, include a dedicated **Docker phase** in the plan. See [DOCKER.md](references/DOCKER.md) for templates covering frontend-only, backend-only, and fullstack apps, plus convenience scripts and best practices.
 
-### Infrastructure Preferences (when deployed)
-
-| Layer | Preferred | Notes |
-|---|---|---|
-| Cloud provider | AWS | All infrastructure on AWS |
-| IaC framework | SST (built on Pulumi) | High-level components, minimal AWS knowledge needed |
-| CI/CD | GitHub Actions | Simple workflow: push -> build -> deploy |
-| Environments | Branch-based stages | `main` -> production, `dev` -> staging, PR -> preview |
-
-**Why SST:** SST provides app-level abstractions (`StaticSite`, `Api`, `Function`, `Dynamo`, etc.) that handle IAM, networking, and CDN configuration automatically. A fullstack app can be defined in ~30-50 lines in `sst.config.ts`. This is dramatically simpler than raw CDK or Pulumi, which require 200-400 lines and deep AWS knowledge.
-
-**SST maintenance note:** SST v4 is stable and open-source. Built on Pulumi, so migration to raw Pulumi is straightforward if needed.
-
-### The Ideal Flow
-
-```
-Developer writes code
-  → git push to GitHub
-    → GitHub Actions triggers
-      → runs typecheck + tests
-        → if pass: sst deploy --stage <branch-name>
-          → app is live
-```
-
 ### Infrastructure Phase in Plans
 
-When the deployment tier is "deployed", add an **infrastructure phase** to the plan. This phase should:
+When the deployment tier is **Simple cloud** or **Production**, add an **infrastructure phase** to the plan. The phase content depends on the tier:
 
-1. **Initialize SST** — `sst.config.ts` defining all resources (static site, API, database, etc.)
-2. **Configure GitHub Actions** — workflow file with test + deploy steps
-3. **Set up environments** — production stage from `main`, staging from `dev`
-4. **Document secrets** — list required GitHub Actions secrets (AWS credentials, API keys)
-5. **Verify** — deploy to a dev stage and confirm the app works
+| Tier | Phase content | Reference |
+|---|---|---|
+| Simple cloud | Railway project setup, `railway.json` config, environment variables, database provisioning | [INFRASTRUCTURE_RAILWAY.md](references/INFRASTRUCTURE_RAILWAY.md) |
+| Production | SST config, GitHub Actions CI/CD, branch-based stages, AWS secrets | [INFRASTRUCTURE_AWS.md](references/INFRASTRUCTURE_AWS.md) |
 
-Infrastructure is the final phase (after tests pass), or a parallel track if someone is dedicated to it. See [INFRASTRUCTURE.md](references/INFRASTRUCTURE.md) for dependency graph, templates, and examples.
+Infrastructure is typically the final phase (after tests pass), or a parallel track if someone is dedicated to it. See the tier-specific reference file for templates and examples.
 
 ---
 

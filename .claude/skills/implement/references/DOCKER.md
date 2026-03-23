@@ -97,23 +97,31 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
     stdin_open: true
     tty: true
 
-  # Add database service if needed:
-  # db:
-  #   image: postgres:17
-  #   environment:
-  #     POSTGRES_USER: dev
-  #     POSTGRES_PASSWORD: dev
-  #     POSTGRES_DB: <app-name>
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
+  db:
+    image: postgres:17
+    container_name: <app-name>-db
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: <app-name>
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-# volumes:
-#   pgdata:
+volumes:
+  pgdata:
 ```
 
 ### Fullstack App
@@ -143,8 +151,31 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
     stdin_open: true
     tty: true
+
+  db:
+    image: postgres:17
+    container_name: <app-name>-db
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: <app-name>
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
 ```
 
 ### Fullstack App with Playwright (E2E-ready)
@@ -176,8 +207,31 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
     stdin_open: true
     tty: true
+
+  db:
+    image: postgres:17
+    container_name: <app-name>-db
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: <app-name>
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
 ```
 
 ---
@@ -343,12 +397,12 @@ Report: files created/modified, container status, and any issues encountered.
 
 ## Adapting for App Type
 
-| App type | Base image | Ports | Volumes | Extra services |
+| App type | Base image | Ports | Volumes | Database |
 |---|---|---|---|---|
 | Frontend only | `node:24-bookworm` | Dev server (e.g., 5173) | `.:/app`, `/app/node_modules` | None |
-| Backend only | `node:24-bookworm` | API (e.g., 4000) | `.:/app`, `/app/node_modules` | Database if needed |
-| Fullstack | `node:24-bookworm` | API + dev server | `.:/app`, `/app/node_modules` | Database if needed |
-| With Playwright E2E | `mcr.microsoft.com/playwright:v<ver>-noble` | API + dev server | `.:/app`, `/app/node_modules` | None (browsers in image) |
+| Backend only | `node:24-bookworm` | API (e.g., 4000) | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+| Fullstack | `node:24-bookworm` | API + dev server | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+| With Playwright E2E | `mcr.microsoft.com/playwright:v<ver>-noble` | API + dev server | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
 
 ## Docker Commands Reference
 

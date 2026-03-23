@@ -1,254 +1,95 @@
-# Infrastructure & CI/CD Templates
+# Infrastructure Overview
 
-Reference for adding infrastructure and deployment phases to implementation plans.
+Reference for choosing and configuring the right deployment tier.
 
 ---
 
-## SST Configuration
+## Deployment Tiers
 
-SST uses a single `sst.config.ts` file to define all infrastructure. Components are high-level abstractions — you describe *what* you want, not *how* to wire AWS services.
+This project supports three deployment tiers. Choose based on the user's needs and technical comfort level.
 
-### Minimal fullstack app (`sst.config.ts`)
+### Tier 1 — Local Only
 
-```typescript
-/// <reference path="./.sst/platform/config.d.ts" />
+**When:** Prototyping, learning, demos, personal tools, no mention of deployment.
 
-export default $config({
-  app(input) {
-    return {
-      name: "my-app",
-      removal: input?.stage === "production" ? "retain" : "remove",
-      home: "aws",
-    };
-  },
-  async run() {
-    // Database
-    const table = new sst.aws.Dynamo("Table", {
-      fields: { pk: "string", sk: "string" },
-      primaryIndex: { hashKey: "pk", rangeKey: "sk" },
-    });
+**Platform:** Docker Compose with PostgreSQL in a container.
 
-    // API
-    const api = new sst.aws.Function("Api", {
-      handler: "src/server/index.handler",
-      link: [table],
-      url: true,
-    });
+**What to do:**
+- Add a Docker phase using [DOCKER.md](DOCKER.md) templates
+- PostgreSQL runs as a `db` service in `docker-compose.yml`
+- No cloud accounts, no CI/CD, no deployment config
+- Everything runs with `docker compose up`
 
-    // Frontend
-    const site = new sst.aws.StaticSite("Web", {
-      path: ".",
-      build: {
-        command: "pnpm build",
-        output: "dist/client",
-      },
-      environment: {
-        VITE_API_URL: api.url,
-      },
-    });
+**Best for:** Non-developers exploring ideas, early prototyping, local-only tools.
 
-    return { url: site.url, api: api.url };
-  },
-});
+---
+
+### Tier 2 — Simple Cloud (Railway)
+
+**When:** User wants to share the app, deploy for others to access, or is a non-developer who needs simple hosting.
+
+**Platform:** [Railway](https://railway.com) — zero-config PaaS with `railway up` deployment.
+
+**What to do:**
+- Add a Railway infrastructure phase using [INFRASTRUCTURE_RAILWAY.md](INFRASTRUCTURE_RAILWAY.md)
+- Provision PostgreSQL as a Railway service (one-click)
+- Configure environment variables via Railway dashboard or CLI
+- Deploy via `railway up` or GitHub auto-deploy
+
+**Best for:** Non-developers, small teams, prototypes that need to be shared, apps that don't need enterprise-grade infrastructure.
+
+**Cost:** $5/month minimum (Hobby tier) with usage-based billing.
+
+---
+
+### Tier 3 — Production (AWS + SST)
+
+**When:** Production workloads, enterprise requirements, scaling needs, CI/CD pipelines, multiple environments.
+
+**Platform:** AWS via SST (built on Pulumi) with GitHub Actions CI/CD.
+
+**What to do:**
+- Add an AWS infrastructure phase using [INFRASTRUCTURE_AWS.md](INFRASTRUCTURE_AWS.md)
+- Define all resources in `sst.config.ts`
+- Set up GitHub Actions for automated test + deploy
+- Configure branch-based stages (`main` → production, `dev` → staging, PR → preview)
+
+**Best for:** Advanced users, production apps, teams needing CI/CD, compliance requirements, auto-scaling.
+
+**Cost:** Pay-as-you-go AWS pricing. Requires an AWS account with billing enabled.
+
+---
+
+## Tier Selection Guide
+
+| Signal | Tier |
+|---|---|
+| "just for me", "prototype", "demo", "local" | Local |
+| "deploy", "share", non-developer, "simple hosting" | Simple cloud |
+| "production", "scale", "enterprise", "CI/CD", advanced user | Production |
+| Unclear | Ask: "How do you want to run this? Locally only, simple cloud deploy, or full production setup?" |
+
+## Database Across Tiers
+
+PostgreSQL is the standard database across all tiers. This ensures zero migration friction when moving between tiers:
+
+| Tier | PostgreSQL setup |
+|---|---|
+| Local | `postgres:17` Docker container |
+| Simple cloud | Railway PostgreSQL service (one-click provisioning) |
+| Production | AWS RDS Aurora Serverless via `sst.aws.Postgres` |
+
+TypeORM entities and migrations work identically across all three.
+
+## Infrastructure Phase Placement
+
+Infrastructure is typically the **final phase** in a plan (after implementation and tests pass), or a **parallel track** if someone is dedicated to it.
+
+```
+Implementation phases (01–N)
+  └──► Unit tests (N+1)
+         └──► Infrastructure (N+2)    ← deploys the tested app
+                └──► E2E tests (last) ← runs against deployed or local app
 ```
 
-### Key SST concepts
-
-| Concept | What it does |
-|---|---|
-| `sst.config.ts` | Single file defining all infrastructure |
-| **Components** | High-level resources: `StaticSite`, `Function`, `Dynamo`, `Postgres`, `Bucket`, `Cron`, `Queue` |
-| **Linking** | `link: [table]` auto-grants permissions and injects connection info as env vars |
-| **Stages** | Each deploy target is a stage (e.g., `production`, `dev`, `pr-42`). Resources are isolated per stage. |
-| **`sst dev`** | Live development — proxies Lambda invocations to your local machine for instant feedback |
-| **`sst deploy`** | Deploy a stage to AWS |
-| **`sst remove`** | Tear down a stage |
-
-### Common components
-
-| Component | Use case |
-|---|---|
-| `sst.aws.StaticSite` | React/Vite frontend — auto-creates S3 + CloudFront |
-| `sst.aws.Function` | Lambda function — can expose via `url: true` for HTTP |
-| `sst.aws.ApiGatewayV2` | HTTP API with routes mapped to Lambda handlers |
-| `sst.aws.Dynamo` | DynamoDB table |
-| `sst.aws.Postgres` | RDS PostgreSQL (Aurora Serverless) |
-| `sst.aws.Bucket` | S3 bucket for file storage |
-| `sst.aws.Cron` | Scheduled Lambda execution |
-| `sst.aws.Queue` | SQS queue with Lambda consumer |
-
----
-
-## GitHub Actions Workflow
-
-### Simple deploy workflow (`.github/workflows/deploy.yml`)
-
-```yaml
-name: Deploy
-
-on:
-  push:
-    branches: [main, dev]
-  pull_request:
-    branches: [main]
-
-# Prevent concurrent deploys to the same stage
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  id-token: write   # For OIDC auth with AWS
-  contents: read
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm test
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: us-east-1
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Deploy to production
-        if: github.ref == 'refs/heads/main'
-        run: npx sst deploy --stage production
-
-      - name: Deploy to staging
-        if: github.ref == 'refs/heads/dev'
-        run: npx sst deploy --stage staging
-
-      - name: Deploy PR preview
-        if: github.event_name == 'pull_request'
-        run: npx sst deploy --stage pr-${{ github.event.number }}
-```
-
-### Required GitHub secrets
-
-| Secret | Value | How to get it |
-|---|---|---|
-| `AWS_ROLE_ARN` | IAM role ARN for OIDC | Create via AWS IAM with GitHub OIDC provider trust |
-| App-specific secrets | API keys, etc. | Set in GitHub repo settings > Secrets |
-
-### Branch-to-stage mapping
-
-| Branch/trigger | SST stage | Purpose |
-|---|---|---|
-| `main` | `production` | Live production environment |
-| `dev` | `staging` | Pre-production testing |
-| Pull request | `pr-<number>` | Isolated preview per PR |
-
----
-
-## Infrastructure Phase Template
-
-```markdown
-# Phase NN — Infrastructure & CI/CD
-
-You are setting up deployment infrastructure for [app name].
-
-**Context:** Phases 01–(NN-1) have built the complete application with passing tests. This phase adds SST infrastructure configuration and GitHub Actions for automated deployment.
-
-## Overview
-
-- Initialize SST in the project
-- Define infrastructure resources (static site, API, database)
-- Create GitHub Actions workflow (test -> deploy)
-- Configure environment-based stages
-- Deploy to a dev stage and verify
-
-## Steps
-
-### 1. Initialize SST
-
-Run `npx sst@latest init` in the project root, then customize `sst.config.ts`.
-
-**Files to create/modify:** `sst.config.ts`, `package.json` (adds sst dependency)
-
-[Include complete sst.config.ts tailored to the app's needs]
-
-### 2. Create GitHub Actions workflow
-
-**Files to create:** `.github/workflows/deploy.yml`
-
-[Include complete workflow file]
-
-### 3. Configure local development
-
-Update the dev workflow to use `sst dev` for live Lambda development:
-
-**Files to modify:** `package.json`
-
-[Update dev scripts if needed]
-
-### 4. Document deployment
-
-**Files to create/modify:** `README.md` or deployment docs
-
-Document:
-- Required AWS setup (IAM role, OIDC provider)
-- Required GitHub secrets
-- How to deploy manually (`npx sst deploy --stage <name>`)
-- How to tear down a stage (`npx sst remove --stage <name>`)
-
-## Verification
-
-[Deploy to a dev stage]
-[Verify the app is accessible at the output URL]
-[Verify GitHub Actions workflow syntax is valid]
-
-## When done
-
-Report: files created/modified, deploy URL, and any issues encountered.
-```
-
----
-
-## AWS Setup Checklist
-
-Before the first deploy, these AWS resources need to exist:
-
-1. **AWS account** with billing enabled
-2. **GitHub OIDC identity provider** in IAM (one-time setup)
-3. **IAM role** with trust policy for GitHub Actions and permissions for SST to manage resources
-4. **GitHub secrets** configured in the repository settings
-
-SST handles everything else (S3 buckets, CloudFront, Lambda, DynamoDB, IAM policies for the app) automatically.
-
----
-
-## Adapting for App Type
-
-| App type | SST components needed |
-|---|---|
-| Frontend only (static) | `StaticSite` |
-| Frontend + API (serverless) | `StaticSite` + `Function` (with `url: true`) or `ApiGatewayV2` |
-| Fullstack + database | `StaticSite` + `Function`/`ApiGatewayV2` + `Dynamo` or `Postgres` |
-| API only (no frontend) | `Function` or `ApiGatewayV2` |
-| Background jobs | `Cron`, `Queue` |
-
-For local-only/prototype apps, skip this entirely — use Docker Compose or `pnpm dev` instead.
+For simple cloud (Railway), the infrastructure phase is lightweight — often just 2-3 steps. For production (AWS), it's a full phase with SST config, GitHub Actions, and secrets management.
