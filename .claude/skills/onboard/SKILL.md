@@ -15,7 +15,8 @@ Interactive wizard that configures Claude Code based on who you are and how you 
 - `level-up`: Skip straight to re-picking your comfort level (same as choosing "Level up" in Step 0)
 - `reset`: Overwrite onboard sections in `~/.claude/CLAUDE.md` with fresh answers
 - `clear`: Remove all onboard sections and reset output style to Default — return to vanilla Claude Code
-- `show`: Display current profile without changes
+- `show`: Display current profile and memory summary without changes
+- `memory`: Show all saved memories and offer to keep or remove each one
 
 ## Workflow
 
@@ -25,7 +26,7 @@ Interactive wizard that configures Claude Code based on who you are and how you 
 2. If it exists and has a `<!-- onboard:about-me -->` marker (check for the HTML comment, NOT the `## About Me` heading — Expert profiles have empty About Me content):
    - Parse the current profile: detect the tier by matching the `<!-- onboard:about-me -->` section content against the About Me templates in PROFILES.md. For tier detection: "new to coding" → Guided, "building my skills" → Supported, "comfortable with code" → Standard, empty/minimal content → Expert.
    - Show the current profile summary including the detected tier
-   - If `show` argument was passed, display and stop
+   - If `show` argument was passed, also scan the memory directory (see Memory Summary below), display both profile and memory summary, then stop
    - Use **AskUserQuestion** to ask: "You're currently set to: [detected tier]. What would you like to do?"
      - Header: "Profile"
      - Options:
@@ -42,6 +43,7 @@ Interactive wizard that configures Claude Code based on who you are and how you 
    - **If "Remove profile"**: Jump to Clear Profile (below)
 3. If `reset` argument was passed, skip the question and proceed to Step 1
 4. If `clear` argument was passed, jump to Clear Profile (below)
+5. If `memory` argument was passed, jump to Memory Summary → `memory` Workflow (below)
 
 ### Clear Profile
 
@@ -51,6 +53,7 @@ Also clean up:
 - Delete `.claude/user-context.md` (project-level purpose file)
 - Delete the installed output style file from `~/.claude/output-styles/` (whichever one was installed: `beginner.md`, `supported.md`, `standard.md`, or `expert.md`)
 - Remove `"outputStyle"` from `~/.claude/settings.json` (or set to `""`)
+- Delete the `user_profile` memory file from `~/.claude/projects/<project-slug>/memory/` if it exists, and remove its entry from `MEMORY.md`
 - Tell the user: "Profile removed. Claude Code is back to default. Run `/onboard` anytime to set up again."
 
 ### Step 1a — Quick Re-tier (Level Up)
@@ -229,6 +232,68 @@ Header: "Your Profile"
 8. If safety posture recommends sandbox, show the user how to enable it:
    - "To enable sandbox mode, run `/sandbox` in Claude Code"
    - Show recommended `settings.json` additions if applicable
+
+## Memory Summary
+
+Used by `show` and `memory` arguments. Scans the auto memory directory at `~/.claude/projects/<project-slug>/memory/` (where `<project-slug>` is the repo path with `/` replaced by `-`).
+
+### How to Display
+
+1. Check if the memory directory exists. If not, show: "No saved memories for this project."
+2. If it exists, read `MEMORY.md` and all `.md` files in the directory (excluding `MEMORY.md`)
+3. For each memory file, extract the frontmatter (`name`, `description`, `type`) and display as a table:
+
+```
+Saved memories for this project:
+
+| # | Type     | Name              | Description                                    |
+|---|----------|-------------------|------------------------------------------------|
+| 1 | user     | user_profile      | Your onboarded profile — tier and preferences  |
+| 2 | feedback | feedback_no_mocks | Integration tests must use real database       |
+| 3 | project  | project_freeze    | Merge freeze begins 2026-03-27                 |
+
+3 memories saved. Use `/onboard memory` to review and clean up.
+```
+
+Adapt language to the user's tier:
+- **Guided/Supported**: "I've been remembering a few things from our past conversations. Here's what I have saved:"
+- **Standard/Expert**: Show the table directly.
+
+### `memory` Workflow
+
+Dedicated flow for reviewing and managing saved memories.
+
+1. Scan and display the memory table (as described above)
+2. If no memories exist, show "No saved memories" and stop
+3. Use **AskUserQuestion** to ask:
+
+**"What would you like to do?"**
+Header: "Saved Memories"
+
+| Option | Description |
+|---|---|
+| Review each one | Walk through each memory — I'll show the full content and you can keep or remove it |
+| Remove all | Delete all saved memories for this project |
+| Looks good | No changes needed — exit |
+
+4. **If "Review each one"**: For each memory file, show:
+   - The full content of the memory (not just the description)
+   - Use **AskUserQuestion**:
+
+   **"Keep this memory?"**
+   Header: "{memory name}"
+
+   | Option | Description |
+   |---|---|
+   | Keep it | This is still useful — leave it |
+   | Remove it | Delete this memory |
+   | Update it | Edit the content (ask what to change, then rewrite the file) |
+
+   After reviewing all memories, show a summary of what was kept/removed/updated.
+
+5. **If "Remove all"**: Confirm once ("Are you sure? This removes all saved memories for this project."), then delete all files in the memory directory including `MEMORY.md`.
+
+6. **If "Looks good"**: Exit without changes.
 
 ## Section Markers
 
