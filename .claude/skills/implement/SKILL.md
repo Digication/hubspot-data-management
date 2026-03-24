@@ -2,7 +2,7 @@
 name: implement
 description: Plan and execute implementation projects — from new apps to single features. Use when the user wants to create an implementation plan, execute an existing plan, build a new app, or add a feature. Evaluates complexity to decide between direct implementation vs. phased planning.
 metadata:
-  allowed-tools: Read, Write, Edit, Bash(pnpm:*), Bash(npx:*), Bash(git:*), Bash(node:*), Bash(mkdir:*), Bash(ls:*), Bash(cp:*), Bash(mv:*), Glob, Grep, Agent, TodoWrite
+  allowed-tools: Read, Write, Edit, Bash(pnpm:*), Bash(npx:*), Bash(git:*), Bash(node:*), Bash(mkdir:*), Bash(ls:*), Bash(cp:*), Bash(mv:*), Glob, Grep, Agent, TodoWrite, AskUserQuestion
 ---
 
 # Implementation Plan & Execute
@@ -16,6 +16,32 @@ Build new apps, add features, or update existing code. Evaluates complexity to d
 - `resume <plan-path> <phase>`: Resume execution from a specific phase.
 - `<description>`: Evaluate complexity and either plan or implement directly.
 - (no args): Auto-detect — look for an existing plan to execute, or ask what to build.
+
+## Pre-check: Dirty State
+
+Before any mode (direct, plan, or execute), check for uncommitted work:
+
+1. Run `git status --porcelain`
+2. If clean — proceed to Complexity Evaluation
+3. If dirty — use **AskUserQuestion** to ask:
+
+**"You have uncommitted changes. What should we do with them before starting?"**
+Header: "Uncommitted Work"
+
+| Option | Description |
+|---|---|
+| Stash them | Save changes to git stash — you can resume later with `/task resume` |
+| Commit as WIP | Create a work-in-progress commit on the current branch |
+| They're related | Keep them — these changes are part of this work |
+| Discard them | Throw away uncommitted changes (cannot be undone) |
+
+Actions:
+- **Stash**: `git stash push -u -m "pre-implement: {brief_description}"`
+- **Commit as WIP**: Stage all and commit `wip: {current_branch_context}` — do NOT push
+- **Related**: Keep changes, proceed as-is
+- **Discard**: Confirm once more ("Are you sure? This cannot be undone."), then `git checkout -- . && git clean -fd`
+
+---
 
 ## Complexity Evaluation
 
