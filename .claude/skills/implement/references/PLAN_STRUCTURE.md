@@ -177,6 +177,8 @@ Step 2: Phase 02 + Phase 03 (parallel)
 
 ## Environment Setup
 [Prerequisites before running any phase]
+- Shared Caddy proxy running (`docker network create web && cd ~/caddy && docker compose up -d`)
+- See CADDY.md for one-time setup
 
 ## Troubleshooting
 | Problem | Likely Cause | Fix |

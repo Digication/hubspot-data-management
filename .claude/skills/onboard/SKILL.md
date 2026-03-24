@@ -2,7 +2,7 @@
 name: onboard
 description: Interactive onboarding wizard that sets up a personalized Claude Code environment. Use when a user wants to introduce themselves, configure communication preferences, set up safety guardrails, or run first-time setup. Guides non-technical users through selectable options.
 metadata:
-  allowed-tools: Read, Write, Edit, Glob
+  allowed-tools: Read, Write, Edit, Glob, Bash(docker:*), Bash(mkdir:*), Bash(security:*)
 ---
 
 # Onboard — Personalized Claude Code Setup
@@ -232,6 +232,80 @@ Header: "Your Profile"
 8. If safety posture recommends sandbox, show the user how to enable it:
    - "To enable sandbox mode, run `/sandbox` in Claude Code"
    - Show recommended `settings.json` additions if applicable
+9. Proceed to Step 7 (Dev Environment)
+
+### Step 7 — Dev Environment (Caddy Reverse Proxy)
+
+Set up the shared Caddy reverse proxy so every Docker-based app gets a clean HTTPS domain (`https://myapp.localhost`) with no port conflicts. This is a one-time setup that benefits all future projects.
+
+**Skip this step if:**
+- Docker is not installed (`docker --version` fails)
+- Caddy is already running (`docker ps --filter name=caddy --format '{{.Names}}'` returns `caddy`)
+
+**Detection:**
+1. Run `docker --version` to check if Docker is available
+2. If Docker is available, check if the `caddy` container already exists and is running
+3. If Caddy is already running, skip this step silently
+4. If Docker is available but Caddy is not set up, proceed with the setup offer
+
+**Offer setup (adapt language to tier):**
+
+| Tier | How to ask |
+|---|---|
+| **Guided/Supported** | "One more thing — I'd like to set up something that makes working with apps much easier. It gives each app its own web address (like `https://myapp.localhost`) so you can run multiple apps at the same time without conflicts. This takes about a minute. Want me to set it up?" |
+| **Standard** | "Want me to set up the shared Caddy proxy? It gives each Docker app a unique `*.localhost` domain with automatic HTTPS — avoids port conflicts across projects." |
+| **Expert** | "Set up shared Caddy reverse proxy (caddy-docker-proxy) for `*.localhost` routing? One-time setup." |
+
+Use **AskUserQuestion**:
+- Header: "Dev Environment"
+- Options: "Set it up" / "Skip for now"
+
+**If "Set it up":**
+
+1. Create the shared Docker network:
+   ```bash
+   docker network create web 2>/dev/null
+   ```
+
+2. Create the Caddy directory and compose file:
+   ```bash
+   mkdir -p ~/caddy
+   ```
+   Write `~/caddy/docker-compose.yml` — see [CADDY.md](../implement/references/CADDY.md) for the compose file content.
+
+3. Start Caddy:
+   ```bash
+   cd ~/caddy && docker compose up -d
+   ```
+
+4. Wait for Caddy to generate its root CA (a few seconds), then extract and trust it:
+   ```bash
+   # Extract the root CA certificate
+   docker cp caddy:/data/caddy/pki/authorities/local/root.crt ~/caddy/caddy-root-ca.crt
+
+   # Add to macOS Keychain (requires password prompt)
+   sudo security add-trusted-cert -d -r trustRoot \
+     -k /Library/Keychains/System.keychain ~/caddy/caddy-root-ca.crt
+   ```
+
+   **Note:** The `sudo` command will prompt for the user's macOS password. Explain this to the user before running it:
+   - **Guided/Supported**: "Your Mac will ask for your password next — this is so it can trust the certificates that make `https://` work locally. This is safe and only happens once."
+   - **Standard/Expert**: "Adding Caddy's root CA to the system keychain — you'll see a password prompt."
+
+5. Verify the setup:
+   ```bash
+   docker ps --filter name=caddy --format 'Caddy is running: {{.Status}}'
+   ```
+
+6. Tell the user what was done:
+   - **Guided/Supported**: "All set! From now on, every app you build will get its own web address like `https://myapp.localhost`. You can see all your running apps at `http://localhost:2019/config/` (Caddy's admin page)."
+   - **Standard/Expert**: "Caddy proxy running. Apps will be accessible at `https://<name>.localhost` via Docker labels. See CADDY.md for label reference."
+
+7. Mention Firefox if relevant: "If you use Firefox, you'll need to import the certificate once — I can walk you through that when the time comes."
+
+**If "Skip for now":**
+- Tell the user: "No problem — you can set this up later. When you build your first app, I'll remind you."
+- The implement skill's Docker phase will detect that Caddy isn't running and offer setup at that point.
 
 ## Memory Summary
 

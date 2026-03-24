@@ -110,7 +110,7 @@ For **all tiers**, consider adding a Docker-based dev environment. Even apps dep
 | Team includes non-technical users or onboarding is frequent | **Yes** | Add convenience scripts (`.command` files) |
 | User explicitly says no Docker | **No** | Respect the preference |
 
-When adding Docker, include a dedicated **Docker phase** in the plan. See [DOCKER.md](references/DOCKER.md) for templates covering frontend-only, backend-only, and fullstack apps, plus convenience scripts and best practices.
+When adding Docker, include a dedicated **Docker phase** in the plan. See [DOCKER.md](references/DOCKER.md) for templates covering frontend-only, backend-only, and fullstack apps, plus convenience scripts and best practices. All Docker templates use [Caddy](references/CADDY.md) for domain-based routing with automatic HTTPS to avoid port conflicts.
 
 ### Infrastructure Phase in Plans
 
@@ -269,6 +269,7 @@ Use the EXECUTION_GUIDE.md's model recommendations if they exist. Default to `op
 
 ## Rules
 
+- **Use Caddy for local routing.** When adding Docker to a project, use Caddy labels for domain-based routing (`<app-name>.localhost`) instead of exposing host ports. This prevents port conflicts across multiple projects and provides automatic HTTPS. Do not expose ports directly from app containers. See [CADDY.md](references/CADDY.md) for the shared setup and [DOCKER.md](references/DOCKER.md) for per-project templates. Before starting a Docker phase, check if the `caddy` container is running (`docker ps --filter name=caddy`). If not, offer to set it up — the `/onboard` skill handles this during first-time setup, but users may have skipped it.
 - **Fresh context per phase.** Each sub-agent starts clean — never pass accumulated state between phases.
 - **Commit after each phase.** This provides a rollback safety net. Use message format: `Phase N: <description>`.
 - **Verification gates.** Never proceed to a dependent phase if verification failed.

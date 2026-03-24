@@ -46,6 +46,10 @@ Prefer using a pre-built image directly in `docker-compose.yml` (no custom Docke
 
 ## Docker Compose Templates
 
+All templates use **Caddy labels** for routing instead of exposing ports to the host. This eliminates port conflicts when running multiple apps simultaneously. Each app is accessed via `https://<app-name>.localhost` with automatic HTTPS. See [CADDY.md](CADDY.md) for the shared Caddy setup.
+
+> **Prerequisite:** The shared Caddy proxy and `web` Docker network must be running. See [CADDY.md](CADDY.md) for one-time setup.
+
 ### Frontend-Only App
 
 ```yaml
@@ -62,17 +66,27 @@ services:
         corepack prepare --activate &&
         pnpm install &&
         pnpm dev
-    ports:
-      - "<dev-port>:<dev-port>"
     volumes:
       - .:/app
       - /app/node_modules
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
+    labels:
+      caddy: <app-name>.localhost
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 5173}}"
+    networks:
+      - web
     stdin_open: true
     tty: true
+
+networks:
+  web:
+    external: true
 ```
+
+Access at: `https://<app-name>.localhost`
 
 ### Backend-Only App
 
@@ -92,14 +106,19 @@ services:
         pnpm dev
     env_file:
       - .env
-    ports:
-      - "<api-port>:<api-port>"
     volumes:
       - .:/app
       - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
+    labels:
+      caddy: <app-name>.localhost
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 4000}}"
+    networks:
+      - web
+      - default
     stdin_open: true
     tty: true
 
@@ -110,8 +129,6 @@ services:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
       POSTGRES_DB: <app-name>
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -119,10 +136,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+
+networks:
+  web:
+    external: true
 
 volumes:
   pgdata:
 ```
+
+Access at: `https://<app-name>.localhost`
+
+Database stays internal — no exposed ports. See [CADDY.md](CADDY.md) for how to access the DB from host tools when needed.
 
 ### Fullstack App
 
@@ -145,15 +172,20 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
-    ports:
-      - "<api-port>:<api-port>"
-      - "<dev-port>:<dev-port>"
     volumes:
       - .:/app
       - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
+    labels:
+      # Frontend route — Vite dev server
+      caddy: <app-name>.localhost
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 5173}}"
+    networks:
+      - web
+      - default
     stdin_open: true
     tty: true
 
@@ -164,8 +196,6 @@ services:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
       POSTGRES_DB: <app-name>
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -173,10 +203,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+
+networks:
+  web:
+    external: true
 
 volumes:
   pgdata:
 ```
+
+Access at: `https://<app-name>.localhost`
+
+For fullstack apps where both frontend and API run in one container, configure Vite's `server.proxy` in `vite.config.ts` to forward `/api/*` requests to the backend port internally. This avoids needing a separate API domain.
+
+If the API must be accessible separately (e.g., for mobile clients or external testing), split into two services — see [CADDY.md](CADDY.md) for the fullstack pattern with separate frontend and API routes.
 
 ### Fullstack App with Playwright (E2E-ready)
 
@@ -201,15 +243,19 @@ services:
     environment:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
-    ports:
-      - "<api-port>:<api-port>"
-      - "<dev-port>:<dev-port>"
     volumes:
       - .:/app
       - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
+    labels:
+      caddy: <app-name>.localhost
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 5173}}"
+    networks:
+      - web
+      - default
     stdin_open: true
     tty: true
 
@@ -220,8 +266,6 @@ services:
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
       POSTGRES_DB: <app-name>
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -229,6 +273,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - default
+
+networks:
+  web:
+    external: true
 
 volumes:
   pgdata:
@@ -380,13 +430,14 @@ Document:
 ## Verification
 
 ```bash
+docker network create web 2>/dev/null  # Ensure shared network exists
 docker compose up -d
 docker compose exec app pnpm --version
-# Verify dev server is accessible at http://localhost:<port>
+# Verify dev server is accessible at https://<app-name>.localhost (requires Caddy running)
 docker compose down
 ```
 
-Expected: Container starts, pnpm is available, dev server responds.
+Expected: Container starts, pnpm is available, dev server responds via Caddy domain.
 
 ## When done
 
@@ -397,12 +448,14 @@ Report: files created/modified, container status, and any issues encountered.
 
 ## Adapting for App Type
 
-| App type | Base image | Ports | Volumes | Database |
+| App type | Base image | Caddy route | Volumes | Database |
 |---|---|---|---|---|
-| Frontend only | `node:24-bookworm` | Dev server (e.g., 5173) | `.:/app`, `/app/node_modules` | None |
-| Backend only | `node:24-bookworm` | API (e.g., 4000) | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
-| Fullstack | `node:24-bookworm` | API + dev server | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
-| With Playwright E2E | `mcr.microsoft.com/playwright:v<ver>-noble` | API + dev server | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+| Frontend only | `node:24-bookworm` | `<app-name>.localhost` → :5173 | `.:/app`, `/app/node_modules` | None |
+| Backend only | `node:24-bookworm` | `<app-name>.localhost` → :4000 | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+| Fullstack | `node:24-bookworm` | `<app-name>.localhost` → :5173 (API via Vite proxy) | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+| With Playwright E2E | `mcr.microsoft.com/playwright:v<ver>-noble` | Same as fullstack | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
+
+No host ports are exposed from individual apps — Caddy handles all routing. See [CADDY.md](CADDY.md) for setup.
 
 ## Docker Commands Reference
 
