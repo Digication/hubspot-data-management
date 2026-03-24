@@ -46,9 +46,9 @@ Prefer using a pre-built image directly in `docker-compose.yml` (no custom Docke
 
 ## Docker Compose Templates
 
-All templates use **Caddy labels** for routing instead of exposing ports to the host. This eliminates port conflicts when running multiple apps simultaneously. Each app is accessed via `https://<app-name>.localhost` with automatic HTTPS. See [CADDY.md](CADDY.md) for the shared Caddy setup.
+All templates use **Caddy labels** for routing instead of exposing ports to the host. This eliminates port conflicts when running multiple apps simultaneously. Each app is accessed via `https://<app-name>.localhost` with automatic HTTPS. See [CADDY_ROUTING.md](CADDY_ROUTING.md) for the shared Caddy setup.
 
-> **Prerequisite:** The shared Caddy proxy and `web` Docker network must be running. See [CADDY.md](CADDY.md) for one-time setup.
+> **Prerequisite:** The shared Caddy proxy and `web` Docker network must be running. See [CADDY_ROUTING.md](CADDY_ROUTING.md) for one-time setup.
 
 ### Frontend-Only App
 
@@ -149,7 +149,7 @@ volumes:
 
 Access at: `https://<app-name>.localhost`
 
-Database stays internal — no exposed ports. See [CADDY.md](CADDY.md) for how to access the DB from host tools when needed.
+Database stays internal — no exposed ports. See [CADDY_ROUTING.md](CADDY_ROUTING.md) for how to access the DB from host tools when needed.
 
 ### Fullstack App
 
@@ -218,7 +218,7 @@ Access at: `https://<app-name>.localhost`
 
 For fullstack apps where both frontend and API run in one container, configure Vite's `server.proxy` in `vite.config.ts` to forward `/api/*` requests to the backend port internally. This avoids needing a separate API domain.
 
-If the API must be accessible separately (e.g., for mobile clients or external testing), split into two services — see [CADDY.md](CADDY.md) for the fullstack pattern with separate frontend and API routes.
+If the API must be accessible separately (e.g., for mobile clients or external testing), split into two services — see [CADDY_ROUTING.md](CADDY_ROUTING.md) for the fullstack pattern with separate frontend and API routes.
 
 ### Fullstack App with Playwright (E2E-ready)
 
@@ -455,7 +455,7 @@ Report: files created/modified, container status, and any issues encountered.
 | Fullstack | `node:24-bookworm` | `<app-name>.localhost` → :5173 (API via Vite proxy) | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
 | With Playwright E2E | `mcr.microsoft.com/playwright:v<ver>-noble` | Same as fullstack | `.:/app`, `/app/node_modules` | PostgreSQL (`postgres:17`) |
 
-No host ports are exposed from individual apps — Caddy handles all routing. See [CADDY.md](CADDY.md) for setup.
+No host ports are exposed from individual apps — Caddy handles all routing. See [CADDY_ROUTING.md](CADDY_ROUTING.md) for setup.
 
 ## Docker Commands Reference
 

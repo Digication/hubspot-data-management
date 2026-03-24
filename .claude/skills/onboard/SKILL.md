@@ -271,19 +271,24 @@ Use **AskUserQuestion**:
    ```bash
    mkdir -p ~/caddy
    ```
-   Write `~/caddy/docker-compose.yml` — see [CADDY.md](../implement/references/CADDY.md) for the compose file content.
+   Write `~/caddy/docker-compose.yml` — see [CADDY_SETUP.md](references/CADDY_SETUP.md) for the compose file content.
 
 3. Start Caddy:
    ```bash
    cd ~/caddy && docker compose up -d
    ```
 
-4. Wait for Caddy to generate its root CA (a few seconds), then extract and trust it:
-   ```bash
-   # Extract the root CA certificate
-   docker cp caddy:/data/caddy/pki/authorities/local/root.crt ~/caddy/caddy-root-ca.crt
+4. **Attempt** to extract and trust the root CA certificate. Caddy generates its CA during config provisioning — which only happens when a config containing `tls internal` is loaded. Since no app containers with Caddy labels are running yet, the cert likely doesn't exist yet.
 
-   # Add to macOS Keychain (requires password prompt)
+   ```bash
+   # Try to extract — may fail if no app has triggered cert generation yet
+   docker run --rm -v caddy_caddy_data:/data alpine \
+     sh -c "cat /data/caddy/pki/authorities/local/root.crt" \
+     > ~/caddy/caddy-root-ca.crt 2>/dev/null
+   ```
+
+   **If the cert exists** (file is non-empty), trust it immediately:
+   ```bash
    sudo security add-trusted-cert -d -r trustRoot \
      -k /Library/Keychains/System.keychain ~/caddy/caddy-root-ca.crt
    ```
@@ -291,6 +296,18 @@ Use **AskUserQuestion**:
    **Note:** The `sudo` command will prompt for the user's macOS password. Explain this to the user before running it:
    - **Guided/Supported**: "Your Mac will ask for your password next — this is so it can trust the certificates that make `https://` work locally. This is safe and only happens once."
    - **Standard/Expert**: "Adding Caddy's root CA to the system keychain — you'll see a password prompt."
+
+   **If the cert does not exist yet** (file is empty or extraction failed), defer and tell the user:
+   - **Guided/Supported**: "The security certificate will be created when you launch your first app. I'll help you trust it then — it's a one-time step."
+   - **Standard/Expert**: "Caddy's root CA is generated on first `tls internal` config load. Run these commands after your first app starts:"
+   ```bash
+   docker run --rm -v caddy_caddy_data:/data alpine \
+     sh -c "cat /data/caddy/pki/authorities/local/root.crt" \
+     > ~/caddy/caddy-root-ca.crt
+
+   sudo security add-trusted-cert -d -r trustRoot \
+     -k /Library/Keychains/System.keychain ~/caddy/caddy-root-ca.crt
+   ```
 
 5. Verify the setup:
    ```bash
