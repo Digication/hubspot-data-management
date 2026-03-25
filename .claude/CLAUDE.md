@@ -6,6 +6,15 @@
 - Commit messages: Conventional Commits format (`feat(scope): description`)
 - Skill quality pipeline (for skill authors): `/skill-dev review` → `/skill-dev test` → `/skill-dev integration plan` → fix → ship
 
+# CLAUDE.md File Roles
+- Root `CLAUDE.md` → **environment facts**: commands, dev setup, how to run things
+- `.claude/CLAUDE.md` → **behavioral rules and standards**: conventions, preferences, decision guidelines
+- When adding content, ask: is this a "how to operate" fact or a "how to think/decide" rule?
+- When referencing detailed content in a skill's reference doc, add only a short description and a path here — don't repeat the content. The reference doc is the source of truth.
+
+# Tech Stack Defaults
+When choosing libraries or setting up new apps, prefer this stack. When adding a dependency, prefer libraries compatible with these choices. Full details and guidelines: `skills/implement/references/TECH_STACK.md`
+
 # Memory Routing
 
 When saving learnings, route to the right destination. First match wins:
