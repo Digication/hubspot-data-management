@@ -125,122 +125,304 @@ function parseFrontmatter(content) {
   return [frontmatter, body];
 }
 
-function validateName(name, dirName, result) {
+// ---------------------------------------------------------------------------
+// Check functions — each returns { errors: [], warnings: [], info: [] }
+// ---------------------------------------------------------------------------
+
+function checkName(name, dirName) {
+  const results = { errors: [], warnings: [], info: [] };
+
   if (!name) {
-    result.addError('name field is required but missing');
-    return;
+    results.errors.push('name field is required but missing');
+    return results;
   }
 
   if (name.length > 64) {
-    result.addError(`name exceeds 64 characters (has ${name.length})`);
+    results.errors.push(`name exceeds 64 characters (has ${name.length})`);
   }
 
   if (!/^[a-z0-9-]+$/.test(name)) {
-    result.addError('name must contain only lowercase letters, numbers, and hyphens');
+    results.errors.push('name must contain only lowercase letters, numbers, and hyphens');
   }
 
-  if (name.startsWith('-')) result.addError('name cannot start with a hyphen');
-  if (name.endsWith('-')) result.addError('name cannot end with a hyphen');
-  if (name.includes('--')) result.addError('name cannot contain consecutive hyphens');
+  if (name.startsWith('-')) results.errors.push('name cannot start with a hyphen');
+  if (name.endsWith('-')) results.errors.push('name cannot end with a hyphen');
+  if (name.includes('--')) results.errors.push('name cannot contain consecutive hyphens');
 
   if (name !== dirName) {
-    result.addError(`name '${name}' must match parent directory '${dirName}'`);
+    results.errors.push(`name '${name}' must match parent directory '${dirName}'`);
   }
+
+  return results;
 }
 
-function validateDescription(description, result) {
+function checkDescription(description) {
+  const results = { errors: [], warnings: [], info: [] };
+
   if (!description) {
-    result.addError('description field is required but missing');
-    return;
+    results.errors.push('description field is required but missing');
+    return results;
   }
 
   if (description.length > 1024) {
-    result.addError(`description exceeds 1024 characters (has ${description.length})`);
+    results.errors.push(`description exceeds 1024 characters (has ${description.length})`);
   }
 
   if (description.length < 50) {
-    result.addWarning('description seems too short - consider adding more detail');
+    results.warnings.push('description seems too short - consider adding more detail');
   }
 
   const descLower = description.toLowerCase();
 
   for (const phrase of ['i can', 'i will', 'i help', "i'm"]) {
     if (descLower.includes(phrase)) {
-      result.addWarning(`description uses first person ('${phrase}') - prefer third person`);
+      results.warnings.push(`description uses first person ('${phrase}') - prefer third person`);
       break;
     }
   }
 
   const triggerPhrases = ['use when', 'use for', 'use this', 'when the user', 'if the user', 'when asked', 'trigger on'];
   if (!triggerPhrases.some(phrase => descLower.includes(phrase))) {
-    result.addWarning("description should include 'when to use' indicators for discovery");
+    results.warnings.push("description should include 'when to use' indicators for discovery");
   }
 
   // Check if description reads like a summary vs trigger phrases
   const sentences = description.split(/[.!]/).filter(s => s.trim().length > 0);
   const avgSentenceLen = sentences.reduce((sum, s) => sum + s.trim().split(/\s+/).length, 0) / sentences.length;
   if (sentences.length <= 2 && avgSentenceLen > 15) {
-    result.addWarning('description may be a summary rather than trigger phrases - consider listing specific phrases users might say');
+    results.warnings.push('description may be a summary rather than trigger phrases - consider listing specific phrases users might say');
   }
+
+  return results;
 }
 
-function validateBody(body, result) {
-  const lineCount = body.split('\n').length;
-  result.addInfo(`SKILL.md body has ${lineCount} lines`);
+function checkAllowedTools(metadata) {
+  const results = { errors: [], warnings: [], info: [] };
 
-  if (lineCount > 500) {
-    result.addWarning(`SKILL.md has ${lineCount} lines - consider keeping under 500`);
-  }
-
-  // Check for Gotchas section
-  if (/^##\s+Gotchas/m.test(body)) {
-    result.addInfo('Gotchas section found');
-  } else {
-    result.addWarning('No ## Gotchas section found - consider adding real failure patterns Claude has hit');
-  }
-}
-
-function validateAllowedTools(frontmatter, result) {
   // Check in both top-level and nested metadata
-  const tools = frontmatter['allowed-tools']
-    || (frontmatter.metadata && frontmatter.metadata['allowed-tools'])
+  const tools = metadata['allowed-tools']
+    || (metadata.metadata && metadata.metadata['allowed-tools'])
     || '';
 
-  if (!tools) return;
+  if (!tools) return results;
 
   // Flag bare "Bash" without command restriction
   const toolList = tools.split(',').map(t => t.trim());
   for (const tool of toolList) {
     if (tool === 'Bash') {
-      result.addWarning('allowed-tools includes bare "Bash" (too permissive) - use Bash(command:*) for specific commands');
+      results.warnings.push('allowed-tools includes bare "Bash" (too permissive) - use Bash(command:*) for specific commands');
     }
   }
+
+  return results;
 }
 
-function validateReferencedFiles(body, skillDir, result) {
-  // Find markdown links like [text](path) and check if files exist
-  const linkPattern = /\[([^\]]*)\]\(([^)]+)\)/g;
+function checkBody(body) {
+  const results = { errors: [], warnings: [], info: [] };
+
+  const lineCount = body.split('\n').length;
+  results.info.push(`SKILL.md body has ${lineCount} lines`);
+
+  if (lineCount > 500) {
+    results.warnings.push(`SKILL.md has ${lineCount} lines - consider keeping under 500`);
+  }
+
+  // Check for Gotchas section
+  if (/^##\s+Gotchas/m.test(body)) {
+    results.info.push('Gotchas section found');
+  } else {
+    results.warnings.push('No ## Gotchas section found - consider adding real failure patterns Claude has hit');
+  }
+
+  return results;
+}
+
+function checkReferences(body, skillPath) {
+  const results = { errors: [], warnings: [], info: [] };
+
+  // Find all markdown links: [text](path)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   let match;
-  while ((match = linkPattern.exec(body)) !== null) {
+
+  while ((match = linkRegex.exec(body)) !== null) {
+    const linkText = match[1];
     const linkPath = match[2];
-    // Skip URLs and anchors
+
+    // Skip external URLs, anchor links, and shell variable references
     if (linkPath.startsWith('http') || linkPath.startsWith('#') || linkPath.startsWith('$')) continue;
 
-    const resolved = path.resolve(skillDir, linkPath);
-    if (!fs.existsSync(resolved)) {
-      result.addError(`Referenced file not found: ${linkPath}`);
+    // Resolve relative to skill directory
+    const resolvedPath = path.resolve(path.dirname(skillPath), linkPath);
+
+    if (!fs.existsSync(resolvedPath)) {
+      results.errors.push(
+        `Broken link: [${linkText}](${linkPath}) — file not found at ${resolvedPath}`
+      );
     }
   }
+
+  return results;
 }
 
-function validateStructure(skillDir, result) {
+function checkDecisionTables(body) {
+  const results = { errors: [], warnings: [], info: [] };
+
+  // Detect markdown tables (lines starting with |)
+  const lines = body.split('\n');
+  const tables = [];
+  let currentTable = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('|') && line.endsWith('|')) {
+      if (!currentTable) {
+        currentTable = { startLine: i + 1, rows: [] };
+      }
+      currentTable.rows.push(line);
+    } else if (currentTable) {
+      // Check if table has enough rows to be a decision table (header + separator + 2+ data rows)
+      if (currentTable.rows.length >= 4) {
+        tables.push(currentTable);
+      }
+      currentTable = null;
+    }
+  }
+  // Don't forget the last table if file ends with one
+  if (currentTable && currentTable.rows.length >= 4) {
+    tables.push(currentTable);
+  }
+
+  if (tables.length > 0) {
+    results.info.push(`Found ${tables.length} table(s) with 2+ data rows`);
+
+    // Check if body contains evaluation order keywords near any table
+    const orderKeywords = [
+      'first match wins',
+      'top to bottom',
+      'evaluated in order',
+      'precedence',
+      'priority order',
+      'first matching',
+      'evaluation order'
+    ];
+
+    const hasOrderSpec = orderKeywords.some(kw =>
+      body.toLowerCase().includes(kw)
+    );
+
+    if (!hasOrderSpec && tables.length > 0) {
+      results.warnings.push(
+        `${tables.length} decision table(s) found but no evaluation order specified. ` +
+        `Add "first match wins" or similar near tables that represent decision logic.`
+      );
+    }
+  }
+
+  return results;
+}
+
+function checkSafetyHooks(metadata, body) {
+  const results = { errors: [], warnings: [], info: [] };
+  const allowedTools = metadata?.metadata?.['allowed-tools'] || metadata?.['allowed-tools'] || '';
+
+  // Destructive git patterns that should have hooks
+  const destructivePatterns = [
+    'git commit',
+    'git push',
+    'git checkout --',
+    'git clean',
+    'git reset --hard',
+    'rm -rf',
+    'rm -r'
+  ];
+
+  const matchedPatterns = destructivePatterns.filter(pattern =>
+    allowedTools.includes(pattern)
+  );
+
+  if (matchedPatterns.length > 0) {
+    // Check if hooks section exists in body
+    const hasHooks = body.includes('hooks:') &&
+                     body.includes('PreToolUse:');
+    // Also check if the parsed frontmatter has hooks
+    const frontmatterHasHooks = metadata?.hooks?.PreToolUse;
+
+    if (!hasHooks && !frontmatterHasHooks) {
+      results.warnings.push(
+        `Skill uses destructive tools (${matchedPatterns.join(', ')}) ` +
+        `but has no PreToolUse hook. Consider adding a safety guard.`
+      );
+    }
+  }
+
+  return results;
+}
+
+function checkTransitions(body) {
+  const results = { errors: [], warnings: [], info: [] };
+
+  // Find transition phrases that imply a choice/prompt
+  const transitionPatterns = [
+    /(?:ask|offer|prompt).*?["']([^"']+)["']/gi,
+    /(?:if.*?yes|if.*?no)\s*[→>]/gi,
+    /\(yes\/no\)/gi,
+    /want to:.*?\n(?:\s*\([0-9]\)|\s*-\s)/gi
+  ];
+
+  let transitionCount = 0;
+  for (const pattern of transitionPatterns) {
+    const matches = body.match(pattern);
+    if (matches) transitionCount += matches.length;
+  }
+
+  if (transitionCount > 0) {
+    results.info.push(`Found ${transitionCount} transition/prompt point(s)`);
+
+    // Check for unmatched "if yes" without corresponding "if no"
+    const yesCount = (body.match(/if\s+\*?\*?yes\*?\*?\s*[→:—]/gi) || []).length;
+    const noCount = (body.match(/if\s+\*?\*?no\*?\*?\s*[→:—]/gi) || []).length;
+
+    if (yesCount > 0 && noCount === 0) {
+      results.warnings.push(
+        `Found ${yesCount} "if yes" transition(s) but no corresponding "if no" path. ` +
+        `Specify what happens when the user declines.`
+      );
+    }
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------------
+// Structure check (directory layout)
+// ---------------------------------------------------------------------------
+
+function checkStructure(skillDir) {
+  const results = { errors: [], warnings: [], info: [] };
+
   for (const dirName of ['scripts', 'references', 'assets']) {
     const dirPath = path.join(skillDir, dirName);
     if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
-      result.addInfo(`Found ${dirName}/ directory`);
+      results.info.push(`Found ${dirName}/ directory`);
     }
   }
+
+  return results;
 }
+
+// ---------------------------------------------------------------------------
+// Helper: merge a plain {errors, warnings, info} result into ValidationResult
+// ---------------------------------------------------------------------------
+
+function mergeInto(result, checks) {
+  checks.errors.forEach(e => result.addError(e));
+  checks.warnings.forEach(w => result.addWarning(w));
+  checks.info.forEach(i => result.addInfo(i));
+}
+
+// ---------------------------------------------------------------------------
+// Main validation entry point
+// ---------------------------------------------------------------------------
 
 function validateSkill(skillPath) {
   const result = new ValidationResult();
@@ -283,12 +465,17 @@ function validateSkill(skillPath) {
   }
 
   const dirName = path.basename(skillDir);
-  validateName(frontmatter.name || '', dirName, result);
-  validateDescription(frontmatter.description || '', result);
-  validateAllowedTools(frontmatter, result);
-  validateBody(body, result);
-  validateReferencedFiles(body, skillDir, result);
-  validateStructure(skillDir, result);
+
+  // Run all checks and merge results
+  mergeInto(result, checkName(frontmatter.name || '', dirName));
+  mergeInto(result, checkDescription(frontmatter.description || ''));
+  mergeInto(result, checkAllowedTools(frontmatter));
+  mergeInto(result, checkBody(body));
+  mergeInto(result, checkReferences(body, skillMd));
+  mergeInto(result, checkDecisionTables(body));
+  mergeInto(result, checkSafetyHooks(frontmatter, content));
+  mergeInto(result, checkTransitions(body));
+  mergeInto(result, checkStructure(skillDir));
 
   return result;
 }

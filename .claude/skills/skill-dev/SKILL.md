@@ -27,8 +27,11 @@ Unified skill for the skill quality pipeline. Three modes, run in order:
 ## Arguments
 
 - `review <skill-name>`: Static quality review against checklist
-- `test <skill-name>`: Behavioral dry-run with fresh-context agents
-- `test <skill-name> <scenario>`: Run a single named scenario only (skip scenario design, run one agent, produce abbreviated report with no cross-scenario analysis)
+- `test <skill-name>`: Run Layers 1-3 (structural + golden dataset + LLM-judge)
+- `test <skill-name> --layer <1|2|3>`: Run only the specified layer
+- `test <skill-name> --explore`: Run Layer 4 (exploratory discovery with fresh agents)
+- `test <skill-name> --full`: Run all 4 layers
+- `test <skill-name> <scenario>`: Run a single named scenario from the golden dataset (Layer 2 only)
 - `integration plan <skill-name>`: Create real-world integration test plan
 - `integration evaluate`: Read test results and propose fixes
 - `<skill-name>`: Auto-detect — review first, then offer to test (see Auto-Detect Flow below)
@@ -92,26 +95,67 @@ Finish with self-critique per [SELF_CRITIQUE.md](references/SELF_CRITIQUE.md) �
 
 ---
 
-## Mode 2: Test (Dry-Run)
+## Mode 2: Test
 
-Spawn fresh-context agents to simulate skill execution with defined test scenarios. Each agent reads the skill from scratch and traces through the logic.
+Multi-layer testing system. Each layer catches different kinds of issues. See [EVAL_LAYERS.md](references/EVAL_LAYERS.md) for the full layer reference.
 
-### Workflow
+### Layer Overview
 
-1. **Identify the skill** — locate `.claude/skills/<skill-name>/SKILL.md`, read it and all references
+| Layer | What | Speed | Deterministic? |
+|---|---|---|---|
+| 1 — Structural | `validate-skill.mjs` checks | Instant | Yes |
+| 2 — Golden Dataset | YAML fixtures with property assertions | Seconds | Yes |
+| 3 — LLM-as-Judge | Rubric-based quality evaluation | Minutes | Semi (3x majority vote) |
+| 4 — Exploratory | Fresh agents finding unknown issues | Minutes | No |
 
-2. **Design test scenarios** covering:
+### Default Workflow (`/skill-dev test <skill>`)
 
-   | Category | What to test |
-   |---|---|
-   | Happy path | Most common expected usage |
-   | Boundary cases | Edge of each decision branch |
-   | Override logic | User choice overriding a default |
-   | Combination gaps | Inputs that might fall through decision tables |
-   | Freeform input | "Other" or custom text responses |
-   | Idempotency | Running the skill twice with same inputs |
+1. **Layer 1: Structural validation**
+   - Run `node <skill-base-dir>/scripts/validate-skill.mjs <skill-path>`
+   - If FAIL → stop, report errors. Fix before proceeding.
 
-   Scenario count: simple skills 2–3, decision-heavy 4–6, complex 6–8. Present scenarios for approval before running, using this format:
+2. **Layer 2: Golden dataset**
+   - Load `<skill>/tests/eval.yaml` (see [FIXTURE_FORMAT.md](references/FIXTURE_FORMAT.md))
+   - For each test case, spawn a read-only agent (Read, Glob, Grep only) with the case's inputs
+   - Check agent output against deterministic assertions: `contains`, `regex`, `not-contains`, `contains-all`, `contains-any`, `decision-trace`
+   - If any case FAILs → stop, report failures with assertion details
+   - If no fixture file exists → skip Layer 2, warn: "No golden dataset found. Run `--explore` to create one."
+
+3. **Layer 3: LLM-as-Judge**
+   - For each `llm-rubric` assertion in the fixture file, spawn a judge agent with the rubric from [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md)
+   - Run each rubric **3 times** with fresh context. Majority vote (2/3) determines verdict.
+   - Report: rubric name, 3 verdicts, final verdict, reasoning from the deciding vote
+   - If any rubric FAILs → report as warning (non-blocking unless `--strict` flag)
+
+4. **Generate report** — consolidated results across all layers:
+
+   ```markdown
+   # Eval Report: [skill-name]
+
+   ## Layer 1: Structural — [PASS/FAIL]
+   [Validator output summary]
+
+   ## Layer 2: Golden Dataset — [PASS/FAIL]
+   | Case | Category | Verdict | Details |
+   |---|---|---|---|
+   [Per-case results]
+
+   ## Layer 3: LLM-as-Judge — [PASS/FAIL]
+   | Rubric | Run 1 | Run 2 | Run 3 | Final |
+   |---|---|---|---|---|
+   [Per-rubric results]
+
+   ## Verdict: [PASS / FAIL / PARTIAL]
+   ```
+
+5. **Log results** — append to `${CLAUDE_PLUGIN_DATA}/skill-dev/reviews.log`
+
+### Exploratory Workflow (`/skill-dev test <skill> --explore`)
+
+Run Layer 4 only. This is the discovery tool for finding unknown issues with fresh agents:
+
+1. **Identify the skill** — read SKILL.md and all references
+2. **Design test scenarios** — same categories as before (happy path, boundary, override, combination gaps, freeform, idempotency). Present for approval using the table format:
 
    ```
    | # | Name | Category | What it tests |
@@ -121,20 +165,25 @@ Spawn fresh-context agents to simulate skill execution with defined test scenari
 
    Ask: "Ready to run these {N} scenarios? (yes/no)"
 
-3. **Run test agents** — for each scenario, spawn an Agent with:
-   - **Fresh context** — no conversation history
-   - **Read-only tools only** — `Read, Glob, Grep` (enforced via tool restriction, not just instruction)
-   - **Structured output** — require the format from [REPORT_FORMAT.md](references/REPORT_FORMAT.md)
-   - See [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) for the agent prompt template
+   Scenario count: simple skills 2-3, decision-heavy 4-6, complex 6-8.
 
-4. **Collect and analyze** — parse reports, cross-check consistency, identify issues:
-   - **Bug**: Wrong output
-   - **Ambiguity**: Agent had to guess
-   - **Gap**: Input combination not covered
+3. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md)
+4. **Collect findings** — classify as Bug, Ambiguity, or Gap
+5. **Convert findings to fixtures** — for each finding, ask:
+   "Want me to add this as a regression test? (yes/skip)"
+   - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions
+   - If skip: note in the report but don't add to fixtures
+6. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Fixtures Added" section
 
-5. **Generate test report** — consolidated report with scenarios, detailed results, cross-scenario analysis, issues summary, verdict (PASS/FAIL/PARTIAL)
+### Single Scenario (`/skill-dev test <skill> <scenario>`)
 
-6. **Self-critique** — follow [SELF_CRITIQUE.md](references/SELF_CRITIQUE.md): check scenario coverage and protocol effectiveness
+Run a single named case from the golden dataset (Layer 2 only):
+
+1. Load `<skill>/tests/eval.yaml`
+2. Find the case matching the scenario name
+3. If not found → list available case names and ask to pick one
+4. Spawn one agent with the case's inputs
+5. Check assertions, report results (no cross-case analysis)
 
 ---
 
@@ -188,6 +237,9 @@ Two-phase workflow for skills that touch the real file system, git, or global co
 - Skills that write to `~/.claude/` need a fake HOME in dry-run tests — agents forget this and report false passes.
 - Dynamic content injection (`!`\`...\``) commands must be single operations — pipes and chained commands fail the shell permission check. Use one simple command.
 - `${CLAUDE_PLUGIN_DATA}` resolves to `.plugin-data/` inside the skill's own directory (e.g., `.claude/skills/skill-dev/.plugin-data/`). Don't hardcode paths — use the variable. Test agents often fail to resolve this and report the log as missing.
+- Layer 2 fixtures can go stale — if a skill's behavior intentionally changes, update eval.yaml or tests will false-fail. When a Layer 2 case fails, always check: is it a real bug or an outdated fixture?
+- Layer 3 judge rubrics must have specific PASS/FAIL criteria — vague rubrics like "is it good?" produce inconsistent results. Every criterion needs a concrete condition.
+- Layer 4 findings are NOT a quality gate — they're discovery input. Don't block shipping on exploratory findings; convert them to Layer 2 cases first.
 
 ---
 
@@ -222,3 +274,7 @@ On each run:
 - **Dry-run for global state** — skills writing to `~/.claude/` should use a fake HOME
 - **Integration for git ops** — skills with git commands should use a temp clone
 - **Cleanup is mandatory** — every integration test must specify cleanup commands
+- **Layers run in order** — Layer 2 depends on Layer 1 passing. Layer 3 depends on Layer 2 passing. Layer 4 is independent.
+- **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
+- **Judge runs 3 times** — Layer 3 rubrics use majority vote (2/3) to handle LLM non-determinism. Never trust a single judge run.
+- **Explore then codify** — Layer 4 findings must be converted to Layer 2/3 cases to have lasting value. Raw exploratory results expire.

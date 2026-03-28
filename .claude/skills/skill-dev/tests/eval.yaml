@@ -1,0 +1,143 @@
+skill: skill-dev
+description: Golden dataset for skill-dev — regression tests from dry-run testing rounds
+last_updated: "2026-03-28"
+
+cases:
+  - name: "invalid-skill-shows-error"
+    description: "When skill name doesn't exist, show error with available skills list"
+    category: boundary
+    inputs:
+      command: "/skill-dev review nonexistent-skill"
+      state:
+        skill_exists: false
+    assert:
+      - type: contains
+        value: "not found"
+      - type: contains-any
+        values:
+          - "Available skills"
+          - "available skills"
+      - type: contains
+        value: "commit"
+      - type: contains
+        value: "onboard"
+      - type: contains-any
+        values:
+          - "Which skill"
+          - "which skill"
+    source: "Exploratory test 2026-03-28, scenario invalid-skill-name"
+
+  - name: "review-history-recent-no-changes"
+    description: "Recent review with no changes offers skip/re-review/cancel options"
+    category: boundary
+    inputs:
+      command: "/skill-dev review commit"
+      state:
+        reviews_log: "2026-03-25 | review | commit | PASS | 2 | Minor issues"
+        git_diff_empty: true
+        days_since_review: 3
+    assert:
+      - type: contains
+        value: "2026-03-25"
+      - type: contains
+        value: "PASS"
+      - type: contains-all
+        values:
+          - "Re-review"
+          - "Skip to testing"
+          - "Cancel"
+    source: "Exploratory test 2026-03-28, scenario review-history-recent — previously AMBIGUOUS, fixed"
+
+  - name: "auto-detect-bare-name-reviews-first"
+    description: "Bare skill name triggers review first, then offers to test"
+    category: happy-path
+    inputs:
+      command: "/skill-dev commit"
+      state:
+        skill_exists: true
+        reviews_log_empty: true
+    assert:
+      - type: contains-any
+        values:
+          - "Review complete"
+          - "review complete"
+      - type: contains-any
+        values:
+          - "test this skill"
+          - "dry-run"
+          - "Want me to test"
+    source: "Exploratory test 2026-03-28, scenario auto-detect-bare-name"
+
+  - name: "scenario-arg-runs-single"
+    description: "test <skill> <scenario> runs only that scenario with abbreviated report"
+    category: boundary
+    inputs:
+      command: "/skill-dev test onboard happy-path-beginner"
+      state:
+        skill_exists: true
+    assert:
+      - type: not-contains
+        value: "Cross-Scenario Analysis"
+      - type: contains-any
+        values:
+          - "happy-path-beginner"
+          - "single scenario"
+          - "abbreviated"
+    source: "Exploratory test 2026-03-28, scenario test-with-scenario-arg — previously AMBIGUOUS, fixed"
+
+  - name: "review-report-has-required-sections"
+    description: "Review mode produces report with all required sections"
+    category: happy-path
+    inputs:
+      command: "/skill-dev review commit"
+      state:
+        skill_exists: true
+        reviews_log_empty: true
+    assert:
+      - type: contains-all
+        values:
+          - "Skill Review:"
+          - "Summary"
+          - "Critical Issues"
+          - "Recommendations"
+          - "Suggestions"
+          - "Strengths"
+    source: "SKILL.md lines 82-89 define the required report format"
+
+  - name: "scenario-approval-table-format"
+    description: "Test mode presents scenarios in the specified table format before running"
+    category: happy-path
+    inputs:
+      command: "/skill-dev test commit"
+      state:
+        skill_exists: true
+    assert:
+      - type: contains-all
+        values:
+          - "Name"
+          - "Category"
+          - "What it tests"
+      - type: contains-any
+        values:
+          - "Ready to run"
+          - "ready to run"
+    source: "SKILL.md lines 114-122 define scenario approval format — added during fix round"
+
+  - name: "no-args-lists-skills"
+    description: "No arguments shows available skills and asks which one"
+    category: boundary
+    inputs:
+      command: "/skill-dev"
+      state: {}
+    assert:
+      - type: contains-any
+        values:
+          - "commit"
+          - "onboard"
+          - "task"
+      - type: contains-any
+        values:
+          - "Which skill"
+          - "which skill"
+          - "What would you like"
+    source: "Exploratory test 2026-03-28, scenario no-args-flow"

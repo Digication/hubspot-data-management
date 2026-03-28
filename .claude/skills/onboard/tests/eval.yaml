@@ -1,0 +1,78 @@
+skill: onboard
+description: Golden dataset for onboard skill — decision table coverage
+last_updated: "2026-03-28"
+
+cases:
+  - name: "full-mode-no-existing-files"
+    description: "No global or project files triggers full onboard flow"
+    category: happy-path
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: false
+    assert:
+      - type: decision-trace
+        input: "has_global=false, has_project=false"
+        rule: "Mode Detection"
+        result: "full"
+      - type: contains-any
+        values:
+          - "Guide me"
+          - "coding comfort"
+          - "step by step"
+    source: "SKILL.md Step 0 — mode detection for fresh users"
+
+  - name: "guided-tier-maximum-safety"
+    description: "Guided tier with any purpose produces maximum safety posture"
+    category: boundary
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: false
+        g1_answer: "Guide me step by step"
+        p1_answer: "Learning"
+    assert:
+      - type: decision-trace
+        input: "tier=Guided, purpose=Learning"
+        rule: "Safety Derivation Rule 1"
+        result: "Maximum safety"
+    source: "Safety derivation matrix row 1 — Guided + Any = Maximum safety"
+
+  - name: "expert-concise-minimal-safety"
+    description: "Expert tier with concise style produces minimal safety posture"
+    category: boundary
+    inputs:
+      command: "/onboard"
+      state:
+        g1_answer: "Stay out of my way"
+        g2_answer: "Be concise"
+        p1_answer: "Production"
+    assert:
+      - type: decision-trace
+        input: "tier=Expert, style=Concise, purpose=Production"
+        rule: "Safety Derivation Rule 6"
+        result: "Minimal"
+    source: "Safety derivation matrix row 6 — Expert + Concise = Minimal"
+
+  - name: "existing-profile-shows-options"
+    description: "When both global and project files exist, show existing profile and offer options"
+    category: boundary
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: true
+        has_project_user_context: true
+    assert:
+      - type: decision-trace
+        input: "has_global=true, has_project=true"
+        rule: "Mode Detection"
+        result: "existing"
+      - type: contains-any
+        values:
+          - "Level up"
+          - "Update"
+          - "Start fresh"
+          - "Keep"
+    source: "SKILL.md Step 0 — mode detection for returning users"

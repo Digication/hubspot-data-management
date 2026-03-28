@@ -1,0 +1,64 @@
+skill: implement
+description: Golden dataset for implement skill — complexity evaluation and mode detection
+last_updated: "2026-03-29"
+
+cases:
+  - name: "simple-change-goes-direct"
+    description: "A change touching 1-3 files should use direct implementation, not plan mode"
+    category: happy-path
+    inputs:
+      command: '/implement "Add a loading spinner to the login button"'
+      state:
+        estimated_files: 2
+    assert:
+      - type: not-contains
+        value: "plan"
+      - type: not-contains
+        value: "Phase"
+    source: "SKILL.md complexity table — 1-3 files = direct"
+
+  - name: "complex-change-suggests-plan"
+    description: "A change touching 10+ files should trigger plan mode"
+    category: boundary
+    inputs:
+      command: '/implement "Build a complete user authentication system with OAuth, session management, and role-based access control"'
+      state:
+        estimated_files: 15
+    assert:
+      - type: contains-any
+        values:
+          - "plan"
+          - "phased"
+          - "step-by-step"
+          - "Phase"
+    source: "SKILL.md complexity table — 10+ files = plan mode"
+
+  - name: "explicit-plan-overrides-complexity"
+    description: "User saying 'plan' forces plan mode even for simple changes"
+    category: override
+    inputs:
+      command: '/implement plan "Rename a variable"'
+      state:
+        estimated_files: 1
+    assert:
+      - type: contains-any
+        values:
+          - "plan"
+          - "Phase"
+          - "overview"
+    source: "SKILL.md — user explicitly says plan overrides complexity"
+
+  - name: "dirty-state-precheck"
+    description: "Uncommitted changes detected before any mode starts"
+    category: boundary
+    inputs:
+      command: '/implement "Add dark mode"'
+      state:
+        git_status: "modified: src/theme.js"
+    assert:
+      - type: contains-any
+        values:
+          - "uncommitted"
+          - "unsaved"
+          - "Stash"
+    source: "SKILL.md pre-check — dirty state handled before implementation"

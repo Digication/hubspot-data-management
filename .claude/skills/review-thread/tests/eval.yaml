@@ -1,0 +1,49 @@
+skill: review-thread
+description: Golden dataset for review-thread skill — independent verdict accuracy
+last_updated: "2026-03-29"
+
+cases:
+  - name: "correction-evaluated-independently"
+    description: "A user correction should be evaluated against evidence, not automatically accepted"
+    category: happy-path
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User said: 'Don't use bare Bash in allowed-tools.' Claude agreed and changed it."
+    assert:
+      - type: contains-any
+        values:
+          - "Confirmed"
+          - "Valid"
+          - "evidence"
+          - "verified"
+      - type: not-contains
+        value: "automatically"
+    source: "SKILL.md — independence over agreement, verify with evidence"
+
+  - name: "skepticism-default-not-all-valid"
+    description: "If every item comes back as Valid, the reviewer isn't being critical enough"
+    category: boundary
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "5 feedback items: all are minor style preferences that Claude agreed to immediately"
+    assert:
+      - type: contains-any
+        values:
+          - "Confirmed"
+          - "No Change Needed"
+          - "Inconclusive"
+    source: "SKILL.md — skepticism is default, not every change is justified"
+
+  - name: "verdict-requires-evidence"
+    description: "Every verdict must cite specific evidence (file, code, behavior)"
+    category: happy-path
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User corrected a function name from camelCase to snake_case"
+    assert:
+      - type: llm-rubric
+        value: "Every verdict in the review cites specific evidence — a file path, code snippet, documentation reference, or observed behavior. No verdict relies on 'it seems right' or 'user said so' alone."
+    source: "SKILL.md — must cite specific evidence for every verdict"

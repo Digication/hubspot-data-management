@@ -1,0 +1,54 @@
+skill: fact-check
+description: Golden dataset for fact-check skill — claim triage and verdict accuracy
+last_updated: "2026-03-29"
+
+cases:
+  - name: "hedged-claim-gets-checked"
+    description: "Claims with hedging language (I think, usually) should be extracted for verification"
+    category: happy-path
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "I think React 19 introduced server components. Usually you need to configure the bundler separately."
+    assert:
+      - type: contains-any
+        values:
+          - "React"
+          - "server components"
+      - type: contains-any
+        values:
+          - "Supported"
+          - "Contradicted"
+          - "Unverifiable"
+    source: "SKILL.md — hedged language triggers verification"
+
+  - name: "opinions-not-checked"
+    description: "Recommendations and opinions should not be fact-checked"
+    category: boundary
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "I recommend using TypeScript for this project. It would be better to split this into smaller files."
+    assert:
+      - type: contains-any
+        values:
+          - "Nothing to verify"
+          - "no verifiable"
+          - "opinions"
+          - "recommendations"
+    source: "SKILL.md — opinions/recommendations are not facts"
+
+  - name: "zero-claims-reports-nothing"
+    description: "When no verifiable claims exist, report nothing to verify"
+    category: boundary
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "Sure, I can help with that. Let me read the file first."
+    assert:
+      - type: contains-any
+        values:
+          - "Nothing to verify"
+          - "no verifiable"
+          - "no claims"
+    source: "SKILL.md — zero claims = early exit"

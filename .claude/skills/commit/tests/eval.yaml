@@ -1,0 +1,68 @@
+skill: commit
+description: Golden dataset for commit skill — regression tests from exploratory testing
+last_updated: "2026-03-28"
+
+cases:
+  - name: "clean-tree-stops-early"
+    description: "When working tree is clean, skill should stop and tell the user"
+    category: boundary
+    inputs:
+      command: "/commit"
+      state:
+        git_status: "clean"
+    assert:
+      - type: contains-any
+        values:
+          - "clean"
+          - "no changes"
+          - "nothing to commit"
+      - type: not-contains
+        value: "commit type"
+    source: "Exploratory test 2026-03-28, scenario boundary-no-changes"
+
+  - name: "conventional-commit-format"
+    description: "Generated commit message follows Conventional Commits format"
+    category: happy-path
+    inputs:
+      command: "/commit"
+      state:
+        git_status: "modified: src/auth.js"
+        git_diff: "Added login() function"
+        git_log: "feat(ui): add dashboard\nfix(api): handle null response"
+    assert:
+      - type: regex
+        value: "^(feat|fix|refactor|docs|test|chore|perf|build|ci|style|revert)"
+      - type: contains
+        value: ":"
+      - type: not-contains
+        value: "."
+    source: "Exploratory test 2026-03-28, scenario happy-path-single-feature"
+
+  - name: "user-approval-before-commit"
+    description: "Skill must ask for user approval before staging and committing"
+    category: happy-path
+    inputs:
+      command: "/commit"
+      state:
+        git_status: "modified: src/auth.js"
+    assert:
+      - type: contains-any
+        values:
+          - "approval"
+          - "approve"
+          - "confirm"
+          - "look good"
+          - "proceed"
+    source: "SKILL.md step 9 requires approval gate"
+
+  - name: "scope-inference-from-files"
+    description: "Commit scope should be inferred from changed file paths"
+    category: happy-path
+    inputs:
+      command: "/commit"
+      state:
+        git_status: "modified: src/auth/login.js\nmodified: src/auth/logout.js"
+    assert:
+      - type: regex
+        value: "\\(auth\\)"
+    source: "SKILL.md step 1 — infer scope from changed files"

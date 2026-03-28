@@ -1,0 +1,54 @@
+skill: retrospective
+description: Golden dataset for retrospective skill — learning routing
+last_updated: "2026-03-29"
+
+cases:
+  - name: "skill-correction-routes-to-skill-file"
+    description: "When a skill behaved wrong, the fix should target the skill file"
+    category: happy-path
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User corrected the commit skill: it should always suggest a branch for production purposes"
+    assert:
+      - type: contains-any
+        values:
+          - "skill file"
+          - "SKILL.md"
+          - "commit"
+      - type: not-contains
+        value: "memory"
+    source: "SKILL.md routing table — skill correction → edit skill file"
+
+  - name: "personal-preference-routes-to-memory"
+    description: "Personal preferences should be saved to auto memory, not skill files"
+    category: boundary
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User prefers terse responses with no trailing summaries"
+    assert:
+      - type: contains-any
+        values:
+          - "memory"
+          - "preference"
+          - "remember"
+      - type: not-contains
+        value: "CLAUDE.md"
+    source: "SKILL.md routing table — personal preference → auto memory (feedback type)"
+
+  - name: "no-learnings-found"
+    description: "When conversation has no corrections or preferences, report nothing"
+    category: boundary
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User asked to read a file and Claude read it. No corrections or preferences."
+    assert:
+      - type: contains-any
+        values:
+          - "nothing"
+          - "no learnings"
+          - "no corrections"
+          - "didn't find"
+    source: "Edge case — empty conversation with no feedback"

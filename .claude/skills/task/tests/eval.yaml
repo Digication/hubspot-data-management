@@ -1,0 +1,85 @@
+skill: task
+description: Golden dataset for task skill — context switching and dirty state handling
+last_updated: "2026-03-29"
+
+cases:
+  - name: "start-clean-tree-creates-branch"
+    description: "Starting a task on a clean tree creates a task branch without dirty-state prompt"
+    category: happy-path
+    inputs:
+      command: '/task start "Add login page"'
+      state:
+        git_status: "clean"
+    assert:
+      - type: not-contains
+        value: "uncommitted"
+      - type: contains-any
+        values:
+          - "task/add-login-page"
+          - "branch"
+    source: "SKILL.md start workflow — clean tree skips Step 2"
+
+  - name: "start-dirty-tree-asks-options"
+    description: "Starting a task with uncommitted changes presents 4 options"
+    category: boundary
+    inputs:
+      command: '/task start "Fix auth bug"'
+      state:
+        git_status: "modified: src/auth.js"
+    assert:
+      - type: contains-all
+        values:
+          - "Stash"
+          - "Commit"
+          - "Related"
+          - "Discard"
+    source: "SKILL.md Step 2 — 4 options for uncommitted changes"
+
+  - name: "discard-requires-double-confirm"
+    description: "Discard option requires a second confirmation before destroying changes"
+    category: boundary
+    inputs:
+      command: '/task start "New feature"'
+      state:
+        git_status: "modified: src/auth.js"
+        user_choice: "Discard"
+    assert:
+      - type: contains-any
+        values:
+          - "Are you sure"
+          - "cannot be undone"
+          - "confirm"
+    source: "SKILL.md Step 2 — double-confirm safety gate for discard"
+
+  - name: "status-no-args-shows-state"
+    description: "Running task with no args shows current working state"
+    category: happy-path
+    inputs:
+      command: "/task"
+      state:
+        git_status: "clean"
+        current_branch: "main"
+    assert:
+      - type: contains-any
+        values:
+          - "main"
+          - "branch"
+          - "status"
+          - "working"
+    source: "SKILL.md — no args or status shows current state"
+
+  - name: "resume-no-tasks-found"
+    description: "Resume with no task branches or stashes reports nothing to resume"
+    category: boundary
+    inputs:
+      command: "/task resume"
+      state:
+        task_branches: []
+        stash_list: []
+    assert:
+      - type: contains-any
+        values:
+          - "No paused tasks"
+          - "no tasks"
+          - "nothing to resume"
+    source: "SKILL.md resume workflow — empty state edge case"
