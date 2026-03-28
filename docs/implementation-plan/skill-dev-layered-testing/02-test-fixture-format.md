@@ -2,14 +2,14 @@
 
 You are creating the test fixture format and initial golden datasets for the skill-dev testing system in the claude-blueprint project.
 
-**Context:** Phase 01 enhanced the structural validator with new deterministic checks. This phase defines the YAML format for Layer 2 (Golden Dataset) test cases and creates initial fixtures for 3 skills. These fixtures contain specific input/output assertions that produce the same results every run — unlike the current exploratory approach.
+**Context:** Phase 01 enhanced the structural validator with new deterministic checks. This phase defines the YAML format for Layer 2 (Golden Dataset) test cases and creates initial fixtures for all 8 skills. These fixtures contain specific input/output assertions that produce the same results every run — unlike the current exploratory approach.
 
 ## Overview
 
 - Define the YAML test fixture format (inspired by promptfoo but adapted for skill testing)
 - Create a reference doc explaining the format (`FIXTURE_FORMAT.md`)
-- Write golden dataset fixtures for `commit`, `onboard`, and `skill-dev` skills
-- Each fixture captures real bugs found during previous exploratory testing
+- Write golden dataset fixtures for all 8 skills: `commit`, `onboard`, `skill-dev` (rich — from exploratory findings), plus `task`, `implement`, `fact-check`, `retrospective`, `review-thread` (baseline — from reading their SKILL.md)
+- Each fixture captures real bugs (for explored skills) or key decision paths (for new skills)
 
 ## Steps
 
@@ -434,20 +434,357 @@ cases:
     source: "SKILL.md Step 0 — mode detection for returning users"
 ```
 
+### 5. Create golden dataset for `task` skill
+
+**Files to create:** `.claude/skills/task/tests/eval.yaml`
+
+```yaml
+skill: task
+description: Golden dataset for task skill — context switching and dirty state handling
+
+cases:
+  - name: "start-clean-tree-creates-branch"
+    description: "Starting a task on a clean tree creates a task branch without dirty-state prompt"
+    category: happy-path
+    inputs:
+      command: '/task start "Add login page"'
+      state:
+        git_status: "clean"
+    assert:
+      - type: not-contains
+        value: "uncommitted"
+      - type: contains-any
+        values:
+          - "task/add-login-page"
+          - "branch"
+    source: "SKILL.md start workflow — clean tree skips Step 2"
+
+  - name: "start-dirty-tree-asks-options"
+    description: "Starting a task with uncommitted changes presents 4 options"
+    category: boundary
+    inputs:
+      command: '/task start "Fix auth bug"'
+      state:
+        git_status: "modified: src/auth.js"
+    assert:
+      - type: contains-all
+        values:
+          - "Stash"
+          - "Commit"
+          - "Related"
+          - "Discard"
+    source: "SKILL.md Step 2 — 4 options for uncommitted changes"
+
+  - name: "discard-requires-double-confirm"
+    description: "Discard option requires a second confirmation before destroying changes"
+    category: boundary
+    inputs:
+      command: '/task start "New feature"'
+      state:
+        git_status: "modified: src/auth.js"
+        user_choice: "Discard"
+    assert:
+      - type: contains-any
+        values:
+          - "Are you sure"
+          - "cannot be undone"
+          - "confirm"
+    source: "SKILL.md Step 2 — double-confirm safety gate for discard"
+
+  - name: "status-no-args-shows-state"
+    description: "Running task with no args shows current working state"
+    category: happy-path
+    inputs:
+      command: "/task"
+      state:
+        git_status: "clean"
+        current_branch: "main"
+    assert:
+      - type: contains-any
+        values:
+          - "main"
+          - "branch"
+          - "status"
+          - "working"
+    source: "SKILL.md — no args or status shows current state"
+
+  - name: "resume-no-tasks-found"
+    description: "Resume with no task branches or stashes reports nothing to resume"
+    category: boundary
+    inputs:
+      command: "/task resume"
+      state:
+        task_branches: []
+        stash_list: []
+    assert:
+      - type: contains-any
+        values:
+          - "No paused tasks"
+          - "no tasks"
+          - "nothing to resume"
+    source: "SKILL.md resume workflow — empty state edge case"
+```
+
+### 6. Create golden dataset for `implement` skill
+
+**Files to create:** `.claude/skills/implement/tests/eval.yaml`
+
+```yaml
+skill: implement
+description: Golden dataset for implement skill — complexity evaluation and mode detection
+
+cases:
+  - name: "simple-change-goes-direct"
+    description: "A change touching 1-3 files should use direct implementation, not plan mode"
+    category: happy-path
+    inputs:
+      command: '/implement "Add a loading spinner to the login button"'
+      state:
+        estimated_files: 2
+    assert:
+      - type: not-contains
+        value: "plan"
+      - type: not-contains
+        value: "Phase"
+    source: "SKILL.md complexity table — 1-3 files = direct"
+
+  - name: "complex-change-suggests-plan"
+    description: "A change touching 10+ files should trigger plan mode"
+    category: boundary
+    inputs:
+      command: '/implement "Build a complete user authentication system with OAuth, session management, and role-based access control"'
+      state:
+        estimated_files: 15
+    assert:
+      - type: contains-any
+        values:
+          - "plan"
+          - "phased"
+          - "step-by-step"
+          - "Phase"
+    source: "SKILL.md complexity table — 10+ files = plan mode"
+
+  - name: "explicit-plan-overrides-complexity"
+    description: "User saying 'plan' forces plan mode even for simple changes"
+    category: override
+    inputs:
+      command: '/implement plan "Rename a variable"'
+      state:
+        estimated_files: 1
+    assert:
+      - type: contains-any
+        values:
+          - "plan"
+          - "Phase"
+          - "overview"
+    source: "SKILL.md — user explicitly says plan overrides complexity"
+
+  - name: "dirty-state-precheck"
+    description: "Uncommitted changes detected before any mode starts"
+    category: boundary
+    inputs:
+      command: '/implement "Add dark mode"'
+      state:
+        git_status: "modified: src/theme.js"
+    assert:
+      - type: contains-any
+        values:
+          - "uncommitted"
+          - "unsaved"
+          - "Stash"
+    source: "SKILL.md pre-check — dirty state handled before implementation"
+```
+
+### 7. Create golden dataset for `fact-check` skill
+
+**Files to create:** `.claude/skills/fact-check/tests/eval.yaml`
+
+```yaml
+skill: fact-check
+description: Golden dataset for fact-check skill — claim triage and verdict accuracy
+
+cases:
+  - name: "hedged-claim-gets-checked"
+    description: "Claims with hedging language (I think, usually) should be extracted for verification"
+    category: happy-path
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "I think React 19 introduced server components. Usually you need to configure the bundler separately."
+    assert:
+      - type: contains-any
+        values:
+          - "React"
+          - "server components"
+      - type: contains-any
+        values:
+          - "Supported"
+          - "Contradicted"
+          - "Unverifiable"
+    source: "SKILL.md — hedged language triggers verification"
+
+  - name: "opinions-not-checked"
+    description: "Recommendations and opinions should not be fact-checked"
+    category: boundary
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "I recommend using TypeScript for this project. It would be better to split this into smaller files."
+    assert:
+      - type: contains-any
+        values:
+          - "Nothing to verify"
+          - "no verifiable"
+          - "opinions"
+          - "recommendations"
+    source: "SKILL.md — opinions/recommendations are not facts"
+
+  - name: "zero-claims-reports-nothing"
+    description: "When no verifiable claims exist, report nothing to verify"
+    category: boundary
+    inputs:
+      command: "/fact-check"
+      state:
+        last_response: "Sure, I can help with that. Let me read the file first."
+    assert:
+      - type: contains-any
+        values:
+          - "Nothing to verify"
+          - "no verifiable"
+          - "no claims"
+    source: "SKILL.md — zero claims = early exit"
+```
+
+### 8. Create golden dataset for `retrospective` skill
+
+**Files to create:** `.claude/skills/retrospective/tests/eval.yaml`
+
+```yaml
+skill: retrospective
+description: Golden dataset for retrospective skill — learning routing
+
+cases:
+  - name: "skill-correction-routes-to-skill-file"
+    description: "When a skill behaved wrong, the fix should target the skill file"
+    category: happy-path
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User corrected the commit skill: it should always suggest a branch for production purposes"
+    assert:
+      - type: contains-any
+        values:
+          - "skill file"
+          - "SKILL.md"
+          - "commit"
+      - type: not-contains
+        value: "memory"
+    source: "SKILL.md routing table — skill correction → edit skill file"
+
+  - name: "personal-preference-routes-to-memory"
+    description: "Personal preferences should be saved to auto memory, not skill files"
+    category: boundary
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User prefers terse responses with no trailing summaries"
+    assert:
+      - type: contains-any
+        values:
+          - "memory"
+          - "preference"
+          - "remember"
+      - type: not-contains
+        value: "CLAUDE.md"
+    source: "SKILL.md routing table — personal preference → auto memory (feedback type)"
+
+  - name: "no-learnings-found"
+    description: "When conversation has no corrections or preferences, report nothing"
+    category: boundary
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User asked to read a file and Claude read it. No corrections or preferences."
+    assert:
+      - type: contains-any
+        values:
+          - "nothing"
+          - "no learnings"
+          - "no corrections"
+          - "didn't find"
+    source: "Edge case — empty conversation with no feedback"
+```
+
+### 9. Create golden dataset for `review-thread` skill
+
+**Files to create:** `.claude/skills/review-thread/tests/eval.yaml`
+
+```yaml
+skill: review-thread
+description: Golden dataset for review-thread skill — independent verdict accuracy
+
+cases:
+  - name: "correction-evaluated-independently"
+    description: "A user correction should be evaluated against evidence, not automatically accepted"
+    category: happy-path
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User said: 'Don't use bare Bash in allowed-tools.' Claude agreed and changed it."
+    assert:
+      - type: contains-any
+        values:
+          - "Confirmed"
+          - "Valid"
+          - "evidence"
+          - "verified"
+      - type: not-contains
+        value: "automatically"
+    source: "SKILL.md — independence over agreement, verify with evidence"
+
+  - name: "skepticism-default-not-all-valid"
+    description: "If every item comes back as Valid, the reviewer isn't being critical enough"
+    category: boundary
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "5 feedback items: all are minor style preferences that Claude agreed to immediately"
+    assert:
+      - type: contains-any
+        values:
+          - "Confirmed"
+          - "No Change Needed"
+          - "Inconclusive"
+    source: "SKILL.md — skepticism is default, not every change is justified"
+
+  - name: "verdict-requires-evidence"
+    description: "Every verdict must cite specific evidence (file, code, behavior)"
+    category: happy-path
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User corrected a function name from camelCase to snake_case"
+    assert:
+      - type: llm-rubric
+        value: "Every verdict in the review cites specific evidence — a file path, code snippet, documentation reference, or observed behavior. No verdict relies on 'it seems right' or 'user said so' alone."
+    source: "SKILL.md — must cite specific evidence for every verdict"
+```
+
 ## Verification
 
 ```bash
-# Check YAML is valid
-node -e "const yaml = require('yaml'); const fs = require('fs'); console.log(yaml.parse(fs.readFileSync('.claude/skills/commit/tests/eval.yaml', 'utf8')).cases.length + ' cases')"
-
-# Or if yaml isn't available, just check files exist
-ls -la .claude/skills/commit/tests/eval.yaml
-ls -la .claude/skills/onboard/tests/eval.yaml
-ls -la .claude/skills/skill-dev/tests/eval.yaml
+# Check all 8 fixture files exist
+for skill in commit onboard skill-dev task implement fact-check retrospective review-thread; do
+  if [ -f ".claude/skills/$skill/tests/eval.yaml" ]; then
+    echo "OK: $skill"
+  else
+    echo "MISSING: $skill"
+  fi
+done
 ```
 
-Expected: 3 fixture files created, valid YAML, combined ~30 test cases.
+Expected: 8 fixture files created, valid YAML, combined ~40 test cases across all skills.
 
 ## When done
 
-Report: files created (FIXTURE_FORMAT.md, 3 eval.yaml files), total test case count per skill, any issues with the format design.
+Report: files created (FIXTURE_FORMAT.md + 8 eval.yaml files), total test case count per skill, and any issues with the format design.

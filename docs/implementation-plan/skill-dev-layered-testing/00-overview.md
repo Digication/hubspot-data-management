@@ -81,12 +81,17 @@ Phase 02 ──────────► Phase 03 ──────► Phase 
 | Updated | `skills/skill-dev/references/TEST_PROTOCOL.md` |
 | Updated | `skills/skill-dev/references/REPORT_FORMAT.md` |
 
-### Test Fixtures (new)
+### Test Fixtures (new — one per skill)
 | Category | Files |
 |----------|-------|
 | New | `skills/commit/tests/eval.yaml` |
 | New | `skills/onboard/tests/eval.yaml` |
 | New | `skills/skill-dev/tests/eval.yaml` |
+| New | `skills/task/tests/eval.yaml` |
+| New | `skills/implement/tests/eval.yaml` |
+| New | `skills/fact-check/tests/eval.yaml` |
+| New | `skills/retrospective/tests/eval.yaml` |
+| New | `skills/review-thread/tests/eval.yaml` |
 
 ### Skill Definition
 | Category | Files |
