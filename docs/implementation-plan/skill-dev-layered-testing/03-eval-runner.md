@@ -193,6 +193,52 @@ function runCase(testCase, agentOutput) {
 }
 
 // ---------------------------------------------------------------------------
+// Staleness Detection
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if the skill directory changed after the fixture's last_updated date.
+ * Returns { stale: boolean, lastChange: string | null }
+ */
+function checkStaleness(skillName, lastUpdated) {
+  if (!lastUpdated) return { stale: false, lastChange: null };
+
+  try {
+    const { execSync } = await import('child_process');
+    const skillPath = path.join(SKILLS_DIR, skillName);
+    const result = execSync(
+      `git log --since="${lastUpdated}" --oneline -- "${skillPath}"`,
+      { encoding: 'utf8', cwd: path.resolve(SKILLS_DIR, '..') }
+    ).trim();
+
+    if (result) {
+      const firstLine = result.split('\n')[0];
+      return { stale: true, lastChange: firstLine };
+    }
+  } catch (e) {
+    // git not available or not a repo — skip staleness check
+  }
+
+  return { stale: false, lastChange: null };
+}
+
+/**
+ * Adjust verdict when skill has changed since fixture was written.
+ * FAIL + stale skill → POSSIBLY_STALE (warning, not blocker)
+ */
+function applyStalenessMask(caseResult, staleness) {
+  if (caseResult.verdict === 'FAIL' && staleness.stale) {
+    return {
+      ...caseResult,
+      verdict: 'POSSIBLY_STALE',
+      staleNote: `Skill changed since fixture was written (${staleness.lastChange}). ` +
+        `Review: is this a real bug or an outdated test case?`
+    };
+  }
+  return caseResult;
+}
+
+// ---------------------------------------------------------------------------
 // Report Generator
 // ---------------------------------------------------------------------------
 
@@ -218,10 +264,26 @@ function generateReport(skillName, caseResults) {
     report += `| ${i + 1} | ${r.name} | ${r.category} | ${icon} | ${r.passed} | ${r.failed} | ${r.skipped} |\n`;
   });
 
-  // Failed assertion details
+  // Possibly stale cases (skill changed since fixture was written)
+  const stale = caseResults.filter(r => r.verdict === 'POSSIBLY_STALE');
+  if (stale.length > 0) {
+    report += `\n## Possibly Stale (${stale.length})\n\n`;
+    report += `These cases failed, but the skill changed since the fixture was last updated.\n`;
+    report += `Review each one: is it a real bug or an outdated test case?\n\n`;
+    for (const s of stale) {
+      report += `### ${s.name}\n`;
+      report += `${s.staleNote}\n`;
+      for (const a of s.assertions.filter(a => a.pass === false)) {
+        report += `- **${a.type}**: ${a.detail}\n`;
+      }
+      report += `\nAction: (1) Update fixture  (2) Keep as-is (real bug)  (3) Delete case\n\n`;
+    }
+  }
+
+  // Hard failures (skill did NOT change — real regressions)
   const failures = caseResults.filter(r => r.verdict === 'FAIL');
   if (failures.length > 0) {
-    report += `\n## Failures\n\n`;
+    report += `\n## Failures (${failures.length})\n\n`;
     for (const f of failures) {
       report += `### ${f.name}\n`;
       for (const a of f.assertions.filter(a => a.pass === false)) {
@@ -232,10 +294,16 @@ function generateReport(skillName, caseResults) {
   }
 
   // Verdict
-  const overallVerdict = failed > 0 ? 'FAIL' : (partial > 0 ? 'PARTIAL' : 'PASS');
+  const staleCount = caseResults.filter(r => r.verdict === 'POSSIBLY_STALE').length;
+  const overallVerdict = failed > 0 ? 'FAIL'
+    : staleCount > 0 ? 'REVIEW_NEEDED'
+    : partial > 0 ? 'PARTIAL'
+    : 'PASS';
   report += `\n## Verdict: **${overallVerdict}**\n`;
   report += failed > 0
-    ? `${failed} case(s) failed. Fix before shipping.\n`
+    ? `${failed} case(s) failed (real regressions). Fix before shipping.\n`
+    : staleCount > 0
+    ? `${staleCount} case(s) may be stale — skill changed since fixtures were written. Review needed.\n`
     : partial > 0
     ? `All deterministic checks passed. ${partial} case(s) need Layer 3 (LLM-judge) evaluation.\n`
     : `All ${total} cases passed.\n`;

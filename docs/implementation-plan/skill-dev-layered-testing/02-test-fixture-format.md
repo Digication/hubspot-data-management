@@ -29,6 +29,7 @@ You are creating the test fixture format and initial golden datasets for the ski
 
 skill: <skill-name>
 description: Golden dataset for <skill-name> skill
+last_updated: "2026-03-28"  # ISO date — used for staleness detection
 
 # Test cases — each one is a specific scenario with deterministic assertions
 cases:
@@ -125,6 +126,37 @@ The eval runner spawns a read-only agent that traces through the decision and re
 - Don't test exact wording — test properties ("contains X", not "equals X")
 - Don't test LLM style — only test structural/behavioral properties
 - Don't duplicate what validate-skill.mjs already checks (Layer 1)
+
+## Staleness Detection
+
+Skills are living documents — when SKILL.md or reference files change, some test cases may break not because of bugs but because the expected output changed. The eval runner handles this automatically:
+
+**When a Layer 2 case fails**, check if the skill changed since the fixture's `last_updated` date:
+
+```bash
+git log --since="{last_updated}" --oneline -- .claude/skills/<skill-name>/
+```
+
+- **Skill changed + test fails** → flag as `POSSIBLY STALE` instead of `FAIL`. Show:
+  "This case may be stale — skill changed on {date}. Want to: (1) Update fixture, (2) Keep as-is (real bug), (3) Delete case"
+- **Skill unchanged + test fails** → real `FAIL`. The skill has a regression.
+
+After updating fixtures, set `last_updated` to today's date.
+
+## Writing Resilient Assertions
+
+Assertions should survive minor skill rewording. Choose the right type based on what you're testing:
+
+| What you're testing | Best assertion type | Why |
+|---|---|---|
+| A decision path was taken | `decision-trace` | Tests logic, not wording — survives any rewording |
+| Required content sections exist | `contains-all` with section headers | Headers change less than body text |
+| User gets a choice | `contains-any` with multiple phrasings | `["Re-review", "review again", "redo the review"]` |
+| Something must NOT happen | `not-contains` | Stable — absence is unambiguous |
+| Subjective quality | `llm-rubric` (Layer 3) | LLM judges handle phrasing variation naturally |
+| A specific bug was fixed | `contains` with exact string | Intentionally brittle — should break if the fix is reverted |
+
+**Rule of thumb:** Use `decision-trace` for logic, `contains-any` for content, `llm-rubric` for quality. Reserve exact `contains` for regression tests where brittleness is the point.
 ```
 
 ### 2. Create golden dataset for `commit` skill
@@ -134,6 +166,7 @@ The eval runner spawns a read-only agent that traces through the decision and re
 ```yaml
 skill: commit
 description: Golden dataset for commit skill — regression tests from exploratory testing
+last_updated: "2026-03-28"
 
 cases:
   - name: "clean-tree-stops-early"
@@ -208,6 +241,7 @@ cases:
 ```yaml
 skill: skill-dev
 description: Golden dataset for skill-dev — regression tests from dry-run testing rounds
+last_updated: "2026-03-28"
 
 cases:
   - name: "invalid-skill-shows-error"
@@ -357,6 +391,7 @@ cases:
 ```yaml
 skill: onboard
 description: Golden dataset for onboard skill — decision table coverage
+last_updated: "2026-03-28"
 
 cases:
   - name: "full-mode-no-existing-files"
@@ -441,6 +476,7 @@ cases:
 ```yaml
 skill: task
 description: Golden dataset for task skill — context switching and dirty state handling
+last_updated: "2026-03-29"
 
 cases:
   - name: "start-clean-tree-creates-branch"
@@ -532,6 +568,7 @@ cases:
 ```yaml
 skill: implement
 description: Golden dataset for implement skill — complexity evaluation and mode detection
+last_updated: "2026-03-29"
 
 cases:
   - name: "simple-change-goes-direct"
@@ -602,6 +639,7 @@ cases:
 ```yaml
 skill: fact-check
 description: Golden dataset for fact-check skill — claim triage and verdict accuracy
+last_updated: "2026-03-29"
 
 cases:
   - name: "hedged-claim-gets-checked"
@@ -662,6 +700,7 @@ cases:
 ```yaml
 skill: retrospective
 description: Golden dataset for retrospective skill — learning routing
+last_updated: "2026-03-29"
 
 cases:
   - name: "skill-correction-routes-to-skill-file"
@@ -722,6 +761,7 @@ cases:
 ```yaml
 skill: review-thread
 description: Golden dataset for review-thread skill — independent verdict accuracy
+last_updated: "2026-03-29"
 
 cases:
   - name: "correction-evaluated-independently"
