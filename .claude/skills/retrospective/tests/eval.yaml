@@ -1,6 +1,6 @@
 skill: retrospective
 description: Golden dataset for retrospective skill — learning routing
-last_updated: "2026-03-29"
+skill_hash: "02423d59b1ef54fb23c0890f2f4c616d"
 
 cases:
   - name: "skill-correction-routes-to-skill-file"

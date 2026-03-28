@@ -1,6 +1,6 @@
 skill: commit
 description: Golden dataset for commit skill — regression tests from exploratory testing
-last_updated: "2026-03-28"
+skill_hash: "59821e7112d68841adce754bf6c95d97"
 
 cases:
   - name: "clean-tree-stops-early"

@@ -1,6 +1,6 @@
 skill: skill-dev
 description: Golden dataset for skill-dev — regression tests from dry-run testing rounds
-last_updated: "2026-03-28"
+skill_hash: "17c7b7acb66055e339a5b773774ec5a4"
 
 cases:
   - name: "invalid-skill-shows-error"

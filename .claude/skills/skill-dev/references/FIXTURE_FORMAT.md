@@ -9,7 +9,7 @@
 
 skill: <skill-name>
 description: Golden dataset for <skill-name> skill
-last_updated: "2026-03-28"  # ISO date — used for staleness detection
+skill_hash: "a1b2c3d4..."  # MD5 of skill folder (excluding tests/) — auto-generated
 
 # Test cases — each one is a specific scenario with deterministic assertions
 cases:
@@ -109,19 +109,23 @@ The eval runner spawns a read-only agent that traces through the decision and re
 
 ## Staleness Detection
 
-Skills are living documents — when SKILL.md or reference files change, some test cases may break not because of bugs but because the expected output changed. The eval runner handles this automatically:
+Skills are living documents — when SKILL.md or reference files change, some test cases may break not because of bugs but because the expected output changed. The eval runner detects this automatically using **content hashing**.
 
-**When a Layer 2 case fails**, check if the skill changed since the fixture's `last_updated` date:
+Each fixture stores a `skill_hash` — an MD5 of all files in the skill directory (excluding `tests/` and `.plugin-data/`). At test time:
 
-```bash
-git log --since="{last_updated}" --oneline -- .claude/skills/<skill-name>/
-```
+1. Eval runner computes the current hash of the skill folder
+2. Compares it to the stored `skill_hash` in the fixture
+3. If they match → skill hasn't changed, test failures are real regressions
+4. If they differ → skill content changed since fixtures were written
 
-- **Skill changed + test fails** → flag as `POSSIBLY STALE` instead of `FAIL`. Show:
-  "This case may be stale — skill changed on {date}. Want to: (1) Update fixture, (2) Keep as-is (real bug), (3) Delete case"
-- **Skill unchanged + test fails** → real `FAIL`. The skill has a regression.
+**When hash mismatches:**
 
-After updating fixtures, set `last_updated` to today's date.
+- **Hash differs + test fails** → flag as `POSSIBLY_STALE` instead of `FAIL`. Show:
+  "Skill content changed (stored: a1b2..., current: c3d4...). Want to: (1) Update fixture, (2) Keep as-is (real bug), (3) Delete case"
+- **Hash differs + tests pass** → tests still valid, but suggest updating the hash
+- **Hash matches + test fails** → real `FAIL`. The skill has a regression.
+
+After updating fixtures, recompute and store the new `skill_hash`. The eval runner can do this automatically with `--rehash`.
 
 ## Writing Resilient Assertions
 

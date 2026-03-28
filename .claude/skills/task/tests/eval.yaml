@@ -1,6 +1,6 @@
 skill: task
 description: Golden dataset for task skill — context switching and dirty state handling
-last_updated: "2026-03-29"
+skill_hash: "737767bc9c5c693c61a001ea25745b8f"
 
 cases:
   - name: "start-clean-tree-creates-branch"

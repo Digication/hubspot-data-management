@@ -16,8 +16,8 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // scripts/ -> skill-dev/ -> skills/  (2 levels up)
@@ -315,37 +315,63 @@ function runCase(testCase, agentOutput) {
 }
 
 // ---------------------------------------------------------------------------
-// Staleness Detection
+// Staleness Detection (content hash)
 // ---------------------------------------------------------------------------
 
 /**
- * Check if the skill directory changed after the fixture's last_updated date.
- * Returns { stale: boolean, lastChange: string | null }
+ * Compute MD5 hash of all files in a skill directory, excluding tests/.
+ * Files are sorted for deterministic ordering across platforms.
+ * Returns the hex digest string.
  */
-function checkStaleness(skillName, lastUpdated) {
-  if (!lastUpdated) return { stale: false, lastChange: null };
+function computeSkillHash(skillName) {
+  const skillDir = path.join(SKILLS_DIR, skillName);
+  if (!fs.existsSync(skillDir)) return null;
 
-  try {
-    const skillPath = path.join(SKILLS_DIR, skillName);
-    const repoRoot = path.resolve(SKILLS_DIR, '../..');
-    const result = execSync(
-      `git log --since="${lastUpdated}" --oneline -- "${skillPath}"`,
-      { encoding: 'utf8', cwd: repoRoot }
-    ).trim();
-
-    if (result) {
-      const firstLine = result.split('\n')[0];
-      return { stale: true, lastChange: firstLine };
+  const files = [];
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      // Exclude tests/ directory to avoid circular dependency
+      if (entry.isDirectory() && entry.name === 'tests') continue;
+      // Exclude .plugin-data/ (runtime state, not skill content)
+      if (entry.isDirectory() && entry.name === '.plugin-data') continue;
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else {
+        files.push(fullPath);
+      }
     }
-  } catch (e) {
-    // git not available or not a repo — skip staleness check
   }
+  walk(skillDir);
 
-  return { stale: false, lastChange: null };
+  // Sort for deterministic order across platforms
+  files.sort();
+
+  const hash = crypto.createHash('md5');
+  for (const file of files) {
+    hash.update(fs.readFileSync(file));
+  }
+  return hash.digest('hex');
 }
 
 /**
- * Adjust verdict when skill has changed since fixture was written.
+ * Check if the skill content changed since the fixture was written.
+ * Compares stored skill_hash against current content hash.
+ * Returns { stale: boolean, storedHash: string, currentHash: string }
+ */
+function checkStaleness(skillName, storedHash) {
+  const currentHash = computeSkillHash(skillName);
+  if (!storedHash || !currentHash) return { stale: false, storedHash, currentHash };
+
+  return {
+    stale: storedHash !== currentHash,
+    storedHash,
+    currentHash
+  };
+}
+
+/**
+ * Adjust verdict when skill content has changed since fixture was written.
  * FAIL + stale skill -> POSSIBLY_STALE (warning, not blocker)
  */
 function applyStalenessMask(caseResult, staleness) {
@@ -353,7 +379,8 @@ function applyStalenessMask(caseResult, staleness) {
     return {
       ...caseResult,
       verdict: 'POSSIBLY_STALE',
-      staleNote: `Skill changed since fixture was written (${staleness.lastChange}). ` +
+      staleNote: `Skill content changed since fixture was written ` +
+        `(stored: ${staleness.storedHash?.slice(0, 8)}, current: ${staleness.currentHash?.slice(0, 8)}). ` +
         `Review: is this a real bug or an outdated test case?`
     };
   }
@@ -459,19 +486,20 @@ function validateFixture(evalPath, skillName) {
 
   // Check top-level fields
   if (!parsed.skill) issues.push('Missing "skill" field');
-  if (!parsed.last_updated) issues.push('Missing "last_updated" field');
+  if (!parsed.skill_hash) issues.push('Missing "skill_hash" field — run with --rehash to generate');
   if (!parsed.cases && !parsed.test_cases) issues.push('Missing "cases" or "test_cases" field');
 
   const cases = parsed.cases || parsed.test_cases || [];
   const caseCount = Array.isArray(cases) ? cases.length : 0;
 
-  // Check staleness
-  const staleness = checkStaleness(skillName, parsed.last_updated);
+  // Check staleness via content hash
+  const staleness = checkStaleness(skillName, parsed.skill_hash);
   if (staleness.stale) {
-    console.log(`[dry-run] Staleness: STALE (skill changed since ${parsed.last_updated})`);
-    console.log(`[dry-run]   Latest change: ${staleness.lastChange}`);
+    console.log(`[dry-run] Staleness: STALE (content changed)`);
+    console.log(`[dry-run]   Stored hash:  ${staleness.storedHash?.slice(0, 8)}...`);
+    console.log(`[dry-run]   Current hash: ${staleness.currentHash?.slice(0, 8)}...`);
   } else {
-    console.log(`[dry-run] Staleness: OK (no changes since ${parsed.last_updated || 'unknown'})`);
+    console.log(`[dry-run] Staleness: OK (hash matches)`);
   }
 
   // Validate known assertion types
@@ -596,6 +624,7 @@ function main() {
 export {
   runAssertion,
   runCase,
+  computeSkillHash,
   checkStaleness,
   applyStalenessMask,
   generateReport,

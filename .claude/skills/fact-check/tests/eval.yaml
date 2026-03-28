@@ -1,6 +1,6 @@
 skill: fact-check
 description: Golden dataset for fact-check skill — claim triage and verdict accuracy
-last_updated: "2026-03-29"
+skill_hash: "5c11a43b86e634e55cf6c8edc90c1891"
 
 cases:
   - name: "hedged-claim-gets-checked"

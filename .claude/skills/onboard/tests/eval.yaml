@@ -1,6 +1,6 @@
 skill: onboard
 description: Golden dataset for onboard skill — decision table coverage
-last_updated: "2026-03-28"
+skill_hash: "3ffb152ad51ea453f702e54a581a8738"
 
 cases:
   - name: "full-mode-no-existing-files"
