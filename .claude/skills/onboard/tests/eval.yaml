@@ -76,3 +76,128 @@ cases:
           - "Start fresh"
           - "Keep"
     source: "SKILL.md Step 0 — mode detection for returning users"
+
+  - name: "global-only-mode-detection"
+    description: "Global missing + project exists triggers global-only mode"
+    category: regression
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: true
+    assert:
+      - type: decision-trace
+        input: "has_global=false, has_project=true"
+        rule: "Mode Detection"
+        result: "global-only"
+    source: "Layer 4 exploratory 2026-03-30, scenario global-only-mode"
+
+  - name: "project-only-mode-detection"
+    description: "Global exists + project missing triggers project-only mode"
+    category: regression
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: true
+        has_project_user_context: false
+    assert:
+      - type: decision-trace
+        input: "has_global=true, has_project=false"
+        rule: "Mode Detection"
+        result: "project-only"
+    source: "Layer 4 exploratory 2026-03-30, scenario project-only-mode"
+
+  - name: "supported-learning-maximum-safety"
+    description: "Supported tier + Learning purpose triggers Safety Rule 2 (Maximum safety)"
+    category: regression
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: false
+        g1_answer: "Help me grow"
+        g2_answer: "Teach as you go"
+        p1_answer: "Learning"
+    assert:
+      - type: decision-trace
+        input: "tier=Supported, purpose=Learning"
+        rule: "Safety Derivation Rule 2"
+        result: "Maximum safety"
+    source: "Layer 4 exploratory 2026-03-30, scenario supported-learning-max-safety"
+
+  - name: "standard-prototyping-speed-mode"
+    description: "Standard tier + Prototyping purpose triggers Safety Rule 4 (Speed mode)"
+    category: regression
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: false
+        g1_answer: "Work alongside me"
+        g2_answer: "Explain risky things"
+        p1_answer: "Prototyping"
+    assert:
+      - type: decision-trace
+        input: "tier=Standard, purpose=Prototyping"
+        rule: "Safety Derivation Rule 4"
+        result: "Speed mode"
+    source: "Layer 4 exploratory 2026-03-30, scenario standard-prototyping-speed"
+
+  - name: "expert-non-concise-speed-mode"
+    description: "Expert tier + non-concise style skips Rule 6, hits Rule 8 (Speed mode)"
+    category: regression
+    inputs:
+      command: "/onboard"
+      state:
+        has_global_claude_md: false
+        has_project_user_context: false
+        g1_answer: "Stay out of my way"
+        g2_answer: "Explain risky things"
+        p1_answer: "Production"
+    assert:
+      - type: decision-trace
+        input: "tier=Expert, style=Explain risky things, purpose=Production"
+        rule: "Safety Derivation Rule 8"
+        result: "Speed mode"
+      - type: not-contains
+        value: "Minimal"
+    source: "Layer 4 exploratory 2026-03-30, scenario expert-non-concise-speed"
+
+  - name: "show-subcommand-stops"
+    description: "show argument routes before mode detection and produces no file writes"
+    category: regression
+    inputs:
+      command: "/onboard show"
+      state:
+        has_global_claude_md: true
+        has_project_user_context: true
+    assert:
+      - type: decision-trace
+        input: "argument=show"
+        rule: "Subcommand routing"
+        result: "display profile and memory summary, then stop"
+      - type: not-contains
+        value: "Step 6"
+      - type: not-contains
+        value: "Write and Confirm"
+    source: "Layer 4 exploratory 2026-03-30, scenario show-subcommand"
+
+  - name: "level-up-skips-mode-detection"
+    description: "level-up argument bypasses mode detection and jumps directly to Step 1a"
+    category: regression
+    inputs:
+      command: "/onboard level-up"
+      state:
+        has_global_claude_md: true
+        has_project_user_context: true
+    assert:
+      - type: decision-trace
+        input: "argument=level-up"
+        rule: "Subcommand routing"
+        result: "jump to Step 1a"
+      - type: contains-any
+        values:
+          - "Step 1a"
+          - "Quick Re-tier"
+          - "How would you like Claude to work with you now"
+    source: "Layer 4 exploratory 2026-03-30, scenario level-up-flow"
