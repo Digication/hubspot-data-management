@@ -38,7 +38,7 @@ if echo "$COMMAND" | grep -qE '\-\-force\b'; then
 fi
 
 # Block: rm -rf outside temp directories
-if echo "$COMMAND" | grep -qE 'rm\s+-rf\s+/' | grep -vqE 'rm\s+-rf\s+(/tmp|/var/folders|\$TEMP_DIR|\$FAKE_HOME)'; then
+if echo "$COMMAND" | grep -qE 'rm\s+-rf\s+/' && ! echo "$COMMAND" | grep -qE 'rm\s+-rf\s+(/tmp|/var/folders|\$TEMP_DIR|\$FAKE_HOME)'; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",

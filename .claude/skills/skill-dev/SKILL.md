@@ -2,13 +2,13 @@
 name: skill-dev
 description: Review, test, and validate Claude skills. Trigger on review skill, test skill, audit skill, validate SKILL.md, check skill quality, is this skill good, improve this skill, skill pipeline, skill QA. Combines static review, behavioral dry-run testing, and real-world integration testing.
 metadata:
-  allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent
+  allowed-tools: Read, Write, Edit, Glob, Grep, Bash(node:*), Bash(git diff:*), Bash(git log:*), Bash(find:*), Bash(md5:*), Bash(xargs:*), Agent
 hooks:
   PreToolUse:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "./scripts/guard-integration.sh"
+          command: ".claude/skills/skill-dev/scripts/guard-integration.sh"
           timeout: 10
           statusMessage: "Checking command safety for integration tests..."
 ---
@@ -258,6 +258,7 @@ On each run:
   - **Re-review** → proceed with Mode 1 normally
   - **Skip to testing** → jump directly to Mode 2 (Test) step 1 (Identify the skill). The previous passing review satisfies the "review before testing" rule — no re-validation needed. Design fresh scenarios (do not reuse previous test scenarios).
   - **Cancel** → exit, no action taken
+- If recent review exists AND changes ARE detected, mention the previous review and proceed directly to a full review: "This skill was reviewed on {date} ({verdict}), but it's been modified since. Running a fresh review."
 - Surface patterns across skills: "This is the 3rd skill with bare Bash in allowed-tools"
 
 ---
@@ -275,6 +276,10 @@ On each run:
 - **Integration for git ops** — skills with git commands should use a temp clone
 - **Cleanup is mandatory** — every integration test must specify cleanup commands
 - **Layers run in order** — Layer 2 depends on Layer 1 passing. Layer 3 depends on Layer 2 passing. Layer 4 is independent.
+- **Layer cascade on failure** — If Layer 2 fails, stop at the first failing case (do not run remaining cases). Skip Layer 3 entirely. Report verdict as FAIL.
+- **Layer cascade on skip** — If Layer 2 is skipped (no eval.yaml), also skip Layer 3 (it has no fixtures to judge). Report verdict as PARTIAL with guidance to run `--explore`.
+- **`--layer N` runs standalone** — `--layer 2` skips Layer 1 (assumes structural validity). `--layer 3` skips Layers 1-2 (assumes fixtures pass). This is a speed optimization, not a safety bypass.
+- **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3, then presents Layer 4 scenarios for approval (same table format as `--explore`). If user declines, report Layers 1-3 results only.
 - **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
 - **Judge runs 3 times** — Layer 3 rubrics use majority vote (2/3) to handle LLM non-determinism. Never trust a single judge run.
 - **Explore then codify** — Layer 4 findings must be converted to Layer 2/3 cases to have lasting value. Raw exploratory results expire.

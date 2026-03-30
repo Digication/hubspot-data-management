@@ -1,6 +1,6 @@
 skill: skill-dev
 description: Golden dataset for skill-dev — regression tests from dry-run testing rounds
-skill_hash: "17c7b7acb66055e339a5b773774ec5a4"
+skill_hash: "930a6753d0a796faeb75627222ed89a1"
 
 cases:
   - name: "invalid-skill-shows-error"
@@ -105,10 +105,10 @@ cases:
     source: "SKILL.md lines 82-89 define the required report format"
 
   - name: "scenario-approval-table-format"
-    description: "Test mode presents scenarios in the specified table format before running"
+    description: "Explore mode presents scenarios in the specified table format before running"
     category: happy-path
     inputs:
-      command: "/skill-dev test commit"
+      command: "/skill-dev test commit --explore"
       state:
         skill_exists: true
     assert:
