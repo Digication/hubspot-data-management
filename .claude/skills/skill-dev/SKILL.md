@@ -155,25 +155,37 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 Run Layer 4 only. This is the discovery tool for finding unknown issues with fresh agents:
 
 1. **Identify the skill** — read SKILL.md and all references
-2. **Design test scenarios** — same categories as before (happy path, boundary, override, combination gaps, freeform, idempotency). Present for approval using the table format:
+2. **Check existing coverage** — read `<skill>/tests/eval.yaml` if it exists. For each decision table row in the skill, check whether an existing test case already covers it. Build a coverage map:
 
    ```
-   | # | Name | Category | What it tests |
-   |---|---|---|---|
-   | 1 | {name} | {category} | {one-line description} |
+   | Decision Table Row | Covered by | Status |
+   |---|---|---|
+   | {row description} | {case name or "—"} | Covered / Uncovered |
+   ```
+
+   - **If all rows covered AND last Layer 4 run found zero Bugs** → report "Exploration complete — full decision table coverage achieved. No new scenarios needed." Skip to step 6 (generate report with coverage summary only).
+   - **If uncovered rows exist** → proceed to step 3, targeting only uncovered areas.
+   - **If no eval.yaml exists** → all rows are uncovered, proceed normally.
+
+3. **Design test scenarios** — target **uncovered decision table rows only**. Use the same categories (happy path, boundary, override, combination gaps, freeform, idempotency). Present for approval using the table format:
+
+   ```
+   | # | Name | Category | What it tests | Covers row |
+   |---|---|---|---|---|
+   | 1 | {name} | {category} | {one-line description} | {decision table row} |
    ```
 
    Ask: "Ready to run these {N} scenarios? (yes/no)"
 
-   Scenario count: simple skills 2-3, decision-heavy 4-6, complex 6-8.
+   Scenario count: simple skills 2-3, decision-heavy 4-6, complex 6-8. Count is based on **uncovered rows**, not total rows — fewer uncovered rows means fewer scenarios.
 
-3. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md)
-4. **Collect findings** — classify as Bug, Ambiguity, or Gap
-5. **Convert findings to fixtures** — for each finding, ask:
+4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md)
+5. **Collect findings** — classify as Bug, Ambiguity, or Gap
+6. **Convert findings to fixtures** — for each finding, ask:
    "Want me to add this as a regression test? (yes/skip)"
    - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions (use `contains` for exact strings, `regex` for patterns, `not-contains` for exclusions — match the finding type). Set category to `regression`. Populate `source` with the exploratory test date and scenario name. If eval.yaml doesn't exist, create it with the standard header (skill name, description, current skill_hash). Update `skill_hash` after adding cases.
    - If skip: note in the report but don't add to fixtures
-6. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Fixtures Added" section
+7. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Coverage Map" section (from step 2) and a "Fixtures Added" section
 
 ### Single Scenario (`/skill-dev test <skill> <scenario>`)
 
@@ -240,6 +252,7 @@ Two-phase workflow for skills that touch the real file system, git, or global co
 - Layer 2 fixtures can go stale — if a skill's behavior intentionally changes, update eval.yaml or tests will false-fail. When a Layer 2 case fails, always check: is it a real bug or an outdated fixture?
 - Layer 3 judge rubrics must have specific PASS/FAIL criteria — vague rubrics like "is it good?" produce inconsistent results. Every criterion needs a concrete condition.
 - Layer 4 findings are NOT a quality gate — they're discovery input. Don't block shipping on exploratory findings; convert them to Layer 2 cases first.
+- Layer 4 without coverage checking produces endless findings — each run discovers new edge cases without converging. Always check existing coverage first (step 2 of Exploratory Workflow) to avoid re-exploring covered areas.
 
 ---
 
@@ -279,7 +292,9 @@ On each run:
 - **Layer cascade on failure** — If Layer 2 fails, stop at the first failing case (do not run remaining cases). Skip Layer 3 entirely. Report verdict as FAIL.
 - **Layer cascade on skip** — If Layer 2 is skipped (no eval.yaml), also skip Layer 3 (it has no fixtures to judge). Report verdict as PARTIAL with guidance to run `--explore`.
 - **`--layer N` runs standalone** — `--layer 1` runs only the structural validator and reports its result. `--layer 2` skips Layer 1 (assumes structural validity); if eval.yaml is missing, report PARTIAL with guidance to run `--explore`. `--layer 3` skips Layers 1-2 (assumes the user verified fixtures separately); if no `llm-rubric` assertions exist, report PASS with a note that no rubrics were found. This is a speed optimization — the user takes responsibility for skipped prerequisites. Verdict reflects only the layer that ran. `--layer 4` is not valid; use `--explore` instead.
-- **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3 (applying normal cascade rules), then presents Layer 4 scenarios for approval (same table format and prompt as `--explore`). If user declines, report Layers 1-3 results only. If L1 fails, stop entirely (no L4). If L2 fails or is skipped, still offer L4 — Layer 4 is independent and can discover issues without fixtures. L4 findings follow the same fixture conversion step as `--explore` (step 5).
+- **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3 (applying normal cascade rules), then presents Layer 4 scenarios for approval (same table format and prompt as `--explore`). If user declines, report Layers 1-3 results only. If L1 fails, stop entirely (no L4). If L2 fails or is skipped, still offer L4 — Layer 4 is independent and can discover issues without fixtures. L4 findings follow the same fixture conversion step as `--explore` (step 6).
 - **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
 - **Judge runs 3 times** — Layer 3 rubrics use majority vote (2/3) to handle LLM non-determinism. Never trust a single judge run.
 - **Explore then codify** — Layer 4 findings should be converted to Layer 2/3 cases for lasting value. The "Want me to add?" prompt lets users skip findings that are informational (Ambiguity/Gap) rather than behavioral (Bug). Bug findings should always become fixtures; Ambiguity/Gap findings are optional. Raw exploratory results without corresponding fixtures expire.
+- **Coverage-aware exploration** — Layer 4 must read existing eval.yaml before designing scenarios. Only target uncovered decision table rows. This prevents the "endless new findings" problem where each run discovers different edge cases without converging.
+- **Exploration converges** — If all decision table rows are covered by Layer 2 cases AND the last Layer 4 run found zero Bug findings, report "Exploration complete" and skip scenario design. Ambiguity/Gap findings do not block convergence — only Bugs do.

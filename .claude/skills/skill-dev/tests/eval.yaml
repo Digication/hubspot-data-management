@@ -1,6 +1,9 @@
 skill: skill-dev
 description: Golden dataset for skill-dev — regression tests from dry-run testing rounds
-skill_hash: "dfde600b177c0b0bbf66ff6cca9d392e"
+# skill_hash = MD5 of ALL files in the skill directory (excluding tests/ and .plugin-data/).
+# Do NOT hash just SKILL.md. Compute with: node scripts/run-eval.mjs --rehash
+# Or replicate the logic in scripts/run-eval.mjs → computeSkillHash()
+skill_hash: "f2d8628994c0f753926b5f2bb4aba6c0"
 
 cases:
   - name: "invalid-skill-shows-error"
@@ -34,9 +37,10 @@ cases:
     description: "Recent review with no changes offers skip/re-review/cancel options"
     category: boundary
     inputs:
-      command: "/skill-dev review commit"
+      command: "/skill-dev review fake-skill"
       state:
-        reviews_log: "2026-03-25 | review | commit | PASS | 2 | Minor issues"
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
+        reviews_log: "2026-03-25 | review | fake-skill | PASS | 2 | Minor issues"
         git_diff_empty: true
         days_since_review: 3
     assert:
@@ -55,9 +59,10 @@ cases:
     description: "Bare skill name triggers review first, then offers to test"
     category: happy-path
     inputs:
-      command: "/skill-dev commit"
+      command: "/skill-dev fake-skill"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
         reviews_log_empty: true
     assert:
       - type: contains-any
@@ -75,26 +80,28 @@ cases:
     description: "test <skill> <scenario> runs only that scenario with abbreviated report"
     category: boundary
     inputs:
-      command: "/skill-dev test onboard happy-path-beginner"
+      command: "/skill-dev test fake-skill greet-formal"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
     assert:
       - type: not-contains
         value: "Cross-Scenario Analysis"
       - type: contains-any
         values:
-          - "happy-path-beginner"
+          - "greet-formal"
           - "single scenario"
           - "abbreviated"
-    source: "Exploratory test 2026-03-28, scenario test-with-scenario-arg — previously AMBIGUOUS, fixed"
+    source: "Exploratory test 2026-03-28, scenario test-with-scenario-arg — previously AMBIGUOUS, fixed. Updated to use fake-skill fixture."
 
   - name: "review-report-has-required-sections"
     description: "Review mode produces report with all required sections"
     category: happy-path
     inputs:
-      command: "/skill-dev review commit"
+      command: "/skill-dev review fake-skill"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
         reviews_log_empty: true
     assert:
       - type: contains-all
@@ -107,16 +114,17 @@ cases:
           - "Strengths"
       - type: llm-rubric
         rubric: "Review Quality"
-        context: "Full review of the commit skill with no prior review history"
-    source: "SKILL.md lines 82-89 define the required report format"
+        context: "Full review of the fake-skill fixture at .claude/skills/skill-dev/tests/fixtures/fake-skill/ with no prior review history. The skill intentionally has bare Bash in allowed-tools (a known issue the review should catch)."
+    source: "SKILL.md lines 82-89 define the required report format. Updated to use fake-skill fixture."
 
   - name: "scenario-approval-table-format"
     description: "Explore mode presents scenarios in the specified table format before running"
     category: happy-path
     inputs:
-      command: "/skill-dev test commit --explore"
+      command: "/skill-dev test fake-skill --explore"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
     assert:
       - type: contains-all
         values:
@@ -129,8 +137,8 @@ cases:
           - "ready to run"
       - type: llm-rubric
         rubric: "Test Scenario Quality"
-        context: "Exploratory test scenarios designed for the commit skill"
-    source: "SKILL.md lines 114-122 define scenario approval format — added during fix round"
+        context: "Exploratory test scenarios designed for the fake-skill fixture at .claude/skills/skill-dev/tests/fixtures/fake-skill/. The skill has a 3-row decision table (name+casual, name+formal, no-name) and bare Bash in allowed-tools."
+    source: "SKILL.md lines 114-122 define scenario approval format. Updated to use fake-skill fixture."
 
   - name: "no-args-lists-skills"
     description: "No arguments shows available skills and asks which one"
@@ -246,9 +254,10 @@ cases:
     description: "test <skill> <scenario> when eval.yaml doesn't exist should error cleanly, not silently fail"
     category: regression
     inputs:
-      command: "/skill-dev test onboard happy-path-beginner"
+      command: "/skill-dev test fake-skill greet-formal"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
         has_eval_yaml: false
     assert:
       - type: contains-any
@@ -269,12 +278,13 @@ cases:
     description: "When log has both review and test entries, the most recent entry (regardless of mode) triggers the skip/re-review/cancel prompt"
     category: regression
     inputs:
-      command: "/skill-dev review commit"
+      command: "/skill-dev review fake-skill"
       state:
         skill_exists: true
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
         reviews_log: |
-          2026-03-27 | review | commit | PASS | 2 | Minor issues found
-          2026-03-29 | test --full | commit | PARTIAL | 8 | L2 3/4 PASS, L4 ambiguous
+          2026-03-27 | review | fake-skill | PASS | 2 | Minor issues found
+          2026-03-29 | test --full | fake-skill | PARTIAL | 8 | L2 3/4 PASS, L4 ambiguous
         git_diff_empty: true
         days_since_review: 1
     assert:
@@ -293,10 +303,11 @@ cases:
     description: "Review exactly 7 days old does NOT trigger skip prompt — spec says < 7 days ago, and 7 is not < 7"
     category: regression
     inputs:
-      command: "/skill-dev review commit"
+      command: "/skill-dev review fake-skill"
       state:
         skill_exists: true
-        reviews_log: "2026-03-23 | review | commit | PASS | 1 | Clean review"
+        skill_path: .claude/skills/skill-dev/tests/fixtures/fake-skill
+        reviews_log: "2026-03-23 | review | fake-skill | PASS | 1 | Clean review"
         git_diff_empty: true
         days_since_review: 7
         current_date: "2026-03-30"

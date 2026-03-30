@@ -111,9 +111,15 @@ The eval runner spawns a read-only agent that traces through the decision and re
 
 Skills are living documents — when SKILL.md or reference files change, some test cases may break not because of bugs but because the expected output changed. The eval runner detects this automatically using **content hashing**.
 
-Each fixture stores a `skill_hash` — an MD5 of all files in the skill directory (excluding `tests/` and `.plugin-data/`). At test time:
+Each fixture stores a `skill_hash` — an MD5 of **all files** in the skill directory (excluding `tests/` and `.plugin-data/`). This includes SKILL.md, all reference docs, and all scripts — not just SKILL.md alone.
 
-1. Eval runner computes the current hash of the skill folder
+**How to compute:** Run `node .claude/skills/skill-dev/scripts/run-eval.mjs --rehash` or replicate the `computeSkillHash()` function in `run-eval.mjs`. The algorithm: walk the skill directory, skip `tests/` and `.plugin-data/`, sort file paths alphabetically, read all file contents into one MD5 digest.
+
+**Common mistake:** Do NOT hash just SKILL.md (e.g., `md5 SKILL.md`). That misses reference docs and scripts, producing the wrong hash and causing false "POSSIBLY_STALE" results on every test run.
+
+At test time:
+
+1. Eval runner computes the current hash of the skill folder (all files, sorted)
 2. Compares it to the stored `skill_hash` in the fixture
 3. If they match → skill hasn't changed, test failures are real regressions
 4. If they differ → skill content changed since fixtures were written
