@@ -47,3 +47,125 @@ cases:
       - type: llm-rubric
         value: "Every verdict in the review cites specific evidence — a file path, code snippet, documentation reference, or observed behavior. No verdict relies on 'it seems right' or 'user said so' alone."
     source: "SKILL.md — must cite specific evidence for every verdict"
+
+  - name: "assumption-without-evidence"
+    description: "An assumption accepted without verification is identified and flagged appropriately"
+    category: regression
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "Claude said: 'This endpoint probably returns JSON since it's a REST API.' The user didn't question this and they proceeded to write a JSON parser. No one verified the actual response format."
+    assert:
+      - type: contains-any
+        values:
+          - "Assumption"
+          - "unverified"
+          - "without verification"
+      - type: contains-any
+        values:
+          - "Valid"
+          - "Inconclusive"
+          - "Change Recommended"
+          - "Needs Discussion"
+    source: "Layer 4 exploration 2026-03-30 — assumption-without-evidence scenario"
+
+  - name: "disagreement-user-wrong"
+    description: "When user is factually wrong, skill sides with evidence over user per independence rule"
+    category: regression
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User disagreed with Claude's use of Array.prototype.at(-1). User said 'That method doesn't exist in JavaScript.' Claude pushed back citing ES2022 but eventually gave in and used bracket notation."
+    assert:
+      - type: contains-any
+        values:
+          - ".at("
+          - "at(-1)"
+          - "ES2022"
+      - type: contains-any
+        values:
+          - "Valid"
+          - "revert"
+          - "restore"
+          - "Change Recommended"
+    source: "Layer 4 exploration 2026-03-30 — disagreement-user-wrong scenario"
+
+  - name: "unresolved-question-detected"
+    description: "An unanswered question is identified as a feedback item and given Inconclusive verdict"
+    category: regression
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User asked 'Should we add rate limiting to this endpoint?' Claude said 'Good question, let me think about that.' Then the user changed topic to fix a login bug. Rate limiting was never revisited."
+    assert:
+      - type: contains-any
+        values:
+          - "Unresolved"
+          - "unanswered"
+          - "never answered"
+          - "never revisited"
+          - "rate limiting"
+      - type: contains-any
+        values:
+          - "Inconclusive"
+          - "Needs Discussion"
+    source: "Layer 4 exploration 2026-03-30 — unresolved-question-detected scenario"
+
+  - name: "topic-filter-scoping"
+    description: "Topic argument filters review to only matching items"
+    category: regression
+    inputs:
+      command: "/review-thread authentication"
+      state:
+        conversation_context: "4 feedback items: (1) Auth: use bcrypt not MD5 for passwords, (2) Styling: use Tailwind not inline styles, (3) Auth: use httpOnly cookies not localStorage, (4) Testing: add unit tests for login flow. All agreed by Claude."
+    assert:
+      - type: contains-any
+        values:
+          - "bcrypt"
+          - "password"
+          - "MD5"
+      - type: contains-any
+        values:
+          - "httpOnly"
+          - "cookies"
+          - "localStorage"
+          - "XSS"
+    source: "Layer 4 exploration 2026-03-30 — topic-filter-scoping scenario"
+
+  - name: "zero-feedback-scope-discipline"
+    description: "Conversation with zero feedback items produces no invented issues"
+    category: regression
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "User asked Claude to add a console.log statement for debugging. Claude added it. No corrections, suggestions, or disagreements."
+    assert:
+      - type: contains-any
+        values:
+          - "No feedback"
+          - "no feedback"
+          - "0 items"
+          - "None"
+          - "zero"
+          - "no items"
+      - type: not-contains
+        value: "Valid — Change Recommended"
+    source: "Layer 4 exploration 2026-03-30 — zero-feedback-scope-discipline scenario"
+
+  - name: "act-on-results-all-verdicts"
+    description: "Step 4 correctly differentiates actions for all three verdict types"
+    category: regression
+    inputs:
+      command: "/review-thread"
+      state:
+        conversation_context: "3 items: (1) User said use const not let — variable never reassigned, Claude agreed. (2) User said use Redux not Context — Claude disagreed, unresolved. (3) User said function too long, split it — Claude agreed, but function was only 8 lines."
+    assert:
+      - type: contains
+        value: "Confirmed"
+      - type: contains
+        value: "Inconclusive"
+      - type: contains-any
+        values:
+          - "Valid"
+          - "Change Recommended"
+    source: "Layer 4 exploration 2026-03-30 — act-on-results-all-verdicts scenario"
