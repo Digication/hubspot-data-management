@@ -31,7 +31,7 @@ hooks:
    - Detect the default/base branch: run `git remote show origin` or `git config --get init.defaultBranch`
    - Create the branch off the current branch: `git checkout -b <branch-name>`
    - Suggest a branch name: `type/short-description` (e.g., `feat/add-user-auth`)
-   - If the suggested name already exists, append a number (e.g., `feat/add-user-auth-2`)
+   - If the suggested name already exists, find the smallest integer N ≥ 2 where `name-N` is available (e.g., if `feat/add-mfa` and `feat/add-mfa-2` both exist, use `feat/add-mfa-3`)
 7. Decide staging behavior:
    - If staged AND unstaged changes exist: list both groups, ask whether to commit only staged or include unstaged files too
    - If staged changes exist AND nothing is unstaged: skip the staging question — go straight to presenting the commit message

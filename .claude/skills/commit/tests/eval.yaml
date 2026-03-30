@@ -1,6 +1,6 @@
 skill: commit
 description: Golden dataset for commit skill — regression tests from exploratory testing
-skill_hash: "3c5f839cc5e987a37df1d1701bfab849"
+skill_hash: "af8239008f48196c2c34f2b42bf5fecf"
 
 cases:
   - name: "clean-tree-stops-early"
@@ -162,3 +162,73 @@ cases:
           - "multi-factor"
           - "auth"
     source: "Layer 4 finding 2026-03-29, scenario branch-creation-request"
+
+  - name: "branch-name-collision-appends-number"
+    description: "When suggested branch name and numbered variants already exist, skill appends next available number"
+    category: regression
+    inputs:
+      command: "/commit"
+      user_message: "commit this on a new branch"
+      state:
+        git_status: "modified: src/auth/mfa.js"
+        git_diff: "Added multi-factor authentication"
+        git_log: "feat(auth): add password reset"
+        existing_branches: "main, feat/add-mfa, feat/add-mfa-2"
+    assert:
+      - type: regex
+        value: "feat/[a-z0-9-]+-[0-9]+"
+      - type: contains-any
+        values:
+          - "feat/add-mfa-3"
+          - "already exists"
+          - "collision"
+          - "taken"
+    source: "Layer 4 finding 2026-03-30, scenario branch-name-collision — multiple numbered variants"
+
+  - name: "decline-staging-stops-workflow"
+    description: "When user declines staging proposal, skill stops and tells user to stage manually"
+    category: regression
+    inputs:
+      command: "/commit"
+      user_message: "no, I'll stage them myself"
+      state:
+        git_status: "modified: src/auth/login.js\nmodified: src/utils/helpers.js"
+        git_diff: "Various changes to auth and utils"
+        git_diff_staged: ""
+        git_log: "feat(auth): add password reset"
+    assert:
+      - type: contains-any
+        values:
+          - "stage"
+          - "manually"
+          - "yourself"
+          - "run /commit again"
+      - type: not-contains
+        value: "git commit"
+    source: "Layer 4 finding 2026-03-30, scenario decline-staging-stops — user declines staging"
+
+  - name: "re-evaluate-type-after-including-unstaged"
+    description: "After user includes unstaged files, skill re-evaluates commit type using priority order"
+    category: regression
+    inputs:
+      command: "/commit"
+      user_message: "include the unstaged files too"
+      state:
+        git_status: "Changes to be committed:\n  modified: src/api/routes.js\n\nChanges not staged for commit:\n  modified: docs/API.md"
+        git_diff_staged: "Added new /users endpoint"
+        git_diff_unstaged: "Updated API documentation for new users endpoint"
+        git_log: "feat(api): add search endpoint"
+    assert:
+      - type: contains-any
+        values:
+          - "re-evaluat"
+          - "updated"
+          - "revised"
+          - "including"
+      - type: regex
+        value: "feat[:(]"
+      - type: contains-all
+        values:
+          - "routes.js"
+          - "API.md"
+    source: "Layer 4 finding 2026-03-30, scenario re-evaluate-after-unstaged — type stays feat per priority"
