@@ -135,15 +135,15 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
    ## Layer 1: Structural — [PASS/FAIL]
    [Validator output summary]
 
-   ## Layer 2: Golden Dataset — [PASS/FAIL]
+   ## Layer 2: Golden Dataset — [PASS/FAIL/SKIPPED]
    | Case | Category | Verdict | Details |
    |---|---|---|---|
-   [Per-case results]
+   [Per-case results, or "Skipped — no eval.yaml" if no fixture file]
 
-   ## Layer 3: LLM-as-Judge — [PASS/FAIL]
+   ## Layer 3: LLM-as-Judge — [PASS/FAIL/SKIPPED]
    | Rubric | Run 1 | Run 2 | Run 3 | Final |
    |---|---|---|---|---|
-   [Per-rubric results]
+   [Per-rubric results, or "Skipped — no rubrics / Layer 2 failed" if not run]
 
    ## Verdict: [PASS / FAIL / PARTIAL]
    ```
@@ -171,7 +171,7 @@ Run Layer 4 only. This is the discovery tool for finding unknown issues with fre
 4. **Collect findings** — classify as Bug, Ambiguity, or Gap
 5. **Convert findings to fixtures** — for each finding, ask:
    "Want me to add this as a regression test? (yes/skip)"
-   - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions
+   - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions (use `contains` for exact strings, `regex` for patterns, `not-contains` for exclusions — match the finding type). Set category to `regression`. Populate `source` with the exploratory test date and scenario name. If eval.yaml doesn't exist, create it with the standard header (skill name, description, current skill_hash). Update `skill_hash` after adding cases.
    - If skip: note in the report but don't add to fixtures
 6. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Fixtures Added" section
 
@@ -195,7 +195,7 @@ Two-phase workflow for skills that touch the real file system, git, or global co
 
 1. **Read the skill** — identify all file writes, git operations, and external state changes
 
-2. **Check for existing plan** — if `.claude/tests/TEST_PLAN.md` exists, update it (don't overwrite other skills' scenarios)
+2. **Check for existing plan** — if `.claude/tests/TEST_PLAN.md` exists, update it using per-skill section boundaries (`## Part N — {Skill Name}` headers). Replace only the target skill's section; leave all other sections untouched. If the skill already has a section, replace it entirely with the new scenarios (idempotent). If the skill has no section yet, append a new `## Part N` section at the end.
 
 3. **Design scenarios** covering:
 
@@ -275,11 +275,11 @@ On each run:
 - **Dry-run for global state** — skills writing to `~/.claude/` should use a fake HOME
 - **Integration for git ops** — skills with git commands should use a temp clone
 - **Cleanup is mandatory** — every integration test must specify cleanup commands
-- **Layers run in order** — Layer 2 depends on Layer 1 passing. Layer 3 depends on Layer 2 passing. Layer 4 is independent.
+- **Layers run in order (default workflow)** — Layer 2 depends on Layer 1 passing. Layer 3 depends on Layer 2 passing. Layer 4 is independent. When using `--layer N`, these dependencies are bypassed at the user's discretion.
 - **Layer cascade on failure** — If Layer 2 fails, stop at the first failing case (do not run remaining cases). Skip Layer 3 entirely. Report verdict as FAIL.
 - **Layer cascade on skip** — If Layer 2 is skipped (no eval.yaml), also skip Layer 3 (it has no fixtures to judge). Report verdict as PARTIAL with guidance to run `--explore`.
-- **`--layer N` runs standalone** — `--layer 2` skips Layer 1 (assumes structural validity). `--layer 3` skips Layers 1-2 (assumes fixtures pass). This is a speed optimization, not a safety bypass.
-- **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3, then presents Layer 4 scenarios for approval (same table format as `--explore`). If user declines, report Layers 1-3 results only.
+- **`--layer N` runs standalone** — `--layer 1` runs only the structural validator and reports its result. `--layer 2` skips Layer 1 (assumes structural validity); if eval.yaml is missing, report PARTIAL with guidance to run `--explore`. `--layer 3` skips Layers 1-2 (assumes the user verified fixtures separately); if no `llm-rubric` assertions exist, report PASS with a note that no rubrics were found. This is a speed optimization — the user takes responsibility for skipped prerequisites. Verdict reflects only the layer that ran. `--layer 4` is not valid; use `--explore` instead.
+- **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3 (applying normal cascade rules), then presents Layer 4 scenarios for approval (same table format and prompt as `--explore`). If user declines, report Layers 1-3 results only. If L1 fails, stop entirely (no L4). If L2 fails or is skipped, still offer L4 — Layer 4 is independent and can discover issues without fixtures. L4 findings follow the same fixture conversion step as `--explore` (step 5).
 - **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
 - **Judge runs 3 times** — Layer 3 rubrics use majority vote (2/3) to handle LLM non-determinism. Never trust a single judge run.
-- **Explore then codify** — Layer 4 findings must be converted to Layer 2/3 cases to have lasting value. Raw exploratory results expire.
+- **Explore then codify** — Layer 4 findings should be converted to Layer 2/3 cases for lasting value. The "Want me to add?" prompt lets users skip findings that are informational (Ambiguity/Gap) rather than behavioral (Bug). Bug findings should always become fixtures; Ambiguity/Gap findings are optional. Raw exploratory results without corresponding fixtures expire.
