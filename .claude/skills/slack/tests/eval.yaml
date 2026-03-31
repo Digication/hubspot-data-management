@@ -1,0 +1,171 @@
+skill: slack
+description: Golden dataset for slack skill — regression tests from Layer 4 exploratory testing
+skill_hash: "2884e22a44bb3019516f32b1d0f5c231"
+
+cases:
+  # Bug: send-thread positional parsing misassigns message as thread_ts
+  - name: "send-thread-missing-ts-parsing"
+    description: "When thread_ts is omitted, the skill must detect it and ask the user — not silently misparse the message as a timestamp"
+    category: regression
+    inputs:
+      command: "/slack send-thread #general \"Thanks for the update!\""
+      state:
+        mcp_connected: true
+        thread_ts_provided: false
+    assert:
+      - type: contains-any
+        values:
+          - "thread_ts"
+          - "thread timestamp"
+          - "timestamp"
+      - type: contains-any
+        values:
+          - "ask the user"
+          - "offer to send as a new message"
+          - "send as a new message instead"
+          - "need the thread timestamp"
+      - type: not-contains
+        value: "Message sent"
+      - type: decision-trace
+        input: "command = send-thread, thread_ts = missing (message text in ts position)"
+        rule: "send-thread missing thread_ts fallback"
+        result: "Ask user for thread_ts or offer to send as new message"
+    source: "Layer 4 exploratory 2026-03-31, scenario send-thread-missing-ts"
+
+  # Ambiguity: MCP error detection — two indistinguishable failure states
+  - name: "mcp-disconnected-direct-send"
+    description: "When MCP tools are unavailable and user calls send directly, skill must show a helpful message (not skip silently)"
+    category: regression
+    inputs:
+      command: "/slack send #general \"Hello everyone!\""
+      state:
+        mcp_connected: false
+        mcp_tools_available: false
+        called_by: user
+    assert:
+      - type: contains-any
+        values:
+          - "Slack MCP server"
+          - "MCP server"
+          - "Slack isn't connected"
+      - type: contains-any
+        values:
+          - "restart Claude Code"
+          - "OAuth"
+          - "sign in"
+          - ".mcp.json"
+      - type: not-contains
+        value: "Message sent"
+      - type: decision-trace
+        input: "subcommand = send, mcp_tools = unavailable, caller = user"
+        rule: "Prerequisites MCP check + Error Handling direct-call rule"
+        result: "Show helpful message about MCP setup — do not skip silently"
+    source: "Layer 4 exploratory 2026-03-31, scenario send-mcp-disconnected"
+
+  # Ambiguity: Message splitting — no strategy, timing, or threading defined
+  - name: "message-too-long-split-behavior"
+    description: "When message exceeds 4000 chars, skill must split and notify user — tests that splitting is acknowledged"
+    category: regression
+    inputs:
+      command: "/slack send C0ABC123DEF <5000-character deployment log>"
+      state:
+        mcp_connected: true
+        message_length: 5000
+        channel_type: id
+    assert:
+      - type: contains-any
+        values:
+          - "split"
+          - "multiple messages"
+          - "exceeds"
+          - "too long"
+          - "character limit"
+      - type: contains-any
+        values:
+          - "4000"
+          - "character limit"
+          - "Slack's limit"
+      - type: decision-trace
+        input: "message_length = 5000, limit = 4000"
+        rule: "Message too long — Error Handling"
+        result: "Split into multiple messages and note this to the user"
+    source: "Layer 4 exploratory 2026-03-31, scenario message-too-long-split"
+
+  # Ambiguity: notify failure indicator contract undefined
+  - name: "notify-mcp-disconnected-silent-skip"
+    description: "When MCP is disconnected and notify is called by another skill, must skip silently and return failure — not show error"
+    category: regression
+    inputs:
+      command: "/slack notify #general \"Deploy complete for v2.1.0\""
+      state:
+        mcp_connected: false
+        called_by: doc_skill
+    assert:
+      - type: contains-any
+        values:
+          - "skip silently"
+          - "failure indicator"
+          - "silent"
+          - "not connected"
+      - type: not-contains
+        value: "OAuth"
+      - type: not-contains
+        value: "restart Claude Code"
+      - type: decision-trace
+        input: "subcommand = notify, mcp = disconnected, caller = other skill"
+        rule: "notify silent-skip on MCP failure"
+        result: "Skip silently, return failure indicator to calling skill"
+    source: "Layer 4 exploratory 2026-03-31, scenario notify-silent-failure"
+
+  # Ambiguity: Search result ordering and zero-results gap
+  - name: "search-formatting-and-empty-results"
+    description: "Search must format results readably and handle zero results — tests formatting properties and empty-state gap"
+    category: regression
+    inputs:
+      command: "/slack search \"deployment failed\""
+      state:
+        mcp_connected: true
+        search_results: "present (multiple)"
+    assert:
+      - type: contains-all
+        values:
+          - "channel"
+          - "author"
+      - type: contains-any
+        values:
+          - "date"
+          - "timestamp"
+          - "time"
+      - type: decision-trace
+        input: "subcommand = search, query = deployment failed"
+        rule: "search result formatting + limit to 10"
+        result: "Present results with channel name, author, date, message snippet; limit to 10"
+      - type: llm-rubric
+        value: "The agent identifies that the skill has no instruction for handling zero search results (empty result set) — this is a Gap finding"
+    source: "Layer 4 exploratory 2026-03-31, scenario happy-path-search-and-read"
+
+  # Ambiguity: read truncation threshold undefined
+  - name: "read-truncation-threshold"
+    description: "Read command truncates 'very long' messages but threshold is undefined — tests that truncation is mentioned and gap is flagged"
+    category: regression
+    inputs:
+      command: "/slack read #ops"
+      state:
+        mcp_connected: true
+        messages_present: true
+    assert:
+      - type: contains-any
+        values:
+          - "truncat"
+          - "very long"
+          - "chronological"
+          - "last 20"
+      - type: contains-all
+        values:
+          - "author"
+          - "message"
+      - type: decision-trace
+        input: "subcommand = read, channel = #ops"
+        rule: "read formatting — chronological, last 20, truncate long"
+        result: "Present messages chronologically with author, timestamp, content; default 20; truncate long messages"
+    source: "Layer 4 exploratory 2026-03-31, scenario happy-path-search-and-read"
