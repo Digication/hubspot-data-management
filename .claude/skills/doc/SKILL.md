@@ -45,8 +45,8 @@ Several subcommands accept either a **slug** (e.g., `sales-billing-architecture`
      - **Internal docs** -- read other documents in this repo
    - **Focus questions** -- specific questions to answer (optional, helps focus the search)
 2. If `docs/{slug}/research/` already exists, show the existing research summary and ask: "Add to the existing research, or start fresh?"
-   - **Add**: create new reference files in `research/references/` and update `research/index.md`
-   - **Start fresh**: archive existing research by renaming to `research/references/` with a date suffix, then create new `research/index.md`
+   - **Add**: create new reference files in `research/references/` and update `research/index.md`. If a new file would cover the same topic as an existing reference, use a distinct filename (e.g., `current-billing-v2.md` or `current-billing-{date}.md`) rather than overwriting the existing file.
+   - **Start fresh**: archive the existing `research/` folder contents by moving everything into `research/references/archive_{date}/` (create that subfolder), then create a new empty `research/index.md`. This preserves the old research in case it's needed later.
 3. If the document folder doesn't exist yet, create it:
    ```
    docs/{slug}/
@@ -104,8 +104,13 @@ Several subcommands accept either a **slug** (e.g., `sales-billing-architecture`
 1. Resolve the slug or path to the document (see "Resolving slug vs. path" above).
 2. Read the document's `index.md`. If it has `references/`, read all reference files too.
 3. If `--with-code` is specified:
-   - Use Agent sub-agents to search the codebase for evidence that supports or contradicts claims in the document.
-   - Cross-reference technical proposals against actual code (entities, APIs, data models, sync logic).
+   - Extract technical claims from the document: statements about how something works (e.g., "uses a single table", "runs every 15 minutes", "stored in USD"). Focus on entities, APIs, data models, schedules, and integration points.
+   - For each claim, use Agent sub-agents to search the codebase for evidence. Search targets by claim type:
+     - Entity/schema claims → look for migration files, model definitions, schema files
+     - API/endpoint claims → look for route definitions, controller files, API specs
+     - Sync/schedule claims → look for cron configs, event handlers, queue workers
+     - Data format claims → look for serializers, type definitions, database column types
+   - For each claim, report: what the document says → what the code shows → Supports / Contradicts / Inconclusive. If evidence is inconclusive (conflicting files, outdated comments), note that explicitly rather than guessing.
 4. Produce structured feedback with these sections:
    - **What the Document Gets Right** -- acknowledge strengths
    - **Issues and Suggestions** -- numbered, each with:
@@ -115,9 +120,10 @@ Several subcommands accept either a **slug** (e.g., `sales-billing-architecture`
    - **Priority Summary** -- table with High / Medium / Low ratings
    - **Bottom Line** -- 2-3 sentence overall assessment
 5. If `--tone executive` is specified:
-   - Remove all code references and file paths
-   - Use plain business language
-   - Focus on risk and impact, not implementation details
+   - **Code references to remove**: file paths (e.g., `sync-engine/orders.ts`), function/method names (e.g., `validateOrder()`), API routes (e.g., `GET /api/v3/deals`), class names (e.g., `OrderSyncQueue`), SQL table names (e.g., `invoice_line_items`), config keys (e.g., `SYNC_INTERVAL`). Replace with plain descriptions: "internal module", "validation logic", "external API integration", "data processing component", "data storage", "configuration setting".
+   - **Quote handling**: if a quote from the document contains code references, paraphrase it to preserve the meaning without the technical specifics. Example: `"The sync-engine/orders.ts polls HubSpot via GET /api/v3/deals every 15s"` → `"Order data is synchronized with HubSpot frequently via an external API call"`.
+   - **Translation examples**: "missing error handling in the database transaction" → "reliability risk in data processing"; "API rate limit exceeded due to polling frequency" → "risk of service disruption from integration overload"; "no index on the `sales_status` column" → "data query performance risk".
+   - Focus on risk and impact for a non-technical stakeholder (product manager, executive). Do not reference implementation complexity or effort.
 6. Save the review to:
    ```
    docs/{slug}/{version}/reviews/review_{today}_{reviewer}.md
@@ -177,7 +183,7 @@ Several subcommands accept either a **slug** (e.g., `sales-billing-architecture`
 
    Approve v2 as final? This marks it as the official version.
    ```
-3. If there are unresolved High-priority review items, warn the user before proceeding.
+3. If there are unresolved High-priority review items, warn the user before proceeding. An item is considered **unresolved** when the latest HISTORY.md row for this version is a review row (not a subsequent update or in-place edit row) — meaning the document has not been updated since the review was filed. If an `update` has been run after the review, all items are considered addressed.
 4. Ask who is approving (name for the record).
 5. Update HISTORY.md: set the current version's status to "Approved" and fill in the "Approved By" column with the name and today's date.
 6. Update INDEX.md to reflect "Approved" status.

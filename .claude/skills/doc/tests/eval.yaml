@@ -1,0 +1,490 @@
+# .claude/skills/doc/tests/eval.yaml
+
+skill: doc
+description: Golden dataset for doc skill — exploratory findings from Layer 4
+skill_hash: "8bc214c5e6dde368c79d4ceeded59770"
+
+cases:
+  # Finding 1 (Bug): sync vs list orphan handling contradiction
+  - name: "sync-orphan-asks-user-not-auto-remove"
+    description: "When sync finds an orphan INDEX.md entry (folder deleted), it must ask the user — never auto-remove"
+    category: regression
+
+    inputs:
+      command: "/doc sync"
+      state:
+        index_md_exists: true
+        index_entries:
+          - slug: "sales-arch"
+            version: "v2"
+            status: "Approved"
+          - slug: "api-design"
+            version: "v1"
+            status: "Draft"
+        docs_api_design_folder_exists: false
+        docs_sales_arch_history_matches: true
+
+    assert:
+      - type: contains-any
+        values:
+          - "orphan"
+          - "Orphan"
+          - "folder was deleted"
+          - "folder no longer exists"
+          - "no longer has a folder"
+      - type: contains-any
+        values:
+          - "ask"
+          - "remove or keep"
+          - "Keep in INDEX"
+          - "Remove from INDEX"
+          - "want to"
+          - "Would you like"
+      - type: not-contains
+        value: "auto-removed"
+      - type: not-contains
+        value: "automatically removed"
+      - type: decision-trace
+        input: "INDEX.md lists api-design but docs/api-design/ folder does not exist"
+        rule: "Sync step 4: orphan entries — ask user, do not auto-remove"
+        result: "Ask user whether to remove or keep the entry"
+
+    source: "Found during exploratory test on 2026-03-31, scenario sync-orphan-entry"
+
+  # Finding 1b (Bug): list silent sync contradicts sync orphan handling
+  - name: "list-silent-sync-orphan-contradiction"
+    description: "The list subcommand runs silent sync with auto-fix, but sync says orphans need user confirmation — contradiction"
+    category: regression
+
+    inputs:
+      command: "/doc list"
+      state:
+        index_md_exists: true
+        index_entries:
+          - slug: "api-design"
+            version: "v1"
+            status: "Draft"
+        docs_api_design_folder_exists: false
+
+    assert:
+      - type: contains-any
+        values:
+          - "orphan"
+          - "cannot auto-fix"
+          - "needs confirmation"
+          - "folder was deleted"
+          - "ask"
+      - type: not-contains
+        value: "automatically removed"
+      - type: llm-rubric
+        value: "The agent identifies the contradiction between list's 'fix automatically' rule and sync's 'ask user for orphans' rule. It must flag this as an ambiguity or inconsistency rather than silently picking one behavior."
+
+    source: "Found during exploratory test on 2026-03-31, scenario sync-orphan-entry"
+
+  # Finding 2 (Ambiguity): research "start fresh" archiving logic
+  - name: "research-start-fresh-archiving-with-existing-refs"
+    description: "When starting fresh research and research/references/ already has files, the archiving behavior is underspecified"
+    category: regression
+
+    inputs:
+      command: "/doc research billing"
+      state:
+        research_folder_exists: true
+        research_index_exists: true
+        research_references_exist: true
+        existing_reference_files:
+          - "current-billing.md"
+        user_choice: "start fresh"
+
+    assert:
+      - type: contains-any
+        values:
+          - "archive"
+          - "Archive"
+          - "start fresh"
+          - "Start fresh"
+      - type: contains-any
+        values:
+          - "rename"
+          - "move"
+          - "date suffix"
+          - "archived"
+      - type: not-contains
+        value: "overwrite existing"
+      - type: not-contains
+        value: "delete existing"
+      - type: llm-rubric
+        value: "The agent identifies that the 'start fresh' archiving instruction ('archive existing research by renaming to research/references/ with a date suffix') is ambiguous when research/references/ already contains files. It must flag what happens to existing reference files and whether they get date-suffixed too, rather than silently assuming a behavior."
+
+    source: "Found during exploratory test on 2026-03-31, scenario research-existing-add-or-fresh"
+
+  # Finding 3 (Ambiguity): review approved doc warning not in main workflow
+  - name: "review-approved-doc-warns-before-proceeding"
+    description: "Reviewing an already-Approved document must warn the user about reopening the approval process"
+    category: regression
+
+    inputs:
+      command: "/doc review sales-arch"
+      state:
+        history_md_exists: true
+        latest_version: "v2"
+        v2_status: "Approved"
+        v2_approved_by: "Jeff, 2026-04-01"
+
+    assert:
+      - type: contains-any
+        values:
+          - "already Approved"
+          - "already approved"
+          - "reopen"
+          - "reopening"
+          - "approval process"
+      - type: contains-any
+        values:
+          - "warn"
+          - "Warning"
+          - "Continue"
+          - "proceed"
+          - "Are you sure"
+      - type: decision-trace
+        input: "v2 status = Approved, command = review"
+        rule: "Gotchas: review on Approved documents changes status to In Review"
+        result: "Warn user before proceeding"
+
+    source: "Found during exploratory test on 2026-03-31, scenario review-approved-doc-warning"
+
+  # Finding 3b (Ambiguity): update no-reviews guard not in main workflow
+  - name: "update-no-reviews-tells-user-to-review-first"
+    description: "Calling update when no review files exist must tell the user to review first, not proceed with empty checklist"
+    category: regression
+
+    inputs:
+      command: "/doc update sales-arch"
+      state:
+        history_md_exists: true
+        latest_version: "v1"
+        v1_status: "Draft"
+        reviews_folder_empty: true
+
+    assert:
+      - type: contains-any
+        values:
+          - "No reviews found"
+          - "no reviews"
+          - "no review files"
+      - type: contains-any
+        values:
+          - "/doc review"
+          - "review first"
+          - "review the document first"
+      - type: not-contains
+        value: "Which items should I apply"
+      - type: decision-trace
+        input: "reviews/ folder is empty, command = update"
+        rule: "Gotchas: update with no reviews — tell user to review first"
+        result: "Stop and suggest /doc review"
+
+    source: "Found during exploratory test on 2026-03-31, scenario update-no-reviews-guard"
+
+  # Finding 4 (Ambiguity): "unresolved" high-priority items not defined
+  - name: "approve-warns-on-unresolved-high-items"
+    description: "Approve must warn when high-priority review items exist and no update has been run, even though 'unresolved' is not formally defined"
+    category: regression
+
+    inputs:
+      command: "/doc approve sales-arch"
+      state:
+        history_md_exists: true
+        latest_version: "v1"
+        v1_status: "In Review"
+        review_exists: true
+        review_has_high_items: 3
+        no_update_run: true
+
+    assert:
+      - type: contains-any
+        values:
+          - "unresolved"
+          - "High-priority"
+          - "high-priority"
+          - "3 high"
+          - "3 High"
+      - type: contains-any
+        values:
+          - "warn"
+          - "Warning"
+          - "proceed"
+          - "Are you sure"
+          - "Consider"
+      - type: llm-rubric
+        value: "The agent flags that 'unresolved High-priority review items' has no formal definition — there is no mechanism specified for tracking which items have been addressed by a subsequent update. The agent should note this ambiguity rather than assuming a resolution strategy."
+
+    source: "Found during exploratory test on 2026-03-31, scenario approve-unresolved-high-items"
+
+  # Finding 5 (Ambiguity): path with explicit version resolution
+  - name: "path-with-version-respects-user-choice"
+    description: "When user provides a path like docs/sales-arch/v2/index.md, the skill should review v2, not resolve to latest v3"
+    category: regression
+
+    inputs:
+      command: "/doc review docs/sales-arch/v2/index.md"
+      state:
+        history_md_exists: true
+        versions_exist:
+          - "v1"
+          - "v2"
+          - "v3"
+        latest_version: "v3"
+        v2_index_exists: true
+
+    assert:
+      - type: contains-any
+        values:
+          - "v2"
+          - "version 2"
+      - type: not-contains
+        value: "Resolving to v3"
+      - type: not-contains
+        value: "latest version (v3)"
+      - type: llm-rubric
+        value: "The agent identifies that path-based resolution is ambiguous: the skill says to 'infer the slug from the folder structure' but does not specify whether to use the version in the path (v2) or resolve to the latest version (v3). The agent should flag this as a spec gap rather than silently picking one interpretation."
+
+    source: "Found during exploratory test on 2026-03-31, scenario slug-vs-path-resolution"
+
+  # Finding 6 (Ambiguity): "version folders" definition in create guard
+  - name: "create-existing-slug-refuses-with-suggestion"
+    description: "Creating a document when the slug already has version folders must refuse and suggest update or review"
+    category: regression
+
+    inputs:
+      command: "/doc create sales-arch"
+      state:
+        slug_folder_exists: true
+        v1_folder_exists: true
+        history_md_exists: true
+
+    assert:
+      - type: contains
+        value: "already exists"
+      - type: contains-any
+        values:
+          - "/doc update"
+          - "/doc review"
+          - "update"
+          - "review"
+      - type: not-contains
+        value: "Created docs/sales-arch"
+      - type: decision-trace
+        input: "slug = sales-arch, docs/sales-arch/v1/ exists"
+        rule: "Create step 1: if docs/{slug}/ already exists with version folders, stop"
+        result: "Refuse and suggest update or review"
+
+    source: "Found during exploratory test on 2026-03-31, scenario create-existing-slug-guard"
+
+  # Finding 7 (Gap): research "Add" merge strategy
+  - name: "research-add-preserves-existing-references"
+    description: "When adding to existing research, new reference files must not overwrite or duplicate existing ones"
+    category: regression
+
+    inputs:
+      command: "/doc research billing"
+      state:
+        research_folder_exists: true
+        research_index_exists: true
+        research_references_exist: true
+        existing_reference_files:
+          - "current-billing.md"
+        user_choice: "add"
+
+    assert:
+      - type: not-contains
+        value: "overwrite"
+      - type: not-contains
+        value: "replace existing"
+      - type: contains-any
+        values:
+          - "new reference"
+          - "additional"
+          - "added"
+          - "update"
+      - type: llm-rubric
+        value: "The agent correctly adds new reference files alongside existing ones without overwriting. If new research covers the same topic as an existing reference, the agent should use a distinct filename rather than silently replacing the old file."
+
+    source: "Found during exploratory test on 2026-03-31, scenario research-existing-add-or-fresh"
+
+  # Finding 8 (Gap): no HISTORY.md validation in sync
+  - name: "sync-handles-malformed-history-md"
+    description: "Sync should handle or warn about malformed HISTORY.md files rather than silently producing incorrect results"
+    category: regression
+
+    inputs:
+      command: "/doc sync"
+      state:
+        index_md_exists: true
+        index_entries:
+          - slug: "broken-doc"
+            version: "v1"
+            status: "Draft"
+        docs_broken_doc_folder_exists: true
+        history_md_malformed: true
+        history_md_content: "| Version | Date |\n| v1 | 2026-03-20 |"
+
+    assert:
+      - type: contains-any
+        values:
+          - "malformed"
+          - "invalid"
+          - "missing columns"
+          - "could not parse"
+          - "warning"
+          - "Warning"
+      - type: not-contains
+        value: "Everything is in sync"
+      - type: llm-rubric
+        value: "The agent detects that HISTORY.md has missing columns (only Version and Date, missing Author/Status/Approved By/Notes) and warns the user rather than silently treating it as valid. The gotchas section explicitly warns about this: 'Slug resolution fails silently on malformed HISTORY.md'."
+
+    source: "Found during exploratory test on 2026-03-31, scenario sync-orphan-entry"
+
+  # Finding L4-1 (Ambiguity): mixed feedback decision boundary for new version vs in-place edit
+  - name: "update-mixed-feedback-structural-wins"
+    description: "When selected feedback contains structural changes (new sections) AND minor edits (typos), any structural change should trigger a new version"
+    category: regression
+
+    inputs:
+      command: "/doc update sales-arch"
+      state:
+        history_md_exists: true
+        latest_version: "v1"
+        v1_status: "In Review"
+        reviews_exist: true
+        review_findings:
+          - issue: "Missing migration rollback plan"
+            priority: "HIGH"
+            type: "structural - adds new section"
+          - issue: "Typo: 'recieve' should be 'receive'"
+            priority: "LOW"
+            type: "minor"
+        user_selection: "all"
+
+    assert:
+      - type: contains-any
+        values:
+          - "new version"
+          - "New version"
+          - "v2"
+      - type: not-contains
+        value: "in-place edit"
+      - type: decision-trace
+        input: "selected items include structural change (new section) AND minor change (typo), user_selection = all"
+        rule: "Update step 5: New version if structural changes, new sections, scope changes"
+        result: "Choose new version path because at least one structural change is present"
+      - type: llm-rubric
+        value: "The agent correctly identifies that when feedback contains any structural change (adding a new section), the result is a new version — even if other selected items are only minor edits. The agent should not choose in-place edit just because some items are minor."
+
+    source: "Found during exploratory test on 2026-03-31, scenario update-structural-creates-new-version"
+
+  # Finding L4-4 (Ambiguity): sync with multiple mismatches per document must report all
+  - name: "sync-multiple-mismatches-per-document"
+    description: "When a document has both version and status mismatches vs INDEX.md, sync must detect and report all of them"
+    category: regression
+
+    inputs:
+      command: "/doc sync"
+      state:
+        index_md_exists: true
+        index_entries:
+          - slug: "sales-arch"
+            version: "v1"
+            status: "Draft"
+        docs_sales_arch:
+          folder_exists: true
+          history_md_latest_version: "v2"
+          history_md_latest_status: "Approved"
+
+    assert:
+      - type: contains-any
+        values:
+          - "version"
+          - "Version"
+          - "v2"
+      - type: contains-any
+        values:
+          - "status"
+          - "Status"
+          - "Approved"
+      - type: not-contains
+        value: "Everything is in sync"
+      - type: llm-rubric
+        value: "The agent detects both mismatches for sales-arch (version: v1→v2 and status: Draft→Approved) and reports them together before asking for confirmation. It should not stop after detecting just the first mismatch — all discrepancies must be surfaced in the summary."
+
+    source: "Found during exploratory test on 2026-03-31, scenario sync-version-and-status-mismatch"
+
+  # Finding L4-5 (Ambiguity): sync missing entry must confirm before adding, show proposed data
+  - name: "sync-missing-entry-confirms-before-adding"
+    description: "When sync finds a doc folder with HISTORY.md not in INDEX.md, it must show proposed entry and ask confirmation before adding"
+    category: regression
+
+    inputs:
+      command: "/doc sync"
+      state:
+        index_md_exists: true
+        index_entries: []
+        docs_on_disk:
+          - slug: "new-feature-spec"
+            history_md_exists: true
+            latest_version: "v1"
+            latest_status: "Draft"
+            author: "Ly"
+            date: "2026-03-28"
+
+    assert:
+      - type: contains-any
+        values:
+          - "missing entry"
+          - "Missing entry"
+          - "not in INDEX"
+          - "new-feature-spec"
+      - type: contains-any
+        values:
+          - "confirm"
+          - "Confirm"
+          - "proceed"
+          - "add"
+      - type: not-contains
+        value: "Everything is in sync"
+      - type: llm-rubric
+        value: "The agent identifies the missing INDEX.md entry for new-feature-spec and prompts the user for confirmation before adding it — it must NOT silently add entries. The agent should also show what the proposed INDEX.md row would look like (version, status, author/owner, date) so the user can verify the data before confirming."
+
+    source: "Found during exploratory test on 2026-03-31, scenario sync-missing-entry-adds-to-index"
+
+  # Finding L4-9 (Gap): --tone executive must strip code references from review output
+  - name: "review-executive-tone-strips-code-refs"
+    description: "--tone executive must produce a review without file paths, function names, API routes, or class names — business language only"
+    category: regression
+
+    inputs:
+      command: "/doc review sales-arch --tone executive"
+      state:
+        history_md_exists: true
+        latest_version: "v1"
+        v1_status: "Draft"
+        document_excerpt: "The sync-engine/orders.ts module polls HubSpot via GET /api/v3/deals every 15 seconds using the OrderSyncQueue class"
+
+    assert:
+      - type: not-contains
+        value: "sync-engine/orders.ts"
+      - type: not-contains
+        value: "GET /api"
+      - type: not-contains
+        value: "OrderSyncQueue"
+      - type: contains-any
+        values:
+          - "risk"
+          - "impact"
+          - "synchronization"
+          - "integration"
+          - "business"
+      - type: llm-rubric
+        value: "The executive-tone review produces findings in plain business language without file paths, function names, API routes, or class names. Technical issues are translated to business risks (e.g., 'synchronization frequency may impact API rate limits' rather than 'sync-engine/orders.ts polls HubSpot via GET /api/v3/deals'). The output is readable by a non-technical stakeholder."
+
+    source: "Found during exploratory test on 2026-03-31, scenario review-tone-executive-removes-code"
