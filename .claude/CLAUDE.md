@@ -15,6 +15,11 @@
 # Tech Stack Defaults
 When choosing libraries or setting up new apps, prefer this stack. When adding a dependency, prefer libraries compatible with these choices. Full details and guidelines: `skills/implement/references/TECH_STACK.md`
 
+# Slack Integration
+- Slack MCP server is configured in `.mcp.json` (project root) — enables sending messages, searching, and reading channels
+- Use the `/slack` skill for all Slack interactions. Other skills (like `/doc`) delegate to it for notifications.
+- If Slack MCP is not connected, skip silently — never block a workflow on a failed notification
+
 # Memory Routing
 
 When saving learnings, route to the right destination. First match wins:
