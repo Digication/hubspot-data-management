@@ -1,6 +1,6 @@
 skill: retrospective
 description: Golden dataset for retrospective skill — learning routing
-skill_hash: "a20b1537efb8e0a8b1050d0024368822"
+skill_hash: "67cde514b0fc5469c629ee464b90626a"
 
 cases:
   # --- Existing cases (assertions fixed) ---
@@ -329,3 +329,42 @@ cases:
           - "skill file"
           - "update"
     source: "Exploratory test 2026-04-01, scenario script-issue-owned-by-known-skill — Check For #5: owning skill (skill-dev) must be named in proposal"
+
+  # --- Layer 4 exploratory fixtures (2026-04-02) ---
+
+  - name: "direct-feedback-general-checks-duplicates"
+    description: "Direct feedback routed to GENERAL_IMPROVEMENT must check CLAUDE.md for duplicates before proposing"
+    category: regression
+    inputs:
+      command: "/retrospective we use pnpm, never npm"
+      state:
+        conversation_context: "No conversation context. Feedback is in the arguments. The root CLAUDE.md already contains 'Package manager: pnpm'."
+    assert:
+      - type: contains-any
+        values:
+          - "already"
+          - "exists"
+          - "duplicate"
+          - "covered"
+          - "CLAUDE.md"
+      - type: not-contains
+        value: "I'll add this to the project CLAUDE.md. Proceed?"
+    source: "Exploratory test 2026-04-02, scenario direct-feedback-general-standard — Bug 1: SKILL.md example skips duplicate check required by GENERAL_IMPROVEMENT Save Process"
+
+  - name: "direct-feedback-ambiguous-consistent-order"
+    description: "Ambiguous feedback presents options in a consistent order matching the template (skill-specific first, general rule second)"
+    category: regression
+    inputs:
+      command: "/retrospective always use TypeScript strict mode"
+      state:
+        conversation_context: "No conversation context. Feedback is in the arguments. No specific skill was involved in the conversation."
+    assert:
+      - type: contains-any
+        values:
+          - "two ways"
+          - "applied in"
+          - "Which do you prefer"
+          - "both"
+      - type: regex
+        value: "(?i)(skill|specific).*\\n.*general|general.*\\n.*(skill|specific)"
+    source: "Exploratory test 2026-04-02, scenario direct-feedback-ambiguous — Bug 2: Ambiguous Feedback template (skill-first) and example (general-first) show opposite order"

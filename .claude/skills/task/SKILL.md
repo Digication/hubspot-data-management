@@ -81,6 +81,13 @@ Organize into sections:
 
 If there are uncommitted changes on the current branch, note them at the top.
 
+**Guided tier field mapping** — translate git concepts to plain language:
+- Section headers: "Active work" (not "IN PROGRESS"), "Saved work" (not "STASHED WORK"), "Finished work" (not "RECENTLY COMPLETED")
+- Branch names: show the topic, not the prefix — `feat/payment-flow` → "Payment flow"
+- Stash entries: show context — "You saved work on: Payment form"
+- Avoid: "branch", "stash", "merge", "HEAD", "not merged"
+- Use: "what you were working on", "last touched X days ago", "saved for later"
+
 ---
 
 ## `start "description"` — Begin New Work
@@ -127,8 +134,8 @@ Use **AskUserQuestion**:
 
 Actions:
 - **Stash**: `git stash push -u -m "task: {current_branch} - {brief_description}"`
-- **Commit as WIP**: Stage all and commit with message `wip: {current_branch_context}` — do NOT push
-- **Related**: Keep changes, proceed to Step 3
+- **Commit as WIP**: Stage all and commit with message `wip: {current_branch_context}` — do NOT push. Derive `{current_branch_context}` from: the task description if provided → otherwise the current branch name → otherwise `uncommitted work`.
+- **Related**: Keep changes, proceed to Step 3. When creating the branch in Step 3, `git checkout -b` automatically carries uncommitted changes to the new branch — no extra steps needed. Mention this to the user: "Your current changes will move to the new branch automatically."
 - **Discard**: Confirm once more, then `git checkout -- . && git clean -fd`
 
 **Step 3 — Create branch**
@@ -187,6 +194,7 @@ Save current work and return to a clean state.
 3. Execute the chosen action:
    - **Stash**: `git stash push -u -m "task: {branch} - {brief_context}"`
    - **WIP commit**: Stage all, commit `wip: {brief_context_from_recent_changes}` — do NOT push
+   - **No (Guided tier)**: Acknowledge and close: "No problem — your changes are still there. Whenever you're ready, just say 'resume' or 'come back to this'."
 
 4. Stash messages must carry enough context to be useful later. Include:
    - Branch name
@@ -219,7 +227,7 @@ Options built from:
 
 5. Resume the selected work:
    - **Branch selected**: `git checkout {branch}`. If a stash exists with a matching branch name in the message prefix, ask if they want to restore it too.
-   - **Stash selected**: Parse the originating branch from the stash message (the `task: {branch}` prefix). Checkout that branch first, THEN pop the stash. Both steps are required — never pop a stash without first being on the correct branch.
+   - **Stash selected**: Parse the originating branch from the stash message (the `task: {branch}` prefix). Checkout that branch first, THEN pop the stash. Both steps are required — never pop a stash without first being on the correct branch. If the branch no longer exists locally, ask the user: "The branch this work came from no longer exists. Want me to (a) create it from main, or (b) restore the work onto your current branch?"
 
 6. Run `git status` and show current state
 

@@ -1,6 +1,6 @@
 skill: task
 description: Golden dataset for task skill — workspace safety, context switching, and project dashboard
-skill_hash: "needs-regeneration"
+skill_hash: "dc63111e0623ebaa34ef83d38a42c08f"
 
 cases:
   - name: "start-clean-tree-creates-branch"
@@ -153,3 +153,98 @@ cases:
       - type: not-contains
         value: "task_"
     source: "SKILL.md rules — git is the database, no tracking files"
+
+  - name: "resume-stash-missing-branch"
+    description: "Resume from stash when the stash's originating branch no longer exists locally — skill must offer a recovery path, not silently fail"
+    category: regression
+    inputs:
+      command: "/task resume"
+      state:
+        branches: ["main"]
+        stash_list: ["stash@{0}: task: feat/payment-flow - adding payment form"]
+        user_choice: "stash@{0} — payment form work"
+        user_tier: "standard"
+    assert:
+      - type: contains-any
+        values:
+          - "doesn't exist"
+          - "not found"
+          - "create"
+          - "where"
+          - "can't find"
+          - "no longer"
+    source: "L4 exploratory 2026-04-02 — resume-from-stash: git checkout fails with no recovery path when branch missing"
+
+  - name: "wip-commit-message-has-context"
+    description: "WIP commit message includes meaningful context after 'wip:' — not just an empty suffix"
+    category: regression
+    inputs:
+      command: '/task start "Add payment page"'
+      state:
+        git_status: "modified: src/checkout.js"
+        user_tier: "standard"
+        user_choice: "Commit as WIP"
+    assert:
+      - type: regex
+        value: "wip:.*\\S"
+    source: "L4 exploratory 2026-04-02 — wip-commit-action: {current_branch_context} derivation underspecified"
+
+  - name: "related-changes-carry-to-new-branch"
+    description: "When user picks 'They're related', skill should clarify that uncommitted changes will carry to the new branch"
+    category: regression
+    inputs:
+      command: '/task start "Finish the payment flow"'
+      state:
+        git_status: "modified: src/payment.js"
+        user_tier: "standard"
+        user_choice: "They're related"
+    assert:
+      - type: contains-any
+        values:
+          - "carry"
+          - "move"
+          - "new branch"
+          - "changes will"
+          - "included"
+          - "go with"
+    source: "L4 exploratory 2026-04-02 — related-keep-changes: skill doesn't explain dirty changes carry to new branch automatically"
+
+  - name: "dashboard-guided-tier-no-jargon"
+    description: "Guided tier dashboard avoids git jargon — no 'stash', 'HEAD', 'not merged' in user-facing output"
+    category: regression
+    inputs:
+      command: "/task"
+      state:
+        git_status: "clean"
+        current_branch: "main"
+        user_tier: "guided"
+        branches: ["feat/payment-flow", "fix/cart-bug"]
+    assert:
+      - type: not-contains
+        value: "git stash"
+      - type: not-contains
+        value: "not merged"
+      - type: not-contains
+        value: "HEAD"
+    source: "L4 exploratory 2026-04-02 — dashboard-guided-tier: Guided tier rendering unspecified; git jargon leaks into output"
+
+  - name: "pause-no-option-has-follow-through"
+    description: "When Guided tier user picks 'No, I'll come back to it' during pause, skill provides a closing response rather than dead-ending"
+    category: regression
+    inputs:
+      command: "/task pause"
+      state:
+        git_status: "modified: src/app.js"
+        user_tier: "guided"
+        user_choice: "No, I'll come back to it"
+    assert:
+      - type: contains-any
+        values:
+          - "okay"
+          - "alright"
+          - "no problem"
+          - "come back"
+          - "resume"
+          - "still there"
+          - "still here"
+    source: "L4 exploratory 2026-04-02 — pause-guided-tier: 'No, I'll come back to it' option has no defined follow-up action in spec"
