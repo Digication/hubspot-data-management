@@ -1,6 +1,6 @@
 skill: retrospective
 description: Golden dataset for retrospective skill — learning routing
-skill_hash: "cf676a97528fb6d5ac76a31ae7764a36"
+skill_hash: "a20b1537efb8e0a8b1050d0024368822"
 
 cases:
   # --- Existing cases (assertions fixed) ---
@@ -236,6 +236,35 @@ cases:
           - "verify"
     source: "Phase 3 — post-edit validation suggestion"
 
+  - name: "script-execution-issue-routes-to-skill-improvement"
+    description: "A command that failed and needed a workaround should be flagged as a script execution issue and routed to the owning skill"
+    category: regression
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: |
+          Claude ran the generate-viewer.mjs script to produce an HTML report.
+          The script failed with a permission error (EPERM writing to /tmp).
+          Claude retried it with dangerouslyDisableSandbox=true.
+          The retry succeeded but opened the browser twice.
+          The user had to point out the issue — Claude did not surface it proactively.
+    assert:
+      - type: contains-any
+        values:
+          - "script"
+          - "command"
+          - "execution"
+          - "permission"
+          - "sandbox"
+          - "workaround"
+      - type: contains-any
+        values:
+          - "SKILL_IMPROVEMENT"
+          - "skill file"
+          - "skill-dev"
+          - "generate-viewer"
+    source: "Retrospective 2026-04-01 — Check For #5: script execution issues (sandbox failure + double browser open)"
+
   - name: "loop-is-bidirectional"
     description: "retrospective after a skill edit mentions skill-dev for verification"
     category: regression
@@ -255,3 +284,48 @@ cases:
           - "test"
           - "verify"
     source: "Phase 4 — loop is bidirectional (skill-dev → retrospective → skill-dev)"
+
+  # --- Layer 4 exploratory fixtures (2026-04-01) ---
+
+  - name: "personal-preference-uses-first-person-language"
+    description: "A preference stated in first person ('I prefer') routes to MEMORY_CAPTURE, not CLAUDE.md"
+    category: regression
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: "User said 'I prefer shorter output — I find long explanations hard to read.' No team standard was declared, no skill was involved."
+    assert:
+      - type: contains-any
+        values:
+          - "memory"
+          - "MEMORY_CAPTURE"
+          - "personal"
+          - "remember"
+      - type: not-contains
+        value: "CLAUDE.md"
+    source: "Exploratory test 2026-04-01, scenario personal-vs-team-standard-routing — Check For #3: first-person language signals personal preference, not team standard"
+
+  - name: "script-issue-routes-to-owning-skill"
+    description: "Check For #5 with a clearly-owned script routes to the owning skill's SKILL_IMPROVEMENT, not just 'a skill file'"
+    category: regression
+    inputs:
+      command: "/retrospective"
+      state:
+        conversation_context: |
+          Claude ran `/skill-dev test commit`. The skill-dev skill called
+          node .claude/skills/skill-dev/scripts/validate-skill.mjs on the commit skill.
+          The script failed with ENOENT (file not found) because the path was wrong.
+          Claude had to manually fix the path argument before it succeeded.
+          The user said "This should work automatically."
+    assert:
+      - type: contains-any
+        values:
+          - "skill-dev"
+          - "validate-skill"
+          - "validate-skill.mjs"
+      - type: contains-any
+        values:
+          - "SKILL_IMPROVEMENT"
+          - "skill file"
+          - "update"
+    source: "Exploratory test 2026-04-01, scenario script-issue-owned-by-known-skill — Check For #5: owning skill (skill-dev) must be named in proposal"

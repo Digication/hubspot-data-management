@@ -33,6 +33,10 @@ Review the current conversation for potential workflow improvements.
 4. **New skill opportunity** - No skill existed but approach worked well
    -> Follow [SKILL_CREATION](references/SKILL_CREATION.md)
 
+5. **Script or command execution issues** - A command behaved unexpectedly: failed due to permissions, needed a workaround (e.g., `dangerouslyDisableSandbox`), produced unintended side effects on retry, or required manual intervention that the skill should have handled automatically
+   -> These are always worth capturing — the skill or script that owns the command should be updated so it handles the failure gracefully without user involvement
+   -> Route to the skill that owns the command ([SKILL_IMPROVEMENT](references/SKILL_IMPROVEMENT.md))
+
 ## Multiple Learnings
 
 When a conversation contains more than one learning:

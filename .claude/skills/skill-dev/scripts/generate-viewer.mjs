@@ -23,7 +23,7 @@ function main() {
   const skillName = get('--skill') || 'unknown';
   const resultsPath = get('--results');
   const baselinePath = get('--baseline');
-  const outputPath = get('--output') || `/tmp/eval-viewer-${skillName}-${Date.now()}.html`;
+  const outputPath = get('--output') || `${process.env.TMPDIR || '/tmp'}/eval-viewer-${skillName}-${Date.now()}.html`;
 
   if (!resultsPath) {
     console.error('Usage: node generate-viewer.mjs --skill <name> --results <json-path>');

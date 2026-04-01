@@ -70,6 +70,7 @@ Should I update the skill?
    ```
    - If validation **passes**: proceed to step 6
    - If validation **fails**: report the errors, fix them immediately (don't leave the skill broken), re-validate
+   - If `tests/eval.yaml` exists: recompute and update `skill_hash` — editing skill files makes the existing hash stale
 6. **Suggest follow-up:** "Edit applied and validated. Want me to run `/skill-dev test [skill-name]` to verify the change works as expected?"
 
 ### Where Changes Go

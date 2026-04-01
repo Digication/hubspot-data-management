@@ -156,6 +156,7 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
    ```bash
    node <skill-base-dir>/scripts/generate-viewer.mjs --skill <skill-name> --results $TMPDIR/eval-results-<skill>.json
    ```
+   Check the exit code and output. If the script fails (e.g., permission error writing to `/tmp`), surface the error to the user — do not silently continue. Common cause: sandbox restricts `/tmp` writes; the script uses `$TMPDIR` which resolves to the sandbox-allowed path.
    The script auto-opens the report in the browser — do not run `open` separately.
    Tell the user: "I've also generated an interactive HTML report — it opened in your browser. You can leave feedback there and export it as JSON."
 
@@ -332,6 +333,7 @@ See [TRIGGER_OPTIMIZATION.md](references/TRIGGER_OPTIMIZATION.md) for methodolog
 - Layer 3 judge rubrics must have specific PASS/FAIL criteria — vague rubrics like "is it good?" produce inconsistent results. Every criterion needs a concrete condition.
 - Layer 4 findings are NOT a quality gate — they're discovery input. Don't block shipping on exploratory findings; convert them to Layer 2 cases first.
 - Layer 4 without coverage checking produces endless findings — each run discovers new edge cases without converging. Always check existing coverage first (step 2 of Exploratory Workflow) to avoid re-exploring covered areas.
+- `generate-viewer.mjs` writes to `$TMPDIR`, not `/tmp` directly — the sandbox blocks `/tmp` writes. If the viewer script fails with a permission error, the root cause is always this. The script was fixed to use `process.env.TMPDIR`, but if you see this error again, check the `--output` path.
 
 ---
 
