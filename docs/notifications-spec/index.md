@@ -35,11 +35,18 @@ Notifications are queued via a background job worker. Each notification:
 3. Delivered to the appropriate channel(s)
 4. Marked `status: delivered` or `status: failed`
 
+### Retry Policy
+
+If delivery fails, the worker retries up to **3 times** with exponential backoff (30s, 2m, 10m). After all retries are exhausted, the notification is marked `status: dead` and no further attempts are made. Dead notifications are surfaced in the admin dashboard for manual inspection.
+
 ### User Preferences
 
 Users can toggle notification types on/off per channel via Settings > Notifications. Preferences are stored in `user_notification_preferences` table.
 
+## Decisions
+
+- **Email delivery:** Send immediately (no batching). Daily digest may be revisited as a future enhancement.
+
 ## Open Questions
 
-- Should we batch email notifications into a daily digest, or send immediately?
 - What's the retention policy for old notifications in the database?
