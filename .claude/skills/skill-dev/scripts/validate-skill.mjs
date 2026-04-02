@@ -421,6 +421,175 @@ function mergeInto(result, checks) {
 }
 
 // ---------------------------------------------------------------------------
+// Stats computation
+// ---------------------------------------------------------------------------
+
+function computeStats(skillDir) {
+  const stats = {
+    skillMd: { lines: 0, chars: 0, tokens: 0 },
+    references: { count: 0, chars: 0, tokens: 0, files: [] },
+    scripts: { count: 0, chars: 0, files: [] },
+    tests: { caseCount: 0, rubricCount: 0, hasEvalYaml: false },
+    totals: { instructionChars: 0, instructionTokens: 0, allFiles: 0 },
+    complexity: { decisionTables: 0, transitions: 0, gotchas: false, sections: 0 }
+  };
+
+  // SKILL.md
+  const skillMdPath = path.join(skillDir, 'SKILL.md');
+  if (fs.existsSync(skillMdPath)) {
+    const content = fs.readFileSync(skillMdPath, 'utf-8');
+    stats.skillMd.lines = content.split('\n').length;
+    stats.skillMd.chars = content.length;
+    stats.skillMd.tokens = Math.ceil(content.length / 4);
+    stats.totals.allFiles++;
+
+    // Complexity from SKILL.md
+    const tableMatches = content.match(/\|[^|]+\|[^|]+\|[^|]+\|/g);
+    // Count distinct table blocks (groups of consecutive | rows)
+    let inTable = false;
+    for (const line of content.split('\n')) {
+      if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+        if (!inTable) { stats.complexity.decisionTables++; inTable = true; }
+      } else {
+        inTable = false;
+      }
+    }
+
+    const transitionPatterns = [
+      /(?:ask|offer|prompt).*?["']([^"']+)["']/gi,
+      /\(yes\/no\)/gi
+    ];
+    for (const pattern of transitionPatterns) {
+      const matches = content.match(pattern);
+      if (matches) stats.complexity.transitions += matches.length;
+    }
+
+    stats.complexity.gotchas = /## Gotchas/i.test(content);
+    const sectionMatches = content.match(/^##\s/gm);
+    stats.complexity.sections = sectionMatches ? sectionMatches.length : 0;
+  }
+
+  // References — only .md files (agents read these as instructions)
+  // Non-.md files (e.g., viewer-template.html) are assets used by scripts, not loaded by agents
+  const refsDir = path.join(skillDir, 'references');
+  if (fs.existsSync(refsDir) && fs.statSync(refsDir).isDirectory()) {
+    for (const file of fs.readdirSync(refsDir)) {
+      const filePath = path.join(refsDir, file);
+      if (fs.statSync(filePath).isFile() && file.endsWith('.md')) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        stats.references.count++;
+        stats.references.chars += content.length;
+        stats.references.files.push({ name: file, chars: content.length, tokens: Math.ceil(content.length / 4) });
+        stats.totals.allFiles++;
+      }
+    }
+    stats.references.tokens = Math.ceil(stats.references.chars / 4);
+  }
+
+  // Scripts
+  const scriptsDir = path.join(skillDir, 'scripts');
+  if (fs.existsSync(scriptsDir) && fs.statSync(scriptsDir).isDirectory()) {
+    for (const file of fs.readdirSync(scriptsDir)) {
+      const filePath = path.join(scriptsDir, file);
+      if (fs.statSync(filePath).isFile()) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        stats.scripts.count++;
+        stats.scripts.chars += content.length;
+        stats.scripts.files.push({ name: file, chars: content.length });
+        stats.totals.allFiles++;
+      }
+    }
+  }
+
+  // Tests
+  const evalYamlPath = path.join(skillDir, 'tests', 'eval.yaml');
+  if (fs.existsSync(evalYamlPath)) {
+    stats.tests.hasEvalYaml = true;
+    const content = fs.readFileSync(evalYamlPath, 'utf-8');
+    const caseMatches = content.match(/^\s*- name:/gm);
+    stats.tests.caseCount = caseMatches ? caseMatches.length : 0;
+    const rubricMatches = content.match(/type:\s*llm-rubric/g);
+    stats.tests.rubricCount = rubricMatches ? rubricMatches.length : 0;
+  }
+
+  // Totals — instruction size = SKILL.md + references (what agents must load)
+  stats.totals.instructionChars = stats.skillMd.chars + stats.references.chars;
+  stats.totals.instructionTokens = Math.ceil(stats.totals.instructionChars / 4);
+
+  return stats;
+}
+
+function printStats(skillDir, stats) {
+  const name = path.basename(skillDir);
+  console.log('\n' + '='.repeat(60));
+  console.log(`SKILL STATS: ${name}`);
+  console.log('='.repeat(60));
+
+  console.log('\n── Instruction Size (what agents load) ──');
+  console.log(`  SKILL.md:        ${stats.skillMd.chars.toLocaleString()} chars  (~${stats.skillMd.tokens.toLocaleString()} tokens, ${stats.skillMd.lines} lines)`);
+  if (stats.references.count > 0) {
+    console.log(`  References:      ${stats.references.chars.toLocaleString()} chars  (~${stats.references.tokens.toLocaleString()} tokens, ${stats.references.count} files)`);
+    for (const f of stats.references.files) {
+      console.log(`    ${f.name}: ${f.chars.toLocaleString()} chars (~${f.tokens.toLocaleString()} tokens)`);
+    }
+  } else {
+    console.log('  References:      (none)');
+  }
+  console.log(`  ────────────────`);
+  console.log(`  Total:           ${stats.totals.instructionChars.toLocaleString()} chars  (~${stats.totals.instructionTokens.toLocaleString()} tokens)`);
+
+  if (stats.scripts.count > 0) {
+    console.log(`\n── Scripts (not loaded by agents) ──`);
+    console.log(`  ${stats.scripts.count} files, ${stats.scripts.chars.toLocaleString()} chars`);
+  }
+
+  console.log('\n── Complexity ──');
+  console.log(`  Sections:        ${stats.complexity.sections}`);
+  console.log(`  Decision tables: ${stats.complexity.decisionTables}`);
+  console.log(`  Transitions:     ${stats.complexity.transitions}`);
+  console.log(`  Gotchas section: ${stats.complexity.gotchas ? 'yes' : 'no'}`);
+
+  if (stats.tests.hasEvalYaml) {
+    console.log('\n── Test Coverage ──');
+    console.log(`  Test cases:      ${stats.tests.caseCount}`);
+    console.log(`  LLM rubrics:     ${stats.tests.rubricCount}`);
+    // Estimate test cost
+    const l2Agents = stats.tests.caseCount;
+    const l3Agents = stats.tests.rubricCount * 2; // 2+1 strategy, best case
+    const totalAgents = l2Agents + l3Agents;
+    const estTokens = (totalAgents * stats.totals.instructionTokens) + (totalAgents * 500); // prefix + unique
+    console.log(`  Est. agents:     ${totalAgents} (L2: ${l2Agents}, L3: ~${l3Agents})`);
+    console.log(`  Est. tokens:     ~${estTokens.toLocaleString()} (without caching)`);
+  }
+
+  // Warnings
+  const warnings = [];
+  if (stats.totals.instructionTokens > 20000) {
+    warnings.push(`Instruction size (${stats.totals.instructionTokens.toLocaleString()} tokens) is large — agents will be slow and expensive. Consider splitting references.`);
+  } else if (stats.totals.instructionTokens > 10000) {
+    warnings.push(`Instruction size (${stats.totals.instructionTokens.toLocaleString()} tokens) is moderate — prompt caching is important for test runs.`);
+  }
+  if (stats.complexity.decisionTables > 8) {
+    warnings.push(`${stats.complexity.decisionTables} decision tables — this skill is complex. Ensure test coverage matches.`);
+  }
+  if (stats.tests.hasEvalYaml && stats.tests.caseCount < stats.complexity.decisionTables) {
+    warnings.push(`Fewer test cases (${stats.tests.caseCount}) than decision tables (${stats.complexity.decisionTables}) — coverage may be incomplete.`);
+  }
+
+  if (warnings.length > 0) {
+    console.log('\n── Warnings ──');
+    for (const w of warnings) {
+      console.log(`  ⚠️  ${w}`);
+    }
+  }
+
+  console.log('\n' + '-'.repeat(60));
+
+  // Output JSON for programmatic use
+  return stats;
+}
+
+// ---------------------------------------------------------------------------
 // Main validation entry point
 // ---------------------------------------------------------------------------
 
@@ -485,10 +654,42 @@ function main() {
 
   if (args.length < 1) {
     console.log('Usage: node validate-skill.mjs /path/to/skill/');
+    console.log('       node validate-skill.mjs --stats /path/to/skill/');
+    console.log('       node validate-skill.mjs --stats --json /path/to/skill/');
     process.exit(1);
   }
 
-  const result = validateSkill(args[0]);
+  const isStats = args.includes('--stats');
+  const isJson = args.includes('--json');
+  const skillPath = args.filter(a => !a.startsWith('--'))[0];
+
+  if (!skillPath) {
+    console.log('Error: No skill path provided');
+    process.exit(1);
+  }
+
+  if (isStats) {
+    let resolvedPath = path.resolve(skillPath);
+    const stat = fs.existsSync(resolvedPath) ? fs.statSync(resolvedPath) : null;
+    let skillDir;
+    if (stat && stat.isFile() && path.basename(resolvedPath) === 'SKILL.md') {
+      skillDir = path.dirname(resolvedPath);
+    } else if (stat && stat.isDirectory()) {
+      skillDir = resolvedPath;
+    } else {
+      console.log(`Error: Invalid path: ${skillPath}`);
+      process.exit(1);
+    }
+    const stats = computeStats(skillDir);
+    if (isJson) {
+      console.log(JSON.stringify(stats, null, 2));
+    } else {
+      printStats(skillDir, stats);
+    }
+    process.exit(0);
+  }
+
+  const result = validateSkill(skillPath);
   result.printReport();
   process.exit(result.passed ? 0 : 1);
 }

@@ -39,6 +39,8 @@ Unified skill for the skill quality pipeline. Three modes, run in order:
 - `triggers <skill-name>`: Test and optimize the skill's description for trigger accuracy
 - `triggers <skill-name> --max-rounds N`: Set max optimization rounds (default: 5)
 - `triggers <skill-name> --dry-run`: Show the query set and current score only, no optimization
+- `stats <skill-name>`: Show skill size, complexity, and estimated test cost (no agents spawned)
+- `stats <skill-name> --json`: Same as stats but output raw JSON
 - `<skill-name>`: Auto-detect — review first, then offer to test (see Auto-Detect Flow below)
 - (no args): List available skills and ask which to work on (see No-Args Flow below)
 
@@ -355,6 +357,41 @@ See [TRIGGER_OPTIMIZATION.md](references/TRIGGER_OPTIMIZATION.md) for methodolog
 7. Show before/after: current description vs. best candidate with score delta
 8. Ask: "Want me to apply this improved description to SKILL.md?"
 9. If yes: edit the `description` field in the frontmatter
+
+---
+
+## Mode 6: Stats
+
+Instant skill profile — shows size, complexity, and estimated test cost without spawning any agents.
+
+### Workflow
+
+1. Run `node <skill-base-dir>/scripts/validate-skill.mjs --stats <skill-path>`
+2. Present the output to the user
+3. If `--json` flag is present, run with `--stats --json` and show raw JSON instead
+
+### What it measures
+
+| Category | Metrics |
+|---|---|
+| **Instruction size** | SKILL.md chars/tokens/lines, references chars/tokens/count, total instruction tokens |
+| **Complexity** | Section count, decision tables, transition points, gotchas presence |
+| **Test coverage** | Test case count, LLM rubric count, estimated agents and tokens per test run |
+
+### Warnings
+
+The stats output includes automated warnings when the skill looks expensive or under-tested:
+
+| Condition | Warning |
+|---|---|
+| Instruction tokens > 20K | "Large skill — agents will be slow and expensive" |
+| Instruction tokens > 10K | "Moderate size — prompt caching is important" |
+| Decision tables > test cases | "Coverage may be incomplete" |
+
+This mode is useful for:
+- Checking a skill's "weight" before running expensive tests
+- Comparing skills to find outliers
+- Catching instruction bloat early
 
 ---
 
