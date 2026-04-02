@@ -1,280 +1,320 @@
 ---
 name: doc
-description: Trigger on write a spec, create a document, research a topic, review a doc, update a document, approve a doc, document status, list documents, new RFC, new proposal, draft a spec, check document history, sync docs index.
+description: Manage document lifecycle conversationally. Trigger on write a spec, create a document, research a topic, review a doc, update a document, approve a doc, document status, list documents, new RFC, new proposal, draft a spec, check document history.
 metadata:
-  allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, mcp__slack__*
+  allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, Bash, mcp__slack__authenticate, mcp__slack__*
 ---
 
-## Arguments
+## Overview
 
-- `research <slug>` -- Research a topic before writing
-- `research <slug> --with-code <repo-path>` -- Research with codebase exploration
-- `create <slug>` -- Start a new document
-- `review <slug-or-path>` -- Review a document and produce structured feedback
-- `review <slug-or-path> --with-code <repo-path>` -- Review with codebase cross-referencing
-- `review <slug-or-path> --tone <technical|executive>` -- Control output tone (default: technical)
-- `update <slug-or-path>` -- Apply approved feedback to create an updated version
-- `approve <slug>` -- Mark a document version as approved
-- `sync` -- Check and fix INDEX.md and HISTORY.md consistency
-- `status <slug>` -- Show lifecycle status of a document
-- `list` -- List all managed documents
-- `help` -- Show usage and conventions
+A conversational document lifecycle tool powered by Claude Code. Users interact through `/doc` — no commands to remember, no conventions to learn. Claude guides every interaction.
 
-## Instructions
+### Design Principles
 
-This skill manages the full lifecycle of versioned documents in the `docs/` directory. Every action follows the folder structure and naming conventions defined in [CONVENTIONS.md](references/CONVENTIONS.md).
+1. **Git is the engine.** Git already tracks history, diffs, versions, and integrity. Don't rebuild it. Use git tags for versioning.
+2. **Minimal files.** A document is two files: content (`index.md`) and metadata (`meta.yaml`). Everything else is created on demand.
+3. **Conversational first.** Users never need to remember commands, arguments, or naming conventions. Claude guides every interaction.
+4. **Scripts enforce correctness.** Claude is the friendly UI; scripts are the deterministic engine underneath.
 
-The lifecycle flows: **research -> create -> review -> update (loop) -> approve**
-
-### Resolving slug vs. path
-
-Several subcommands accept either a **slug** (e.g., `sales-billing-architecture`) or a **file path** (e.g., `docs/sales-billing-architecture/v2/index.md`).
-
-- If a **slug** is given: resolve to the latest version by reading HISTORY.md and finding the highest `v{n}` folder.
-- If a **path** is given: infer the slug from the folder structure (the directory name under `docs/`).
-- If resolution fails: tell the user what was tried and ask for clarification.
-
-### Subcommand: `research`
-
-1. Ask the user for:
-   - **Topic** -- what to research (becomes the slug if no document exists yet)
-   - **Author** -- who is doing the research (for HISTORY.md). If user context is available, use it as default.
-   - **Sources** -- where to look. Any combination of:
-     - **Web** -- search for industry practices, articles, prior art, patterns
-     - **Codebase** -- explore how things work today in a specific repo (the `--with-code` flag pre-fills this; the interactive question is the canonical way to provide it)
-     - **Internal docs** -- read other documents in this repo
-   - **Focus questions** -- specific questions to answer (optional, helps focus the search)
-2. If `docs/{slug}/research/` already exists, show the existing research summary and ask: "Add to the existing research, or start fresh?"
-   - **Add**: create new reference files in `research/references/` and update `research/index.md`. If a new file would cover the same topic as an existing reference, use a distinct filename (e.g., `current-billing-v2.md` or `current-billing-{date}.md`) rather than overwriting the existing file.
-   - **Start fresh**: archive the existing `research/` folder contents by moving everything into `research/references/archive_{date}/` (create that subfolder), then create a new empty `research/index.md`. This preserves the old research in case it's needed later.
-3. If the document folder doesn't exist yet, create it:
-   ```
-   docs/{slug}/
-     HISTORY.md
-     research/
-       index.md
-   ```
-4. For each source type, use the appropriate tools:
-   - **Web**: Use WebSearch and WebFetch to find and read relevant articles
-   - **Codebase**: Use Agent sub-agents to explore the repo (search for keywords, read relevant files, trace data flows)
-   - **Internal docs**: Use Glob and Read to find and read related documents
-5. Compile findings into a research brief:
-   - If findings fit in one file: write everything into `research/index.md`
-   - If findings are large or cover distinct topics: create `research/references/` and split into topic files (e.g., `current-billing.md`, `industry-patterns.md`), then update `index.md` as a summary with links
-6. Research `index.md` should include:
-   - **Summary** -- key takeaways in 3-5 bullet points
-   - **Sources** -- where the information came from (URLs, file paths, repo paths)
-   - **Open questions** -- things that couldn't be answered or need human input
-   - **Links to references** -- if references/ exists, link to each file with a one-line description
-7. Update HISTORY.md with the research event (add a new `research` row each time).
-8. Notify via Slack using the `/slack notify` skill (see [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md) for message formats).
-
-### Subcommand: `create`
-
-1. If `docs/{slug}/` already exists with version folders, stop and tell the user: "This document already exists (currently at v{n}). Did you mean `/doc update` or `/doc review`?"
-2. Ask the user for:
-   - **Topic** -- what the document is about
-   - **Author** -- who is writing the document (for HISTORY.md). If user context is available, use it as default.
-   - **Source** -- rough notes, a Slack thread, meeting notes, or "from scratch"
-   - **Template** -- if a template exists in `docs/templates/`, offer to use it
-3. If research exists in `docs/{slug}/research/`, automatically read it and use it as source material. Mention this to the user.
-4. Create the folder structure:
-   ```
-   docs/{slug}/
-     HISTORY.md          (create if it doesn't exist)
-     v1/
-       index.md
-   ```
-5. If the document is large or has distinct sections, split into multiple files:
-   ```
-   v1/
-     index.md            (overview + table of contents with links)
-     references/
-       01_overview.md
-       02_deal-architecture.md
-       03_migration-plan.md
-   ```
-   Use number prefixes for reading order. Only create `references/` when actually needed.
-6. If source material is provided, use it to draft the document. Add section headers and structure.
-7. Update `docs/INDEX.md` with the new document entry. If `docs/INDEX.md` does not exist, create it first using the format in [CONVENTIONS.md](references/CONVENTIONS.md).
-8. Notify via Slack using the `/slack notify` skill (see [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md) for message formats).
-
-### Subcommand: `review`
-
-1. Resolve the slug or path to the document (see "Resolving slug vs. path" above).
-2. Read the document's `index.md`. If it has `references/`, read all reference files too.
-3. If `--with-code` is specified:
-   - Extract technical claims from the document: statements about how something works (e.g., "uses a single table", "runs every 15 minutes", "stored in USD"). Focus on entities, APIs, data models, schedules, and integration points.
-   - For each claim, use Agent sub-agents to search the codebase for evidence. Search targets by claim type:
-     - Entity/schema claims → look for migration files, model definitions, schema files
-     - API/endpoint claims → look for route definitions, controller files, API specs
-     - Sync/schedule claims → look for cron configs, event handlers, queue workers
-     - Data format claims → look for serializers, type definitions, database column types
-   - For each claim, report: what the document says → what the code shows → Supports / Contradicts / Inconclusive. If evidence is inconclusive (conflicting files, outdated comments), note that explicitly rather than guessing.
-4. Produce structured feedback with these sections:
-   - **What the Document Gets Right** -- acknowledge strengths
-   - **Issues and Suggestions** -- numbered, each with:
-     - Quote from the document (with section reference)
-     - What's actually true / what's missing
-     - Recommendation
-   - **Priority Summary** -- table with High / Medium / Low ratings
-   - **Bottom Line** -- 2-3 sentence overall assessment
-5. If `--tone executive` is specified:
-   - **Code references to remove**: file paths (e.g., `sync-engine/orders.ts`), function/method names (e.g., `validateOrder()`), API routes (e.g., `GET /api/v3/deals`), class names (e.g., `OrderSyncQueue`), SQL table names (e.g., `invoice_line_items`), config keys (e.g., `SYNC_INTERVAL`). Replace with plain descriptions: "internal module", "validation logic", "external API integration", "data processing component", "data storage", "configuration setting".
-   - **Quote handling**: if a quote from the document contains code references, paraphrase it to preserve the meaning without the technical specifics. Example: `"The sync-engine/orders.ts polls HubSpot via GET /api/v3/deals every 15s"` → `"Order data is synchronized with HubSpot frequently via an external API call"`.
-   - **Translation examples**: "missing error handling in the database transaction" → "reliability risk in data processing"; "API rate limit exceeded due to polling frequency" → "risk of service disruption from integration overload"; "no index on the `sales_status` column" → "data query performance risk".
-   - Focus on risk and impact for a non-technical stakeholder (product manager, executive). Do not reference implementation complexity or effort.
-6. Save the review to:
-   ```
-   docs/{slug}/{version}/reviews/review_{today}_{reviewer}.md
-   ```
-   - Reviewer name: ask the user, or default to "claude"
-7. Update HISTORY.md with the review event:
-   - Add a new row with the same version number, Author `--`, and Notes describing the review (e.g., "Reviewed by Ly: 9 findings (3 high, 3 medium, 3 low)")
-   - Also update the version's original row: set Status to "In Review" (if not already)
-8. Notify via Slack using the `/slack notify` skill (see [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md) for message formats).
-
-### Subcommand: `update`
-
-1. Resolve the slug or path to the document (see "Resolving slug vs. path" above).
-2. Read the current version of the document (index.md + all references/ if they exist).
-3. Read all review files for the current version.
-4. Present the feedback items to the user as a checklist:
-   ```
-   Feedback from review_2026-03-25_ly.md:
-   [ ] Issue 1: Deal flow reversal not scoped (HIGH)
-   [ ] Issue 2: Auto-computation location undefined (HIGH)
-   [ ] Issue 3: HubSpot sync depends on sales_status (HIGH)
-   ...
-   Which items should I apply? (e.g., "1, 2, 3" or "all" or "none")
-   ```
-5. Based on user selection, determine if changes warrant a new version. Confirm with the user before proceeding:
-   - **New version** if: structural changes, new sections, scope changes
-   - **In-place edit** if: typos, clarifications, minor wording
-6. **Apply the changes** -- for each selected feedback item:
-   a. Read the review's recommendation for that item
-   b. Find the relevant section in the document (use the quote from the review to locate it)
-   c. Rewrite the section to address the feedback -- follow the recommendation, preserve the document's voice and style
-   d. If the recommendation adds a new section, place it in the logical position within the document structure
-   e. If the document has `references/`, edit the correct reference file (not just `index.md`)
-   f. After applying all items, do a consistency pass:
-      - Verify internal markdown links in `index.md` resolve to actual reference files
-      - Check that section titles in `index.md` TOC match headings in reference files
-      - Confirm no version number or date mismatches were introduced
-      - Ensure no two sections now contradict each other due to independent edits
-7. If new version:
-   - Create `v{n+1}/` folder
-   - Copy the document structure (index.md + references/ if they exist) into the new folder, then apply changes from step 6
-   - Update HISTORY.md: add new version row, mark previous version as "Superseded"
-   - Update INDEX.md with new current version
-8. If in-place edit:
-   - Apply changes from step 6 directly to the existing files
-   - Update HISTORY.md: append to the current version's Notes column (e.g., "In-place edits 2026-03-25: 3 minor clarifications from review_2026-03-25_ly.md")
-   - Update INDEX.md: update the "Last Updated" date
-9. Notify via Slack using the `/slack notify` skill (see [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md) for message formats).
-
-### Subcommand: `approve`
-
-1. Read `HISTORY.md` for the given slug.
-2. Show the current version, status, and any pending reviews:
-   ```
-   Sales & Billing Architecture is at v2 (status: In Review)
-   Reviews: review_2026-03-25_ly.md (9 findings: 3 high, 3 medium, 3 low)
-
-   Approve v2 as final? This marks it as the official version.
-   ```
-3. If there are unresolved High-priority review items, warn the user before proceeding. An item is considered **unresolved** when the latest HISTORY.md row for this version is a review row (not a subsequent update or in-place edit row) — meaning the document has not been updated since the review was filed. If an `update` has been run after the review, all items are considered addressed.
-4. Ask who is approving (name for the record).
-5. Update HISTORY.md: set the current version's status to "Approved" and fill in the "Approved By" column with the name and today's date.
-6. Update INDEX.md to reflect "Approved" status.
-7. Notify via Slack using the `/slack notify` skill (see [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md) for message formats).
-
-### Subcommand: `status`
-
-1. Read `HISTORY.md` for the given document slug.
-2. Read the latest version's `reviews/` folder.
-3. Check if `research/` exists and summarize research status.
-4. Output:
-   - Current version and date
-   - Status (Draft, In Review, Approved, Superseded)
-   - Research summary (if research exists)
-   - Pending reviews or open feedback items
-   - Timeline of activity
-
-### Subcommand: `sync`
-
-1. Read `docs/INDEX.md`.
-2. Scan all `docs/*/HISTORY.md` files to get the current state of every document.
-3. For each document, compare what INDEX.md says vs. what HISTORY.md says:
-   - **Version mismatch** -- INDEX.md shows v1 but HISTORY.md shows v2 as latest
-   - **Status mismatch** -- INDEX.md shows "Draft" but HISTORY.md shows "Approved"
-   - **Missing entry** -- a document folder with HISTORY.md exists but isn't in INDEX.md (fix: add the entry)
-   - **Orphan entry** -- INDEX.md lists a document that no longer has a folder (fix: flag for user, do not auto-remove)
-   - **Owner/date mismatch** -- last updated date or owner doesn't match latest HISTORY.md entry
-4. If mismatches are found:
-   - Show a summary table of what's out of sync
-   - Ask the user to confirm before making changes
-   - Update INDEX.md to match the HISTORY.md source of truth
-   - For orphan entries: ask the user whether to remove or keep (the folder may have been accidentally deleted)
-5. If no mismatches: report "Everything is in sync."
-
-### Subcommand: `list`
-
-1. Run a silent sync first (compare INDEX.md against all HISTORY.md files).
-2. If mismatches are found, fix INDEX.md automatically (no confirmation needed for read-only display).
-3. Output the index table with current data.
-
-### Subcommand: `help`
-
-Output a summary of available commands and the document lifecycle:
+## Folder Structure
 
 ```
-Document Lifecycle: research -> create -> review -> update (loop) -> approve
-
-Commands:
-  /doc research <slug>                    Research a topic before writing
-  /doc create <slug>                      Start a new document (v1)
-  /doc review <slug> [--with-code <path>] Review and produce structured feedback
-  /doc update <slug>                      Apply feedback to create a new version
-  /doc approve <slug>                     Mark current version as approved
-  /doc sync                               Fix INDEX.md / HISTORY.md drift
-  /doc status <slug>                      Show lifecycle status
-  /doc list                               List all documents
-
-Options:
-  --with-code <repo-path>    Cross-reference against a codebase (research, review)
-  --tone <technical|executive>  Control output tone (review only, default: technical)
-
-Conventions: see .claude/skills/doc/references/CONVENTIONS.md
+docs/
+  index.md                          # auto-generated catalog of all documents
+  archives/                         # archived documents move here
+  <slug>/
+    index.md                        # the document — pure markdown, no metadata
+    meta.yaml                       # status, owner, type, version, tags
+    research/                       # (created on first use)
+      index.md                      # research summary
+      references/                   # source materials
+    reviews/                        # (created on first use)
+      review_<NNN>_<date>_<author>.md
+      archives/                     # addressed feedback moves here
 ```
 
-## Slack Notification
+A new document starts with just `index.md` and `meta.yaml`. The `research/` and `reviews/` folders appear only when needed.
 
-After every action (research, create, review, update, approve), post a Slack notification using the `/slack notify` skill with the message formats defined in [SLACK_NOTIFICATION.md](references/SLACK_NOTIFICATION.md). For setup, connection, and error handling, see the `/slack` skill.
+## Document Metadata (`meta.yaml`)
 
-## Gotchas
+```yaml
+schema_version: 1
+title: Sales & Billing Architecture
+status: draft                    # draft | in-review | approved | archived
+owner: ly
+contributors: [ly, jeff]
+tags: [architecture, billing]
+type: spec                       # spec | rfc | adr | guide | free-form
+current_version: null            # set on approval: 1, 2, 3...
+```
 
-- **Slug resolution fails silently on malformed HISTORY.md** -- if HISTORY.md has missing columns or inconsistent version numbering, the "find the highest v{n}" logic can pick the wrong version. Always validate HISTORY.md structure before trusting the resolved version.
-- **`create` on an existing slug must be caught early** -- if you skip the existence check (step 1) and proceed to create `v1/`, you'll overwrite an existing document. The guard is critical.
-- **`review` on Approved documents** -- reviewing a document that's already Approved will change its status to "In Review", effectively reopening the approval process. Warn the user before proceeding.
-- **Research `--with-code` on large repos** -- Agent sub-agents exploring a large codebase can produce overwhelming output. Scope the exploration with specific focus questions rather than open-ended searches.
-- **Slack notification failures must not block** -- if the Slack MCP call fails (not connected, permission issue), the document action itself already succeeded. Never retry or error out -- skip silently and move on.
-- **`update` with no reviews** -- if `update` is called on a version that has no review files in `reviews/`, there's no feedback to present. Tell the user: "No reviews found for v{n}. Did you mean `/doc review` first?"
-- **INDEX.md can drift from HISTORY.md** -- any manual edit to INDEX.md or a failed mid-action can leave them out of sync. The `sync` command exists for this reason -- suggest it when inconsistencies are detected.
+`meta.yaml` tracks what git can't: status, ownership, document type. Everything git can track (history, diffs, content integrity) is left to git.
 
-## Rules
+## Document Types and Templates
 
-- Always follow the naming conventions in [CONVENTIONS.md](references/CONVENTIONS.md)
-- Never delete previous versions -- they are the historical record
-- Reviews are append-only -- never edit a review after it's created
-- HISTORY.md is the source of truth for document status
-- INDEX.md is the source of truth for the document inventory
-- When reviewing with `--with-code`, use fresh-context Agent sub-agents to avoid bias (same principle as `/fact-check`)
-- Always ask before creating a new version (don't auto-increment)
-- Accept either slug or file path for review, update, and status commands; resolve using "Resolving slug vs. path" rules
-- Only create `references/` folders when there are actually multiple files -- don't create empty folders
-- Research files use plain descriptive names (e.g., `current-billing.md`)
-- Document reference files use number prefixes for reading order (e.g., `01_overview.md`)
-- Review files use `review_{date}_{reviewer}.md` format
-- If `create` is called on an existing slug, refuse and suggest `update` or `review` instead
-- Multiple research rounds are allowed -- each adds a new row to HISTORY.md
+Each type has required and optional sections.
+
+**Spec** — Required: Overview, Goals, Technical Design | Optional: Non-Goals, Alternatives Considered, Open Questions
+
+**RFC** — Required: Summary, Motivation, Proposal | Optional: Alternatives Considered, Impact, Open Questions
+
+**ADR** — Required: Context, Decision, Consequences
+
+**Guide** — Required: Overview, Steps | Optional: Prerequisites, Troubleshooting
+
+**Free-form** — No template, no completeness check.
+
+See [DOCUMENT_TYPES.md](references/DOCUMENT_TYPES.md) for full templates.
+
+## Document Lifecycle
+
+```
+draft ←→ in-review → approved → archived
+                ↑         |          |
+                └─────────┘          |
+          draft ←────────────────────┘
+```
+
+Approval is always an explicit owner decision. On approval, Claude creates a git tag (`doc/<slug>/v<N>`) so the approved state is permanently labeled and retrievable.
+
+## Permissions
+
+| Role | Who | Can do |
+|------|-----|--------|
+| **Owner** | Single person in `meta.yaml` | Everything: edit, change status, address feedback, archive, transfer |
+| **Contributor** | Listed in `meta.yaml` | Edit content, add research |
+| **Anyone** | Any team member | Give feedback, ask questions, view history |
+
+## Review Workflow
+
+### Review File Format
+
+```markdown
+---
+based_on_commit: a1b2c3d
+author: jeff
+date: 2026-03-26
+---
+
+### 1. Retry logic doesn't handle idempotency [HIGH]
+Status: pending
+
+> "The system retries failed charges automatically" — Technical Design
+
+The retry logic doesn't account for the payment provider's idempotency model. Without idempotency keys, retries could create duplicate charges.
+
+**Recommendation:** Add a subsection on idempotency key management.
+
+---
+
+### 2. Missing error codes table [MEDIUM]
+Status: pending
+
+> "Errors are returned to the caller" — Error Handling
+
+The document mentions errors but doesn't list them. Consumers need a reference.
+
+**Recommendation:** Add a table of error codes with descriptions.
+```
+
+Each feedback item has:
+- **Title + priority:** `[HIGH]`, `[MEDIUM]`, `[LOW]`
+- **Status:** `pending`, `accepted`, `won't-fix`, `needs-clarification`
+- **Quote + section:** What part of the document is referenced
+- **Description:** What's wrong and why it matters
+- **Recommendation:** What the reviewer suggests
+- **Discussion:** Back-and-forth when clarifying (added on demand)
+- **Resolution:** What was actually done (added when addressed)
+
+`based_on_commit` records which git commit the reviewer was looking at. If the document changes after the review, Claude diffs the base commit against HEAD to flag stale items.
+
+### Addressing Feedback
+
+Owner presents items sorted by priority. Four actions per item:
+
+**Accept** — Claude applies the change, records the resolution.
+
+**Won't fix** — Owner explains why, Claude records it.
+
+**Need clarification** — Owner doesn't understand; Claude explains or asks reviewer via Slack/discussion thread.
+
+**Modify** — Owner agrees with intent but wants to do it differently; Claude records the owner's approach.
+
+Items with `needs-clarification` are blocked — Claude skips them and moves to the next item. Once all non-blocked items are resolved: if blocked items remain, Claude reports status. Once ALL items resolved: review files archived to `reviews/archives/`.
+
+## Conversational Interface
+
+```
+User: /doc
+Claude: What would you like to do?
+        1. Create a new document
+        2. Work on an existing document
+        3. See all documents
+        4. Import an existing file
+```
+
+Power users can shortcut: `/doc create sales-billing`. Nobody has to memorize commands.
+
+## Document Intelligence
+
+Claude answers questions by reading `meta.yaml`, review files, and git history.
+
+### Smart Queries
+
+- "What's the recent activity?" → Shows who did what and when
+- "What changed since last week?" → Summarizes edits
+- "Who's been working on this?" → Lists contributors
+- "What's the next step?" → Suggests what to do based on document state
+- "What am I missing?" → Checks for incomplete sections
+- "Show me v1" → Retrieves git tag content
+- "Compare v1 to current" → Diffs versions
+- "Bring me up to speed" → Full briefing
+
+### Next Step Engine
+
+Claude proactively suggests when a document is opened:
+
+| State | Suggestion |
+|-------|------------|
+| `draft`, empty | "Want to start writing? Here's your template." |
+| `draft`, has content | "Ready to submit for review?" |
+| `in-review`, no reviews | "Nobody's responded. Notify someone?" |
+| `in-review`, pending reviews | "N reviews to address. Start?" |
+| `in-review`, partially addressed | "Pick up where you left off?" |
+| `in-review`, all addressed | "All resolved. Ready to approve?" |
+| `approved`, 30+ days inactive | "Still current?" |
+
+### Fresh-Eyes Review (Pre-Approval Gate)
+
+When approving, Claude runs a cold review:
+
+```
+Claude: Before I approve, a quick check:
+        ✓ All required sections filled
+        ✗ "Error Handling" references a non-existent diagram
+        ✗ "Timeline" says "next quarter" — could go stale
+        
+        Fix these first, or approve as-is?
+```
+
+Checks: template completeness, internal consistency, stale language ("next quarter", "soon"), thin sections, unresolved markers (`TODO`, `TBD`), broken cross-references. Non-blocking.
+
+## Interview Mode
+
+A conversational mode where Claude asks questions to extract, clarify, or validate information. Used before creating, requesting reviews, doing research, or when clarifying edit requests.
+
+Claude shifts into question mode — short, focused questions, one at a time. It summarizes what it's learned periodically and asks "Did I get that right?" before proceeding.
+
+Interview results feed directly into whatever workflow triggered it (a draft, review request, research plan, etc.).
+
+## Workflows
+
+### Create
+
+1. Claude asks for topic, suggests slug, asks for type
+2. If user is unsure about scope: Claude offers an interview to clarify before writing
+3. Create folder structure with `index.md` + `meta.yaml`
+4. If document is large (50+ pages), support splitting into `references/` sub-files
+5. Claude commits
+
+### Research
+
+1. Claude asks for sources (web, codebase, internal docs) and focus questions
+2. Findings saved to `research/index.md`, sources to `research/references/`
+3. Supports `--with-code` for codebase exploration using Agent sub-agents
+
+### Edit
+
+Owner or contributors. Claude commits before making changes (safety net). Updates timestamp in `meta.yaml`.
+
+### Give Feedback
+
+Anyone. Reviewer talks naturally — Claude structures it into prioritized items with quotes and recommendations. One file per person per round.
+
+### Request a Review
+
+Owner asks for someone to review. Claude interviews the owner first:
+
+```
+Claude: Who should review this?
+User:   Jeff and Sarah
+
+Claude: What kind of feedback do you need?
+        1. General — catch anything I missed
+        2. Specific expertise — I need someone who knows this area
+        3. Validation — does this match the requirements?
+        4. All of the above
+```
+
+Claude then:
+1. Sets status to `in-review` if not already
+2. Sends Slack notification to requested reviewers with:
+   - Link to the document
+   - What kind of review is needed
+   - Specific focus areas from the interview
+   - Context the reviewer needs
+3. Logs the request in git commit
+
+### Address Feedback
+
+Owner. Claude presents items by priority. Four actions per item: accept, modify, won't fix, need clarification. Blocked items are skipped and revisited later. Archives resolved reviews when all items done.
+
+### Approve
+
+1. Owner chooses to approve
+2. Fresh-eyes review runs
+3. Claude commits, creates git tag `doc/<slug>/v<N>`
+4. `meta.yaml`: `current_version` bumped, `status: approved`
+
+### Archive
+
+Claude warns about incoming cross-references. Document moved to `docs/archives/<slug>/`. Index updated.
+
+### Rename
+
+Claude scans all docs for cross-references, shows affected files, updates on confirmation, commits.
+
+### Transfer Ownership
+
+Owner transfers, or any team member claims (committed with reason).
+
+## Concurrency & Edge Cases
+
+| Scenario | Resolution |
+|----------|-----------|
+| Two people edit simultaneously | Git merge conflict resolution |
+| Two people review simultaneously | Separate review files — no conflict |
+| Edit while someone reviews | `based_on_commit` detects stale feedback |
+| New feedback during addressing | Queued for next round |
+| Review on outdated content | `based_on_commit` enables stale detection via git diff |
+| Contradictory feedback | Claude flags conflicts; owner decides |
+| Feedback not understood | Owner picks "need clarification"; Claude asks reviewer |
+| Clarification never comes | Item stays `needs-clarification`; next step engine reminds |
+| Reviewer responds via Slack | Claude captures and adds to review file discussion thread |
+| Document edited outside tool | `git status` detects; Claude offers to commit or revert |
+| Owner unavailable | Any team member can claim (committed with reason) |
+
+## Slack Notifications
+
+After key events (create, review, approve, status change), Claude posts to Slack using the `/slack` skill. If Slack MCP is not connected, skip silently — never block a workflow.
+
+## Core Principles
+
+- Git handles all version history and integrity — no custom snapshot folders or activity logs
+- `meta.yaml` records metadata git can't track
+- Review files are append-only — never edit after creation
+- HISTORY captured via git log and tags — `meta.yaml` is source of truth for current state
+- No manual versioning — git tags (`doc/<slug>/v1`, `doc/<slug>/v2`) are the record
+- When reviewing with code cross-reference, use fresh-context Agent sub-agents to avoid bias
+- Always ask before creating a new version
+- Accept either slug or file path; resolve using git folder structure
+
+## Conversational Guidance
+
+- **Never assume** the user knows what they want to write. Ask clarifying questions via interview mode.
+- **Guide every action.** Explain what will happen before committing.
+- **Show next steps.** When a workflow completes, proactively suggest what's next based on document state.
+- **Use plain language.** Translate git concepts into everyday terms.
+- **Respect ownership.** Only the owner can change status; anyone can give feedback.
+
+See [IMPLEMENTATION_NOTES.md](references/IMPLEMENTATION_NOTES.md) for TypeScript script details and testing approach.
