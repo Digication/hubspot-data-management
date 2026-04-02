@@ -1,0 +1,249 @@
+# Sharpen skill evaluation fixtures
+# Tests the skill's ability to analyze session logs and produce correct reports
+skill: sharpen
+skill_hash: b262019afa07033e92843c2c21487488
+
+cases:
+  # --- Row 7: Clean verdict ---
+  - name: clean-skill-no-issues
+    description: "Script returns sessions with no errors/corrections → Clean verdict and no action"
+    category: happy-path
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen commit"
+      state:
+        script_output: |
+          {"skillName":"commit","sessionsWithSkill":3,"sessionsSkipped":0,
+           "sessions":[
+             {"sessionId":"sess-001","errors":[],"corrections":[],"toolsUsed":{"Bash":2,"Read":1}},
+             {"sessionId":"sess-002","errors":[],"corrections":[],"toolsUsed":{"Bash":2,"Read":1}},
+             {"sessionId":"sess-003","errors":[],"corrections":[],"toolsUsed":{"Bash":3,"Read":2}}
+           ]}
+        plugin_data_exists: true
+        sharpen_log_exists: false
+    assert:
+      - type: contains
+        value: "Verdict: Clean"
+      - type: contains
+        value: "performing well"
+      - type: not-contains
+        value: "Needs attention"
+      - type: not-contains
+        value: "suggest specific changes"
+      - type: decision-trace
+        value: "0 errors + 0 corrections → Clean verdict"
+      - type: llm-rubric
+        rubric: next-step-relevance
+        value: "Does the suggested next step match the verdict? PASS: Clean → 'no action needed' with no offers to edit. FAIL: offers edits or --deep despite Clean verdict."
+
+  # --- Rows 1, 9: Corrections → Needs attention ---
+  - name: needs-attention-corrections
+    description: "Sessions with many corrections → Needs attention verdict with edit suggestions"
+    category: boundary
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen doc"
+      state:
+        script_output: |
+          {"skillName":"doc","sessionsWithSkill":5,"sessionsSkipped":2,
+           "sessions":[
+             {"sessionId":"sess-010","errors":["ENOENT: HISTORY.md"],"corrections":[{"message":"No, don't create a new doc"},{"message":"That's not right, I said RFC not ADR"}]},
+             {"sessionId":"sess-011","errors":[],"corrections":[{"message":"Actually, I wanted to review it first"}]},
+             {"sessionId":"sess-012","errors":["Cannot read properties of undefined"],"corrections":[{"message":"Wrong, the slug should be kebab-case"},{"message":"Stop — don't overwrite my manual edits"}]},
+             {"sessionId":"sess-013","errors":[],"corrections":[{"message":"I meant the other doc"}]},
+             {"sessionId":"sess-014","errors":[],"corrections":[]}
+           ]}
+        plugin_data_exists: true
+        prior_log_entry: "2026-03-25 | doc | Clean | 2 | No issues found"
+    assert:
+      - type: contains
+        value: "Needs attention"
+      - type: contains-any
+        value:
+          - "suggest specific changes"
+          - "suggest concrete edits"
+          - "changes to the skill"
+      - type: contains
+        value: "corrections"
+      - type: not-contains
+        value: "Clean"
+      - type: decision-trace
+        value: "6 corrections across 4/5 sessions → Needs attention"
+      - type: llm-rubric
+        rubric: pattern-specificity
+        value: "Are patterns described with enough detail to be actionable? PASS: each pattern names the specific behavior, cites session IDs, and explains root cause. FAIL: patterns are vague ('some issues found') without session references or root-cause description."
+
+  # --- Row 10: Zero sessions, no usage ---
+  - name: zero-sessions-no-usage
+    description: "Script returns zero sessions with skill and zero skipped → early exit message"
+    category: boundary
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen slack"
+      state:
+        script_output: |
+          {"skillName":"slack","sessionsWithSkill":0,"sessionsSkipped":0,
+           "newSessionsAnalyzed":[],"sessions":[]}
+        plugin_data_exists: true
+        sharpen_log_exists: false
+    assert:
+      - type: contains
+        value: "No sessions found"
+      - type: contains
+        value: "Try using it first"
+      - type: not-contains
+        value: "Verdict:"
+      - type: not-contains
+        value: "Sharpen Report"
+
+  # --- Row 11: All sessions already analyzed ---
+  - name: all-already-analyzed
+    description: "Script returns zero new sessions but skipped > 0 → already analyzed message"
+    category: boundary
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen commit"
+      state:
+        script_output: |
+          {"skillName":"commit","sessionsWithSkill":0,"sessionsSkipped":5,
+           "newSessionsAnalyzed":[],"sessions":[]}
+        plugin_data_exists: true
+        prior_log_entry: "2026-03-28 | commit | Minor smells | 5 | Occasional scope inference issues"
+    assert:
+      - type: contains
+        value: "already"
+      - type: contains-any
+        value:
+          - "--all"
+          - "re-analyze"
+      - type: not-contains
+        value: "Verdict:"
+
+  # --- Row 12: All-skills mode ---
+  - name: all-skills-friction
+    description: "All-skills mode with mixed friction → prioritized table with per-skill verdicts"
+    category: combination
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen --all-skills"
+      state:
+        script_output: |
+          {"mode":"all-skills","sessionsScanned":50,
+           "skills":{
+             "skill-dev":{"sessionsFound":10,"errors":[{"error":"sandbox permission denied"},{"error":"sandbox permission denied"},{"error":"ENOENT .plugin-data/reviews.log"}],"corrections":[{"message":"No, run the tests first"}]},
+             "commit":{"sessionsFound":8,"errors":[],"corrections":[]},
+             "doc":{"sessionsFound":4,"errors":[{"error":"Cannot read properties of undefined"}],"corrections":[{"message":"slug should be kebab-case"},{"message":"don't overwrite my manual edits"}]},
+             "implement":{"sessionsFound":2,"errors":[],"corrections":[]}
+           }}
+        plugin_data_exists: true
+    assert:
+      - type: contains
+        value: "Friction Report"
+      - type: contains
+        value: "skill-dev"
+      - type: contains
+        value: "doc"
+      - type: contains-all
+        value:
+          - "Needs attention"
+          - "pattern"
+      - type: contains-any
+        value:
+          - "apply these fixes"
+          - "Want me to apply"
+
+  # --- Row 13: Deep mode ---
+  - name: deep-session-dive
+    description: "Deep mode for a specific session → full timeline and gap analysis"
+    category: happy-path
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen commit --deep sess-003"
+      state:
+        session_file_exists: true
+        session_event_count: 45
+        plugin_data_exists: true
+        prior_log_entry: "2026-04-03 | commit | Clean | 3 | No errors or corrections"
+    assert:
+      - type: contains-any
+        value:
+          - "sess-003"
+          - "session"
+      - type: contains-any
+        value:
+          - "timeline"
+          - "events"
+          - "event"
+      - type: contains-any
+        value:
+          - "gap"
+          - "analysis"
+          - "SKILL.md"
+      - type: decision-trace
+        value: "--deep flag → skip standard workflow, read session directly, show timeline + gap analysis"
+
+  # --- Rows 2, 8: Errors without corrections → Minor smells ---
+  - name: minor-smells-errors-only
+    description: "Sessions with errors but zero corrections → Minor smells verdict, offer --deep"
+    category: boundary
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen task"
+      state:
+        script_output: |
+          {"skillName":"task","sessionsWithSkill":4,"sessionsSkipped":0,
+           "sessions":[
+             {"sessionId":"sess-020","errors":["fatal: pathspec 'stash@{0}' did not match"],"corrections":[]},
+             {"sessionId":"sess-021","errors":[],"corrections":[]},
+             {"sessionId":"sess-022","errors":["CONFLICT (content): Merge conflict in src/index.ts"],"corrections":[]},
+             {"sessionId":"sess-023","errors":[],"corrections":[]}
+           ]}
+        plugin_data_exists: true
+    assert:
+      - type: contains
+        value: "Minor smells"
+      - type: contains-any
+        value:
+          - "--deep"
+          - "dig deeper"
+      - type: contains
+        value: "errors"
+      - type: not-contains
+        value: "Needs attention"
+      - type: not-contains
+        value: "suggest specific changes"
+
+  # --- Row 5: Over-engineering detection ---
+  - name: overengineering-detection
+    description: "Simple skill with excessive tool calls → flags over-engineering pattern"
+    category: freeform
+    source: "L4 exploratory 2026-04-03"
+    inputs:
+      command: "/sharpen skills"
+      state:
+        script_output: |
+          {"skillName":"skills","sessionsWithSkill":3,"sessionsSkipped":0,
+           "sessions":[
+             {"sessionId":"sess-030","eventCount":28,"toolsUsed":{"Bash":3,"Read":8,"Glob":5,"Grep":4,"Agent":2,"Write":1},"errors":[],"corrections":[],"keyDecisions":["Spawned agents to summarize each skill","Wrote a temporary summary file"]},
+             {"sessionId":"sess-031","eventCount":22,"toolsUsed":{"Bash":2,"Read":7,"Glob":3,"Grep":2,"Write":1},"errors":[],"corrections":[]},
+             {"sessionId":"sess-032","eventCount":35,"toolsUsed":{"Bash":4,"Read":10,"Glob":6,"Grep":5,"Agent":3,"Write":2},"errors":[],"corrections":[],"keyDecisions":["Spawned 3 agents","Wrote summary to file"]}
+           ]}
+        plugin_data_exists: true
+    assert:
+      - type: contains-any
+        value:
+          - "over-engineering"
+          - "Over-engineering"
+          - "excessive"
+          - "unnecessary"
+          - "disproportionate"
+      - type: contains-any
+        value:
+          - "Agent"
+          - "agent"
+          - "spawn"
+      - type: decision-trace
+        value: "simple listing skill + high tool counts + agent spawns → over-engineering signal"
+      - type: llm-rubric
+        rubric: verdict-consistency
+        value: "Given the session data, does the verdict match a reasonable interpretation? PASS: verdict accounts for over-engineering evidence despite zero errors/corrections. FAIL: verdict is 'Clean' when tool usage is clearly disproportionate to skill complexity."

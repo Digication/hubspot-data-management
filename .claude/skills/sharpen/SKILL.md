@@ -26,6 +26,13 @@ commit, doc, fact-check, implement, onboard, retrospective, review-thread, skill
 
 Check that `.claude/skills/<skill-name>/SKILL.md` exists. If not, show available skills and ask which one.
 
+### 1b. Check history
+
+Read `${CLAUDE_PLUGIN_DATA}/sharpen-log.txt` (if it exists). If an entry exists for this skill, show it before proceeding:
+"Last analyzed on {date}: {verdict}. {N} new sessions since then."
+
+This runs before the extraction script so the user always sees prior context, even if the script returns zero new sessions.
+
 ### 2. Run the extraction script
 
 ```bash
@@ -36,9 +43,11 @@ Add `--all` if the user passed it. The script automatically skips sessions that 
 
 If the script returns `sessionsWithSkill: 0` and `sessionsSkipped > 0`:
 - "All sessions have been analyzed already. Run with `--all` to re-analyze, or wait until you've used the skill more."
+- Stop here — skip steps 3-7. Do not write a log entry (no analysis occurred, no verdict to record).
 
 If `sessionsWithSkill: 0` and `sessionsSkipped: 0`:
 - "No sessions found where the {skill} skill was used. Try using it first, then come back."
+- Stop here — skip steps 3-7. Do not write a log entry.
 
 ### 3. Read the target skill
 
@@ -84,13 +93,13 @@ Look at the summary output and identify:
 
 ### 6. Decide next step
 
-Based on the verdict:
+Based on the verdict. Use the first matching rule (top to bottom):
 
-| Verdict | Action |
-|---|---|
-| **Clean** | "This skill is performing well. No action needed." |
-| **Minor smells** | "I found some patterns worth looking at. Want me to dig deeper into a specific session?" (offer `--deep`) |
-| **Needs attention** | "I found issues that could be improved. Want me to suggest specific changes to the skill?" If yes → suggest concrete edits to SKILL.md with before/after. If approved → apply edits, then suggest `/skill-dev test` to verify. |
+| Verdict | Threshold | Action |
+|---|---|---|
+| **Needs attention** | Corrections in >50% of sessions, OR any pattern repeats across 2+ sessions, OR missing steps in 2+ sessions | "I found issues that could be improved. Want me to suggest specific changes to the skill?" If yes → suggest concrete edits to SKILL.md with before/after. If approved → apply edits, then suggest `/skill-dev test` to verify. |
+| **Minor smells** | Any errors OR any corrections (but below Needs attention thresholds), OR over-engineering detected | "I found some patterns worth looking at. Want me to dig deeper into a specific session?" (offer `--deep` with the session IDs that had issues) |
+| **Clean** | No errors, no corrections, no over-engineering | "This skill is performing well. No action needed." |
 
 ### 7. Mark sessions as analyzed
 
@@ -109,7 +118,7 @@ Scans every skill at once and produces a friction-focused report. No time frame 
 
 2. The output is a JSON object with per-skill friction data: errors and corrections only (no full session dumps).
 
-3. Present a prioritized table:
+3. Present a prioritized table, sorted by total friction (errors + corrections) descending. Only include skills with at least one error or correction. Skills with zero friction are omitted (no news is good news):
 
 ```markdown
 # All-Skills Friction Report
@@ -139,14 +148,44 @@ Scans every skill at once and produces a friction-focused report. No time frame 
 
 8. Mark all processed sessions as analyzed (per-skill).
 
+9. Write one log entry per skill to `${CLAUDE_PLUGIN_DATA}/sharpen-log.txt` (not one combined entry). The session count column = sessions analyzed this run for that skill.
+
 ## Deep Mode (`--deep <session-id>`)
 
-When the user wants to investigate a specific session:
+Deep mode **replaces** the standard workflow (steps 1-7). It does not run the extraction script or produce a dashboard — it's a focused investigation of one session.
 
-1. Run the script with `--raw --all` and pipe to extract just that session
-2. Or read the session `.jsonl` file directly from `~/.claude/projects/{encoded-cwd}/{session-id}.jsonl`
-3. Show the full event timeline for that session
-4. Analyze against the skill's SKILL.md for specific gaps
+### Workflow
+
+1. Validate the skill name (same as standard step 1)
+2. Read the session `.jsonl` file directly from `~/.claude/projects/{encoded-cwd}/{session-id}.jsonl`
+   - If the file does not exist: "Session '{session-id}' not found. Check the ID and try again."
+3. Read `.claude/skills/<skill-name>/SKILL.md` for comparison
+4. Show the event timeline and analyze against the skill
+
+### Output template
+
+```markdown
+# Deep Analysis: {skill-name} / {session-id}
+
+## Session Info
+- Date: {date}
+- Events: {count}
+- Tools used: {tool summary}
+
+## Event Timeline
+[Chronological list of key events: tool calls, decisions, errors, corrections]
+
+## Gap Analysis vs SKILL.md
+[For each deviation: what happened → what the skill says → severity (Bug/Ambiguity/Gap)]
+
+## Summary
+{1-2 sentence assessment}
+```
+
+### Side effects
+
+- Do **not** write a log entry to `sharpen-log.txt` (deep mode is investigation, not analysis)
+- Do **not** update `analyzed-sessions.json` (the session may need re-analysis in summary mode later)
 
 ## History
 
@@ -158,6 +197,15 @@ After each analysis, append to `${CLAUDE_PLUGIN_DATA}/sharpen-log.txt`:
 
 Show past analyses when the user runs `/sharpen` on a skill that was analyzed before:
 "Last analyzed on {date}: {verdict}. {N} new sessions since then."
+
+## Gotchas
+
+- The extraction script is pure JavaScript — it does NOT use an LLM. Don't expect it to interpret meaning; it only pattern-matches for corrections and errors.
+- Correction detection is keyword-based ("no,", "wrong", "actually,", etc.) and will produce false positives on longer messages or system-injected content. The script filters messages >1000 chars to reduce this, but short false positives can still slip through.
+- `${CLAUDE_PLUGIN_DATA}` resolves to `.plugin-data/` inside the skill's own directory (`.claude/skills/sharpen/.plugin-data/`). Don't hardcode paths.
+- The over-engineering signal depends on reading key decisions from the session summary. If key decisions are sparse or absent, over-engineering won't be detected even if tool counts are high.
+- Verdict thresholds are guidelines, not absolute rules — edge cases (e.g., 1 correction that's clearly a skill bug vs. 3 corrections that are user preference) still require judgment.
+- In all-skills mode, reading every friction-bearing skill's SKILL.md can be slow if many skills have issues. Focus on the top 3-5 by friction count.
 
 ## Rules
 
