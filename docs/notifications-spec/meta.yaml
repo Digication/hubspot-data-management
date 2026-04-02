@@ -1,8 +1,0 @@
-schema_version: 1
-title: User Notifications Spec
-status: approved
-owner: ly
-contributors: [ly, jeff, bagas]
-tags: [notifications, backend]
-type: spec
-current_version: 2
