@@ -129,7 +129,7 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 
 2. **Layer 2: Golden dataset**
    - Load `<skill>/tests/eval.yaml` (see [FIXTURE_FORMAT.md](references/FIXTURE_FORMAT.md))
-   - For each test case, spawn a read-only agent (Read, Glob, Grep only) with `model: "haiku"` using the prompt template from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) with the pre-loaded `skill_content_block` and the case's inputs. For review-type cases (command contains "review" or state has `review_type: true`), use `model: "sonnet"` instead and add the review-specific prompt — the agent must verify findings against the provided skill content.
+   - For each test case, spawn an agent with `model: "haiku"` using the prompt template from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) with the pre-loaded `skill_content_block` and the case's inputs. Standard cases need no tools — all content is in the prompt. For review-type cases (command contains "review" or state has `review_type: true`), use `model: "sonnet"` with Read, Glob, Grep tools and add the review-specific prompt — the agent must verify findings against the target skill files.
    - Check agent output against deterministic assertions: `contains`, `regex`, `not-contains`, `contains-all`, `contains-any`, `decision-trace`
    - If any case FAILs → stop, report failures with assertion details
    - If no fixture file exists → skip Layer 2, warn: "No golden dataset found. Run `--explore` to create one."

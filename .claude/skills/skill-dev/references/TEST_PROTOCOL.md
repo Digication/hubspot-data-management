@@ -29,9 +29,9 @@ Concatenate all formatted blocks into a single `{skill_content_block}`. This blo
 ```
 You are testing the `{skill_name}` skill by simulating execution with specific inputs.
 
-THIS IS A DRY-RUN. You only have Read, Glob, and Grep tools. Report all output — do not write anything.
+THIS IS A DRY-RUN. Everything you need is in this prompt. Do not read any files.
 
-## Skill Content (pre-loaded — do NOT re-read these files)
+## Skill Content
 
 {skill_content_block}
 
@@ -39,11 +39,11 @@ THIS IS A DRY-RUN. You only have Read, Glob, and Grep tools. Report all output �
 {simulated_inputs}
 
 ## Instructions
-1. Follow the skill's workflow step by step with inputs above
-2. At each decision point, show: Input → Rule matched → Result
-3. Generate exact output the skill would produce
-4. Flag: ambiguous instructions, multiple rule matches, no rule matches, inconsistencies
-5. Do NOT use Read/Glob/Grep to re-read the skill files above — they are already provided
+1. Use ONLY the skill content above — do not call any tools
+2. Follow the skill's workflow step by step with inputs above
+3. At each decision point, show: Input → Rule matched → Result
+4. Generate exact output the skill would produce
+5. Flag: ambiguous instructions, multiple rule matches, no rule matches, inconsistencies
 
 ## Report Format
 
