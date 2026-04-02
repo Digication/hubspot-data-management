@@ -46,7 +46,21 @@ Users can toggle notification types on/off per channel via Settings > Notificati
 ## Decisions
 
 - **Email delivery:** Send immediately (no batching). Daily digest may be revisited as a future enhancement.
+- **Retention policy:** Notifications older than 90 days are purged from the database via a nightly cleanup job. Users lose access to old notifications after this window — acceptable tradeoff for keeping the table size manageable.
+- **`portfolio.viewed` throttling:** To avoid overwhelming users with view notifications, these are throttled to at most 1 per unique viewer per 24-hour window. Users can disable this notification type entirely via preferences.
+
+## Admin Dashboard — Dead Notifications
+
+When a notification exhausts all retries, it's marked `status: dead` and surfaced in the admin dashboard at `/admin/notifications/dead`.
+
+The dashboard shows:
+- Notification type, target user, timestamp, and failure reason
+- Number of delivery attempts made
+- A **Retry** button to manually re-queue the notification
+- A **Dismiss** button to acknowledge and remove it from the queue
+
+Access is restricted to users with the `admin` role. No end-user visibility into dead notifications.
 
 ## Open Questions
 
-- What's the retention policy for old notifications in the database?
+- Should the 90-day retention window be configurable per institution, or is a global setting sufficient?
