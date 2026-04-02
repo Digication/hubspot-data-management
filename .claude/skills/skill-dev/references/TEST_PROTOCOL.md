@@ -121,12 +121,33 @@ VERDICT: PASS or FAIL
 
 Because the `{skill_content_block}` is identical across all judge prompts in a run, it benefits from the same prompt cache as Layer 2 agents.
 
+## Agent Model Selection
+
+Use the cheapest model that can handle each layer's task. This compounds with prompt caching for significant cost savings.
+
+| Layer | Default Model | When to Upgrade | Why |
+|---|---|---|---|
+| Layer 2 (Golden Dataset) | `haiku` | Use `sonnet` for review-type cases that need realistic report generation | Decision tracing is structured — haiku handles it well |
+| Layer 3 (LLM Judge) | `sonnet` | Use `sonnet` always — judges need good reasoning for subjective evaluation | Haiku is too terse for quality rubric assessment |
+| Layer 4 (Exploratory) | `sonnet` | Use `sonnet` always — discovery needs creativity and edge-case intuition | Haiku misses subtle ambiguities |
+
+**How to set:** Pass `model: "haiku"` or `model: "sonnet"` when spawning each Agent. If omitted, agents inherit the parent's model (often `opus`), which is unnecessarily expensive for test agents.
+
+**Cost comparison (relative to opus):**
+
+| Model | Cost | Typical test run (12 L2 + 6 L3) |
+|---|---|---|
+| All opus (default) | 1× | Baseline |
+| All sonnet | ~0.2× | ~80% savings |
+| Haiku L2 + Sonnet L3 | ~0.1× | ~90% savings |
+
 ## Spawning
 
 - Run independent scenarios in parallel (up to 4)
 - Run state-dependent scenarios sequentially
 - Each agent gets fresh context — no shared history
 - **All agents in a run share the same skill content prefix** (pre-loaded by orchestrator)
+- **Use the model specified in Agent Model Selection** — do not default to the parent model
 
 ## Input Format
 

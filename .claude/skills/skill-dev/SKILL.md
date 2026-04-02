@@ -127,13 +127,13 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 
 2. **Layer 2: Golden dataset**
    - Load `<skill>/tests/eval.yaml` (see [FIXTURE_FORMAT.md](references/FIXTURE_FORMAT.md))
-   - For each test case, spawn a read-only agent (Read, Glob, Grep only) using the prompt template from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) with the pre-loaded `skill_content_block` and the case's inputs. For review-type cases (command contains "review" or state has `review_type: true`), add the review-specific prompt — the agent must verify findings against the provided skill content.
+   - For each test case, spawn a read-only agent (Read, Glob, Grep only) with `model: "haiku"` using the prompt template from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) with the pre-loaded `skill_content_block` and the case's inputs. For review-type cases (command contains "review" or state has `review_type: true`), use `model: "sonnet"` instead and add the review-specific prompt — the agent must verify findings against the provided skill content.
    - Check agent output against deterministic assertions: `contains`, `regex`, `not-contains`, `contains-all`, `contains-any`, `decision-trace`
    - If any case FAILs → stop, report failures with assertion details
    - If no fixture file exists → skip Layer 2, warn: "No golden dataset found. Run `--explore` to create one."
 
 3. **Layer 3: LLM-as-Judge** (2+1 strategy)
-   - For each `llm-rubric` assertion in the fixture file, spawn a judge agent with the rubric from [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md) and the pre-loaded `skill_content_block`
+   - For each `llm-rubric` assertion in the fixture file, spawn a judge agent with `model: "sonnet"`, the rubric from [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md), and the pre-loaded `skill_content_block`
    - **2+1 majority vote:** Run 2 judges in parallel. If they agree → verdict is final. If they disagree → spawn a 3rd as tiebreaker. This saves ~33% of judge runs compared to always running 3.
    - Report: rubric name, judge verdicts (2 or 3), final verdict, reasoning from the deciding vote
    - If any rubric FAILs → report as warning (non-blocking unless `--strict` flag)
@@ -231,7 +231,7 @@ Run Layer 4 only. This is the discovery tool for finding unknown issues with fre
 
    Scenario count: simple skills 2-3, decision-heavy 4-6, complex 6-8. Count is based on **uncovered rows**, not total rows — fewer uncovered rows means fewer scenarios.
 
-4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md). Use the pre-loaded `skill_content_block` in all agent prompts.
+4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), `model: "sonnet"`, structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md). Use the pre-loaded `skill_content_block` in all agent prompts.
 5. **Collect findings** — classify as Bug, Ambiguity, or Gap
 6. **Convert findings to fixtures** — for each finding, ask:
    "Want me to add this as a regression test? (yes/skip)"
