@@ -1,0 +1,8 @@
+schema_version: 1
+title: User Notifications Spec
+status: draft
+owner: ly
+contributors: [ly]
+tags: [notifications, backend]
+type: spec
+current_version: null
