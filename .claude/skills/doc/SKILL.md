@@ -1,6 +1,6 @@
 ---
 name: doc
-description: "Trigger on: write a spec, create a document, research a topic, review a doc, update a document, approve a doc, document status, list documents, new RFC, new proposal, draft a spec, check document history, import a document, manage documents conversationally."
+description: Manage documents conversationally. Trigger on creating specs, RFCs, architecture decisions, guides, or proposals. Use for managing document reviews, approvals, versioning, archiving, or when you need to organize and track design documents with feedback.
 metadata:
   allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, Bash(git:*), mcp__slack__authenticate, mcp__slack__*
 ---
