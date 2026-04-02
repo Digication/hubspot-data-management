@@ -188,6 +188,8 @@ Claude proactively suggests when a document is opened:
 | `in-review`, all addressed | "All resolved. Ready to approve?" |
 | `approved`, 30+ days inactive | "Still current?" |
 
+**"Empty" vs "has content":** A document is "empty" if it contains only template scaffolding — headings with placeholder comments like `<!-- ... -->` or no text beyond the title. "Has content" means at least one required section for the document type has substantive text beyond placeholders.
+
 ### Fresh-Eyes Review (Pre-Approval Gate)
 
 When approving, Claude runs a cold review:
@@ -267,8 +269,9 @@ Owner. Claude presents items by priority. Four actions per item: accept, modify,
 
 1. Owner chooses to approve
 2. Fresh-eyes review runs
-3. Claude commits, creates git tag `doc/<slug>/v<N>`
-4. `meta.yaml`: `current_version` bumped, `status: approved`
+3. Update `meta.yaml`: `current_version` bumped, `status: approved`
+4. `git commit` the meta change
+5. `git tag doc/<slug>/v<N>` — **exactly once, after the commit**. Never combine into a single shell command with `&&` and never call separately as a follow-up; one explicit tag call after the commit is complete.
 
 ### Archive
 
@@ -280,7 +283,10 @@ Claude scans all docs for cross-references, shows affected files, updates on con
 
 ### Transfer Ownership
 
-Owner transfers, or any team member claims (committed with reason).
+1. **Owner-initiated transfer:** Owner names the new owner. Claude updates `meta.yaml` (owner field), commits with reason, optionally notifies via Slack.
+2. **Team member claim:** Any team member can claim an unresponsive owner's document. Claude asks for a reason (self-asserted — no verification required), updates `meta.yaml`, and commits with the reason recorded in the commit message. The previous owner is mentioned in the commit so the change is visible in git history.
+
+Note: The Permissions table restricts "Anyone" to feedback and viewing, but this workflow is an explicit exception for ownership continuity. Claims are always allowed when a reason is provided — "unavailable" is determined by the claimant's assertion, not system detection.
 
 ## Concurrency & Edge Cases
 
@@ -293,7 +299,7 @@ Owner transfers, or any team member claims (committed with reason).
 | Edit while someone reviews | `based_on_commit` detects stale feedback |
 | New feedback during addressing | Queued for next round |
 | Review on outdated content | `based_on_commit` enables stale detection via git diff |
-| Contradictory feedback | Claude flags conflicts; owner decides |
+| Contradictory feedback | Claude reads all pending items across review files, identifies items targeting the same document section with opposing recommendations, and presents them side-by-side. Owner decides which approach to follow. |
 | Feedback not understood | Owner picks "need clarification"; Claude asks reviewer |
 | Clarification never comes | Item stays `needs-clarification`; next step engine reminds |
 | Reviewer responds via Slack | Claude captures and adds to review file discussion thread |
