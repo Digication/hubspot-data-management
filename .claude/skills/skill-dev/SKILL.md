@@ -115,21 +115,27 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 
 ### Default Workflow (`/skill-dev test <skill>`)
 
+0. **Pre-load skill content** (enables prompt caching — see [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md))
+   - Read all files in `<skill>/` directory (excluding `tests/` and `.plugin-data/`)
+   - Format each as `### {filename}\n{content}` and concatenate into a single `skill_content_block`
+   - This block is embedded verbatim in every agent prompt below — agents must NOT re-read these files
+   - **Why:** All agents share this prefix. The API caches it after the first agent, reducing input token cost by ~90% for agents 2+.
+
 1. **Layer 1: Structural validation**
    - Run `node <skill-base-dir>/scripts/validate-skill.mjs <skill-path>`
    - If FAIL → stop, report errors. Fix before proceeding.
 
 2. **Layer 2: Golden dataset**
    - Load `<skill>/tests/eval.yaml` (see [FIXTURE_FORMAT.md](references/FIXTURE_FORMAT.md))
-   - For each test case, spawn a read-only agent (Read, Glob, Grep only) with the case's inputs. For review-type cases (command contains "review" or state has `review_type: true`), use the review-specific prompt from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) — the agent must read the target skill and verify findings against it.
+   - For each test case, spawn a read-only agent (Read, Glob, Grep only) using the prompt template from [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md) with the pre-loaded `skill_content_block` and the case's inputs. For review-type cases (command contains "review" or state has `review_type: true`), add the review-specific prompt — the agent must verify findings against the provided skill content.
    - Check agent output against deterministic assertions: `contains`, `regex`, `not-contains`, `contains-all`, `contains-any`, `decision-trace`
    - If any case FAILs → stop, report failures with assertion details
    - If no fixture file exists → skip Layer 2, warn: "No golden dataset found. Run `--explore` to create one."
 
-3. **Layer 3: LLM-as-Judge**
-   - For each `llm-rubric` assertion in the fixture file, spawn a judge agent with the rubric from [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md)
-   - Run each rubric **3 times** with fresh context. Majority vote (2/3) determines verdict.
-   - Report: rubric name, 3 verdicts, final verdict, reasoning from the deciding vote
+3. **Layer 3: LLM-as-Judge** (2+1 strategy)
+   - For each `llm-rubric` assertion in the fixture file, spawn a judge agent with the rubric from [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md) and the pre-loaded `skill_content_block`
+   - **2+1 majority vote:** Run 2 judges in parallel. If they agree → verdict is final. If they disagree → spawn a 3rd as tiebreaker. This saves ~33% of judge runs compared to always running 3.
+   - Report: rubric name, judge verdicts (2 or 3), final verdict, reasoning from the deciding vote
    - If any rubric FAILs → report as warning (non-blocking unless `--strict` flag)
    - If **no `llm-rubric` assertions exist** in eval.yaml → report "Skipped — no rubrics" and continue to step 3b.
 
@@ -200,7 +206,7 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 
 Run Layer 4 only. This is the discovery tool for finding unknown issues with fresh agents:
 
-1. **Identify the skill** — read SKILL.md and all references
+1. **Pre-load skill content** — same as step 0 in the default workflow: read all skill files, format as `skill_content_block`. If this was already done in a preceding default workflow run, reuse the existing block.
 2. **Check existing coverage** — read `<skill>/tests/eval.yaml` if it exists. For each decision table row in the skill, check whether an existing test case already covers it. Build a coverage map:
 
    ```
@@ -225,7 +231,7 @@ Run Layer 4 only. This is the discovery tool for finding unknown issues with fre
 
    Scenario count: simple skills 2-3, decision-heavy 4-6, complex 6-8. Count is based on **uncovered rows**, not total rows — fewer uncovered rows means fewer scenarios.
 
-4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md)
+4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md). Use the pre-loaded `skill_content_block` in all agent prompts.
 5. **Collect findings** — classify as Bug, Ambiguity, or Gap
 6. **Convert findings to fixtures** — for each finding, ask:
    "Want me to add this as a regression test? (yes/skip)"
@@ -386,7 +392,7 @@ On each run:
 - **`--layer N` runs standalone** — `--layer 1` runs only the structural validator and reports its result. `--layer 2` skips Layer 1 (assumes structural validity); if eval.yaml is missing, report PARTIAL with guidance to run `--explore`. `--layer 3` skips Layers 1-2 (assumes the user verified fixtures separately); if no `llm-rubric` assertions exist, report PASS with a note that no rubrics were found. This is a speed optimization — the user takes responsibility for skipped prerequisites. Verdict reflects only the layer that ran. `--layer 4` is not valid; use `--explore` instead.
 - **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3 (applying normal cascade rules), then presents Layer 4 scenarios for approval (same table format and prompt as `--explore`). If user declines, report Layers 1-3 results only. If L1 fails, stop entirely (no L4). If L2 fails or is skipped, still offer L4 — Layer 4 is independent and can discover issues without fixtures. L4 findings follow the same fixture conversion step as `--explore` (step 6).
 - **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
-- **Judge runs 3 times** — Layer 3 rubrics use majority vote (2/3) to handle LLM non-determinism. Never trust a single judge run.
+- **Judge runs 2+1** — Layer 3 rubrics use a 2+1 majority vote: run 2 judges in parallel; if they agree, the verdict is final; if they disagree, spawn a 3rd as tiebreaker. Never trust a single judge run.
 - **Explore then codify** — Layer 4 findings should be converted to Layer 2/3 cases for lasting value. The "Want me to add?" prompt lets users skip findings that are informational (Ambiguity/Gap) rather than behavioral (Bug). Bug findings should always become fixtures; Ambiguity/Gap findings are optional. Raw exploratory results without corresponding fixtures expire.
 - **Coverage-aware exploration** — Layer 4 must read existing eval.yaml before designing scenarios. Only target uncovered decision table rows. This prevents the "endless new findings" problem where each run discovers different edge cases without converging.
 - **Exploration converges** — If all decision table rows are covered by Layer 2 cases AND the last Layer 4 run found zero Bug findings, report "Exploration complete" and skip scenario design. Ambiguity/Gap findings do not block convergence — only Bugs do.

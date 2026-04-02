@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | 1 | Structural | Instant | Yes | Metadata errors, broken links, missing sections | Every review |
 | 2 | Golden Dataset | Seconds | Yes | Regressions, decision logic errors, format violations | Every review + test |
-| 3 | LLM-as-Judge | Minutes | Semi (run 3x, majority vote) | Subjective quality: actionability, clarity, completeness | After Layer 2 passes |
+| 3 | LLM-as-Judge | Minutes | Semi (2+1 majority vote) | Subjective quality: actionability, clarity, completeness | After Layer 2 passes |
 | 4 | Exploratory | Minutes | No | Unknown unknowns, new edge cases, spec gaps | After major changes only |
 
 ## Layer 1: Structural Validation
@@ -35,7 +35,7 @@ Property-based assertions against agent output: `contains`, `regex`, `not-contai
 
 Evaluates subjective quality that can't be string-matched: "Is this review actionable?", "Does this scenario actually test what it claims?" Uses binary PASS/FAIL verdicts with chain-of-thought reasoning.
 
-**Handling non-determinism:** Run each rubric 3 times with fresh context. Majority vote (2/3) determines final verdict. This absorbs the variance from different LLM interpretations.
+**Handling non-determinism:** 2+1 majority vote — run 2 judges in parallel; if they agree, the verdict is final; if they disagree, spawn a 3rd as tiebreaker. This absorbs LLM variance while saving ~33% of judge runs vs. always running 3.
 
 **When it fails:** Read the judge's reasoning. If the judge is wrong, adjust the rubric. If the skill is genuinely unclear, fix the skill.
 

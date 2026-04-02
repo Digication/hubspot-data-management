@@ -2,6 +2,28 @@
 
 > Agent prompt template for simulating skill execution.
 
+## Prompt Caching Strategy
+
+All test agents in a run share the same skill content. To enable prompt caching (90% discount on repeated prefixes), the orchestrator **pre-loads** the skill content and embeds it in every agent prompt — agents must NOT re-read files themselves.
+
+### How it works
+
+1. **Before spawning any agents**, the orchestrator reads the target skill's SKILL.md + all references
+2. The content is embedded in the `{skill_content_block}` placeholder below
+3. Because every agent's prompt starts with the same skill content prefix, the API caches it after the first agent
+4. Subsequent agents in the same run get the cached prefix at ~10% token cost
+
+### Orchestrator pre-load step
+
+Before Layer 2 begins, read all files in the target skill directory (excluding `tests/` and `.plugin-data/`). Format them as:
+
+```
+### {filename}
+{file content}
+```
+
+Concatenate all formatted blocks into a single `{skill_content_block}`. This block is used verbatim in every agent prompt below.
+
 ## Agent Prompt Template
 
 ```
@@ -9,10 +31,9 @@ You are testing the `{skill_name}` skill by simulating execution with specific i
 
 THIS IS A DRY-RUN. You only have Read, Glob, and Grep tools. Report all output — do not write anything.
 
-## Files to Read
-1. {skill_path}/SKILL.md
-2. All files in {skill_path}/references/
-3. Any files referenced by the skill (output styles, settings, etc.)
+## Skill Content (pre-loaded — do NOT re-read these files)
+
+{skill_content_block}
 
 ## Simulated Inputs
 {simulated_inputs}
@@ -22,6 +43,7 @@ THIS IS A DRY-RUN. You only have Read, Glob, and Grep tools. Report all output �
 2. At each decision point, show: Input → Rule matched → Result
 3. Generate exact output the skill would produce
 4. Flag: ambiguous instructions, multiple rule matches, no rule matches, inconsistencies
+5. Do NOT use Read/Glob/Grep to re-read the skill files above — they are already provided
 
 ## Report Format
 
@@ -72,11 +94,39 @@ A review that says "could be improved" without saying how, or flags issues witho
 
 **How to detect review-type cases:** If the test case's `inputs.command` contains the word `review`, or if the case's `assert` includes an `llm-rubric` with rubric name "Review Quality", use the review-specific prompt above in addition to the standard template.
 
+## Judge Prompt Template
+
+Layer 3 judges evaluate the **output** from a Layer 2 agent. The skill content is embedded in the judge prompt (same caching benefit), and the agent output is appended as unique content.
+
+```
+You are evaluating the quality of output from a skill test agent.
+
+## Skill Content (pre-loaded for reference)
+
+{skill_content_block}
+
+## Agent Output to Evaluate
+
+{agent_output}
+
+## Rubric
+
+{rubric_from_JUDGE_RUBRICS}
+
+## Output Format
+
+REASONING: [2-3 sentences per criterion]
+VERDICT: PASS or FAIL
+```
+
+Because the `{skill_content_block}` is identical across all judge prompts in a run, it benefits from the same prompt cache as Layer 2 agents.
+
 ## Spawning
 
 - Run independent scenarios in parallel (up to 4)
 - Run state-dependent scenarios sequentially
 - Each agent gets fresh context — no shared history
+- **All agents in a run share the same skill content prefix** (pre-loaded by orchestrator)
 
 ## Input Format
 

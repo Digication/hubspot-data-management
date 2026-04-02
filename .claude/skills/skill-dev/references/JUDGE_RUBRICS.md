@@ -6,12 +6,11 @@
 
 For each `llm-rubric` assertion in a test fixture:
 
-1. Spawn a fresh-context agent with the judge prompt below
-2. Provide the agent output being evaluated
-3. Agent produces: `REASONING: ...` then `VERDICT: PASS` or `VERDICT: FAIL`
-4. Run 3 times. Majority vote (2/3) determines final verdict.
+1. Spawn a fresh-context judge agent using the judge prompt template from [TEST_PROTOCOL.md](TEST_PROTOCOL.md) — include the pre-loaded `skill_content_block` (same as Layer 2 agents) and the agent output being evaluated
+2. Agent produces: `REASONING: ...` then `VERDICT: PASS` or `VERDICT: FAIL`
+3. **2+1 majority vote:** Run 2 judges in parallel. If they agree → verdict is final. If they disagree → spawn a 3rd as tiebreaker. This saves ~33% of judge runs vs. always running 3.
 
-**Judge agent tools:** Read only (Read, Glob, Grep) — judge must not modify anything.
+**Judge agent tools:** Read only (Read, Glob, Grep) — judge must not modify anything. Judges should NOT re-read the skill files — they are provided in the prompt via `skill_content_block`.
 
 ## Rubric Templates
 
