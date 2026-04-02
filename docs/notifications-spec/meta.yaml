@@ -1,8 +1,8 @@
 schema_version: 1
 title: User Notifications Spec
-status: in-review
+status: approved
 owner: ly
-contributors: [ly]
+contributors: [ly, jeff]
 tags: [notifications, backend]
 type: spec
-current_version: null
+current_version: 1
