@@ -57,7 +57,7 @@ Checks documents for correctness.
 | Review file naming | Doesn't match `review_NNN_date_author.md` |
 | Index in sync | Document on disk but not in `docs/index.md`, or vice versa |
 | Cross-references | References to non-existent or archived documents |
-| Git tag consistency | `current_version` in meta.yaml doesn't match git tags |
+| Version consistency | `current_version` in meta.yaml doesn't match highest entry in `versions` map |
 
 Usage:
 ```bash
@@ -170,7 +170,7 @@ For skill-dev testing:
 1. **Unit tests** (per script):
    - Validate `meta.yaml` parsing and schema migrations
    - Test folder structure creation
-   - Test git tag reading
+   - Test version history reading from `meta.yaml` `versions` map
 
 2. **Integration tests**:
    - Create a document end-to-end (scaffold → validate → index)
@@ -202,7 +202,7 @@ For skill-dev testing:
 - [ ] Test end-to-end workflows
 - [ ] Test Slack MCP integration (graceful fallback if not connected)
 - [ ] Expand `doc-import` for bulk scanning
-- [ ] Add git operations (stash, commit, tag) to scripts
+- [ ] Add git operations (stash, commit) to scripts
 - [ ] Test with large documents (50+ pages) to verify split behavior
 - [ ] Add schema migration logic to `doc-validate --fix`
 

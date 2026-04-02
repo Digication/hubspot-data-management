@@ -11,7 +11,7 @@ A conversational document lifecycle tool powered by Claude Code. Users interact 
 
 ### Design Principles
 
-1. **Git is the engine.** Git already tracks history, diffs, versions, and integrity. Don't rebuild it. Use git tags for versioning.
+1. **Git is the engine.** Git already tracks history, diffs, versions, and integrity. Don't rebuild it. Use commit hashes in `meta.yaml` for versioning.
 2. **Minimal files.** A document is two files: content (`index.md`) and metadata (`meta.yaml`). Everything else is created on demand.
 3. **Conversational first.** Users never need to remember commands, arguments, or naming conventions. Claude guides every interaction.
 4. **Scripts enforce correctness.** Claude is the friendly UI; scripts are the deterministic engine underneath.
@@ -46,9 +46,10 @@ contributors: [ly, jeff]
 tags: [architecture, billing]
 type: spec                       # spec | rfc | adr | guide | free-form
 current_version: null            # set on approval: 1, 2, 3...
+versions: {}                     # populated on approval, e.g. { 1: { commit: "abc1234", approved_at: "2026-03-15", approved_by: "ly" } }
 ```
 
-`meta.yaml` tracks what git can't: status, ownership, document type. Everything git can track (history, diffs, content integrity) is left to git.
+`meta.yaml` tracks what git can't: status, ownership, document type, and approved version history. Everything git can track (history, diffs, content integrity) is left to git.
 
 ## Document Types and Templates
 
@@ -75,7 +76,7 @@ draft ←→ in-review → approved → archived
           draft ←────────────────────┘
 ```
 
-Approval is always an explicit owner decision. On approval, Claude creates a git tag (`doc/<slug>/v<N>`) so the approved state is permanently labeled and retrievable.
+Approval is always an explicit owner decision. On approval, Claude records the commit hash in `meta.yaml` (`versions` field) so the approved state is permanently retrievable.
 
 ## Permissions
 
@@ -168,7 +169,7 @@ Claude answers questions by reading `meta.yaml`, review files, and git history.
 - "Who's been working on this?" → Lists contributors
 - "What's the next step?" → Suggests what to do based on document state
 - "What am I missing?" → Checks for incomplete sections
-- "Show me v1" → Retrieves git tag content
+- "Show me v1" → Retrieves content at the approved commit hash
 - "Compare v1 to current" → Diffs versions
 - "Bring me up to speed" → Full briefing
 
@@ -271,7 +272,7 @@ Owner. Claude presents items by priority. Four actions per item: accept, modify,
 2. Fresh-eyes review runs
 3. Update `meta.yaml`: `current_version` bumped, `status: approved`
 4. `git commit` the meta change
-5. `git tag doc/<slug>/v<N>` — **exactly once, after the commit**. Never combine into a single shell command with `&&` and never call separately as a follow-up; one explicit tag call after the commit is complete.
+5. Record the commit hash: after the commit succeeds, capture its hash (e.g. via `git rev-parse HEAD`) and add it to `meta.yaml`'s `versions` map: `{ <N>: { commit: "<hash>", approved_at: "<date>", approved_by: "<owner>" } }`. Then commit the updated `meta.yaml`.
 
 ### Archive
 
@@ -314,7 +315,7 @@ After key events (create, review, approve, status change), Claude posts to Slack
 
 When any operation fails, follow this strategy:
 
-**Git Operations** — If `git status`, `git commit`, `git tag` fails:
+**Git Operations** — If `git status`, `git commit` fails:
 1. Describe what failed in plain language: "I tried to save your changes but hit a git error..."
 2. Show the error (don't hide it)
 3. Offer options: retry, skip and continue, abort the workflow
@@ -392,8 +393,8 @@ This skill assumes:
 - Git handles all version history and integrity — no custom snapshot folders or activity logs
 - `meta.yaml` records metadata git can't track
 - Review files are append-only — never edit after creation
-- HISTORY captured via git log and tags — `meta.yaml` is source of truth for current state
-- No manual versioning — git tags (`doc/<slug>/v1`, `doc/<slug>/v2`) are the record
+- HISTORY captured via git log — `meta.yaml` is source of truth for current state and version history
+- No manual versioning — commit hashes in `meta.yaml` `versions` field are the record
 - When reviewing with code cross-reference, use fresh-context Agent sub-agents to avoid bias
 - Always ask before creating a new version
 - Accept either slug or file path; resolve using git folder structure

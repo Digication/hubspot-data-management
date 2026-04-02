@@ -66,12 +66,11 @@ tests:
       1. Run fresh-eyes review (check for completeness, stale language, broken links)
       2. Show any issues found
       3. Ask for confirmation
-      4. Create git tag doc/<slug>/v1
-      5. Update meta.yaml with current_version: 1
+      4. Update meta.yaml with current_version: 1 and record commit hash in versions map
+      5. Commit the updated meta.yaml
       6. Notify via Slack (if connected)
     checks:
-      - Git tag created correctly
-      - meta.yaml updated with current_version
+      - meta.yaml updated with current_version and versions entry (commit hash, approved_at, approved_by)
       - Status changed to "approved"
       - Approval timestamp recorded
 
@@ -189,4 +188,124 @@ tests:
       - User can confirm before changes
       - Index synchronized
 
-skill_hash: null
+  - name: Next step engine draft with content
+    prompt: |
+      /doc [open a draft document that has substantive content — Overview, Goals, and Technical Design sections filled in]
+    expected_behavior: |
+      Claude should:
+      1. Check Next Step Engine table top-to-bottom, first match wins
+      2. Skip row 1 (draft, empty) because document has content
+      3. Match row 2 (draft, has content) → suggest "Ready to submit for review?"
+    checks:
+      - Next Step Engine matches "draft, has content" row
+      - Suggestion includes submitting for review
+    assert:
+      - type: contains-any
+        values:
+          - "submit for review"
+          - "ready for review"
+          - "Ready to submit"
+      - type: decision-trace
+        input: "status = draft, content = non-empty (sections filled)"
+        rule: "Next Step Engine (draft, has content)"
+        result: "Suggest submitting for review"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario next-step-draft-with-content"
+
+  - name: Contradictory feedback flagged to owner
+    prompt: |
+      /doc [select document in-review with two contradictory reviews]
+      I want to address the feedback.
+      Review 1 (jeff): "Retry logic should use exponential backoff" [HIGH]
+      Review 2 (sarah): "Retry logic should use fixed intervals — exponential backoff is overkill" [HIGH]
+    expected_behavior: |
+      Claude should:
+      1. Detect that the two reviews contradict each other on retry strategy
+      2. Flag the conflict to the owner before proceeding
+      3. Let the owner decide which approach to follow
+      Per Concurrency table: "Contradictory feedback → Claude flags conflicts; owner decides"
+    checks:
+      - Contradiction is detected and surfaced
+      - Owner is asked to decide
+      - Neither review is auto-accepted without owner input
+    assert:
+      - type: contains-any
+        values:
+          - "conflict"
+          - "contradict"
+          - "opposing"
+          - "disagree"
+      - type: contains-any
+        values:
+          - "decide"
+          - "which approach"
+          - "your call"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario contradictory-feedback-resolution"
+
+  - name: Contributor can edit but not approve
+    prompt: |
+      /doc [select document owned by ly, contributor sarah]
+      User is sarah (contributor).
+      Step 1: Sarah says "I want to edit the Technical Design section" (should be allowed)
+      Step 2: Sarah says "I want to approve this document" (should be denied)
+    expected_behavior: |
+      Claude should:
+      1. Check Permissions table: sarah is not owner, is contributor
+      2. Step 1: Allow edit (contributors can "Edit content, add research")
+      3. Step 2: Deny approval (only owner can "change status")
+      4. Explain who can approve (the owner, ly)
+    checks:
+      - Edit is allowed for contributor
+      - Approval is denied for contributor
+      - Owner name mentioned in denial
+    assert:
+      - type: contains-any
+        values:
+          - "edit"
+          - "update"
+          - "change"
+      - type: contains-any
+        values:
+          - "only the owner"
+          - "owner can approve"
+          - "can't approve"
+          - "cannot approve"
+      - type: decision-trace
+        input: "user = sarah (contributor), action = approve"
+        rule: "Permissions (Contributor can: Edit content, add research)"
+        result: "Deny — approval is owner-only"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario contributor-edit-boundary"
+
+  - name: Owner transfer succeeds
+    prompt: |
+      /doc [select draft document owned by ly]
+      User is ly (owner).
+      "I want to transfer ownership to sarah"
+    expected_behavior: |
+      Claude should:
+      1. Check Permissions: ly is owner → can transfer
+      2. Update meta.yaml: owner changed to sarah
+      3. Commit with reason
+      4. Optionally notify via Slack
+    checks:
+      - Permission check passes (owner can transfer)
+      - meta.yaml owner field updated
+      - Git commit records the transfer with reason
+    assert:
+      - type: contains-any
+        values:
+          - "transfer"
+          - "ownership"
+          - "new owner"
+      - type: contains
+        value: "sarah"
+      - type: decision-trace
+        input: "user = ly (owner), action = transfer to sarah"
+        rule: "Permissions (Owner can: transfer)"
+        result: "Allow — update meta.yaml owner to sarah"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario owner-transfer-workflow"
+
+skill_hash: 07bbc9a8e4ec7e24dc84492853b8d8cc
