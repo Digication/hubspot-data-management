@@ -71,6 +71,17 @@
 | 2 | Ambiguity | {description} | {scenario_name} |
 | 3 | Gap | {description} | {scenario_name} |
 
+## Cost Summary
+
+| Metric | Value |
+|---|---|
+| Agents spawned | {total} (L2: {n} × {model}, L3: {n} × {model}) |
+| Total tokens | {total} |
+| Skill content size | {n} tokens (cached after first agent) |
+| Wall clock time | {duration} |
+
+{warnings if applicable — see Warning Thresholds below}
+
 ## Verdict
 
 **{PASS / FAIL / PARTIAL}**
@@ -91,6 +102,19 @@
 - **Short skills** (commit, simple workflows): Brief report, summarize generated output
 - **Decision-heavy skills** (onboard, implement): Full report with complete generated output for each scenario
 - **Focus on diffs**: If multiple scenarios produce similar output, show the first in full and highlight only differences for subsequent ones
+
+## Warning Thresholds
+
+The Cost Summary section includes automated warnings when a test run looks expensive or misconfigured:
+
+| Condition | Warning |
+|---|---|
+| Total tokens > 200K | "High token usage — consider reducing test cases or using `--layer 2` for quick checks." |
+| Any agent used `opus` | "Expensive model detected — test agents should use haiku/sonnet, not opus. See TEST_PROTOCOL.md Agent Model Selection." |
+| Any agent has `tool_uses > 0` for skill file reads | "Agents re-reading skill files — ensure `skill_content_block` is pre-loaded per TEST_PROTOCOL.md." |
+| Total agents > 30 | "Large agent count — consider batching cases with identical inputs." |
+
+These are informational warnings, not test failures. They appear in the report to help you spot cost issues early.
 
 ## Verdict Criteria
 

@@ -149,7 +149,8 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
 
 4. **Generate report** — consolidated results across all layers, and generate an HTML viewer:
 
-   Write the collected results to a JSON file using the Write tool:
+   Write the collected results to a JSON file using the Write tool. Track cost metrics as each agent completes — the Agent tool returns `total_tokens`, `tool_uses`, and `duration_ms` in its response metadata.
+
    ```json
    {
      "skillName": "<skill-name>",
@@ -162,9 +163,21 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
          "verdict": "PASS|FAIL|PARTIAL",
          "notes": "<1-2 sentence result summary: key decision made, assertion outcome, or why it failed>",
          "output": "<agent output summary>",
-         "assertions": [{ "passed": true, "type": "contains", "evidence": "..." }]
+         "assertions": [{ "passed": true, "type": "contains", "evidence": "..." }],
+         "metrics": { "tokens": 12500, "tool_uses": 0, "duration_ms": 15000, "model": "haiku" }
        }
-     ]
+     ],
+     "costSummary": {
+       "totalAgents": 14,
+       "totalTokens": 180000,
+       "totalDurationMs": 95000,
+       "byLayer": {
+         "layer2": { "agents": 12, "tokens": 150000, "model": "haiku" },
+         "layer3": { "agents": 2, "tokens": 30000, "model": "sonnet" }
+       },
+       "skillContentTokens": 1800,
+       "cacheEligible": true
+     }
    }
    ```
    Write to `$TMPDIR/eval-results-<skill>.json`, then run:
@@ -192,6 +205,17 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
    | Rubric | Run 1 | Run 2 | Run 3 | Final |
    |---|---|---|---|---|
    [Per-rubric results, or "Skipped — no rubrics / Layer 2 failed" if not run]
+
+   ## Cost Summary
+   | Metric | Value |
+   |---|---|
+   | Agents spawned | [total] (L2: [n] × [model], L3: [n] × [model]) |
+   | Total tokens | [total] |
+   | Skill content size | [n] tokens (cached after first agent) |
+   | Wall clock time | [duration] |
+
+   [If total tokens exceeds 200K: ⚠️ **High token usage** — consider reducing test cases or using `--layer 2` for quick checks.]
+   [If agents used opus: ⚠️ **Expensive model detected** — test agents should use haiku/sonnet, not opus. See TEST_PROTOCOL.md Agent Model Selection.]
 
    ## Verdict: [PASS / FAIL / PARTIAL]
    ```
