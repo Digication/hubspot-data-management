@@ -1,0 +1,120 @@
+skill: skills
+description: Golden dataset for skills skill — covers list/detail modes, tier adaptation, fuzzy matching, and edge cases
+skill_hash: "53db228184865403e789d33d19a12bec"
+
+cases:
+  - name: "list-mode-guided-categories"
+    description: "List mode with Guided tier groups skills into named categories with plain language"
+    category: happy-path
+    inputs:
+      command: "/skills"
+      state:
+        tier: guided
+        project_skills: [commit, doc, fact-check, implement, onboard, retrospective, review-thread, skill-dev, skills, slack, task]
+    assert:
+      - type: contains-all
+        values:
+          - "Building"
+          - "Saving"
+          - "Quality"
+          - "Documentation"
+          - "Learning"
+          - "Advanced"
+      - type: contains
+        value: "Want to know more"
+      - type: not-contains
+        value: "/skills"
+    source: "Exploratory test 2026-04-02, scenario list-guided"
+
+  - name: "list-mode-expert-table"
+    description: "List mode with Expert tier shows compact table with concise descriptions"
+    category: happy-path
+    inputs:
+      command: "/skills"
+      state:
+        tier: expert
+        project_skills: [commit, doc, fact-check, implement, onboard, retrospective, review-thread, skill-dev, skills, slack, task]
+    assert:
+      - type: contains
+        value: "| Skill | What it does |"
+      - type: contains
+        value: "`commit`"
+      - type: contains
+        value: "/skills <name>"
+      - type: not-contains
+        value: "Building & Creating"
+    source: "Exploratory test 2026-04-02, scenario list-expert"
+
+  - name: "detail-project-skill-supported"
+    description: "Detail mode for a project skill with Supported tier uses Guided/Supported template"
+    category: happy-path
+    inputs:
+      command: "/skills commit"
+      state:
+        tier: supported
+    assert:
+      - type: contains-all
+        values:
+          - "What it does"
+          - "When to use it"
+          - "Example"
+      - type: not-contains
+        value: "/commit"
+    source: "Exploratory test 2026-04-02, scenario detail-project-skill"
+
+  - name: "detail-system-skill-omits-modes"
+    description: "Detail mode for a system-level skill omits Modes/Arguments when no structured data exists"
+    category: boundary
+    inputs:
+      command: "/skills claude-api"
+      state:
+        tier: standard
+    assert:
+      - type: contains
+        value: "claude-api"
+      - type: contains-any
+        values:
+          - "Claude API"
+          - "Anthropic SDK"
+      - type: not-contains
+        value: "Modes/Arguments:\n-"
+    source: "Exploratory test 2026-04-02, scenario detail-system-skill"
+
+  - name: "detail-not-found-lists-available"
+    description: "Detail mode with nonexistent skill shows not-found message and lists available skills"
+    category: boundary
+    inputs:
+      command: "/skills foobar"
+      state:
+        tier: guided
+    assert:
+      - type: contains-any
+        values:
+          - "don't have"
+          - "don't recognize"
+          - "No skill matching"
+          - "not found"
+      - type: contains
+        value: "foobar"
+      - type: not-contains
+        value: "/skills"
+    source: "Exploratory test 2026-04-02, scenario detail-not-found"
+
+  - name: "fuzzy-match-multiple-asks"
+    description: "Fuzzy match with ambiguous substring lists matches and asks user to pick"
+    category: boundary
+    inputs:
+      command: "/skills s"
+      state:
+        tier: expert
+    assert:
+      - type: contains-all
+        values:
+          - "skills"
+          - "slack"
+      - type: contains-any
+        values:
+          - "Which"
+          - "which"
+          - "Did you mean"
+    source: "Exploratory test 2026-04-02, scenario fuzzy-match-multiple"

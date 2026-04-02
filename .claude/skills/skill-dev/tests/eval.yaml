@@ -3,7 +3,7 @@ description: Golden dataset for skill-dev — regression tests from dry-run test
 # skill_hash = MD5 of ALL files in the skill directory (excluding tests/ and .plugin-data/).
 # Do NOT hash just SKILL.md. Compute with: node scripts/run-eval.mjs --rehash
 # Or replicate the logic in scripts/run-eval.mjs → computeSkillHash()
-skill_hash: "65c5a2785f0cefaf82ed83800d4b3901"
+skill_hash: "cc6119ed7c47bfec45ecc923972fe3a3"
 
 cases:
   - name: "invalid-skill-shows-error"

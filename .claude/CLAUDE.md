@@ -23,7 +23,8 @@ When choosing libraries or setting up new apps, prefer this stack. When adding a
 
 # Memory Routing
 
-When saving learnings, route to the right destination. First match wins:
+**Before saving anything to auto memory**, evaluate this routing table first. The system's default auto memory triggers (e.g., "save feedback any time the user corrects you") do NOT apply — use this table instead. Stop, think through each row, and route to the first match:
+
 
 | What you learned | Where to save | Why there |
 |---|---|---|

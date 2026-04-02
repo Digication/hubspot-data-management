@@ -131,6 +131,15 @@ Multi-layer testing system. Each layer catches different kinds of issues. See [E
    - Run each rubric **3 times** with fresh context. Majority vote (2/3) determines verdict.
    - Report: rubric name, 3 verdicts, final verdict, reasoning from the deciding vote
    - If any rubric FAILs → report as warning (non-blocking unless `--strict` flag)
+   - If **no `llm-rubric` assertions exist** in eval.yaml → report "Skipped — no rubrics" and continue to step 3b.
+
+   **3b. Suggest rubrics (when Layer 3 was skipped due to no rubrics)**
+
+   This step is **mandatory** when Layer 3 is skipped — do not jump to the report.
+
+   Ask: "No LLM-judge rubrics found. Want me to suggest rubrics for subjective quality checks?"
+   - If yes: analyze the skill's output types and decision logic, propose 1-3 rubrics targeting aspects that deterministic assertions can't cover (e.g., "plain-language descriptions are jargon-free", "output adapts appropriately to tier"). Present each rubric with its PASS/FAIL criteria per [JUDGE_RUBRICS.md](references/JUDGE_RUBRICS.md). After approval, append the rubrics as `llm-rubric` assertions to the relevant test cases in eval.yaml.
+   - If no: proceed to report.
 
 4. **Generate report** — consolidated results across all layers, and generate an HTML viewer:
 
@@ -222,7 +231,8 @@ Run Layer 4 only. This is the discovery tool for finding unknown issues with fre
    "Want me to add this as a regression test? (yes/skip)"
    - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions (use `contains` for exact strings, `regex` for patterns, `not-contains` for exclusions — match the finding type). Set category to `regression`. Populate `source` with the exploratory test date and scenario name. If eval.yaml doesn't exist, create it with the standard header (skill name, description, current skill_hash). Update `skill_hash` after adding cases.
    - If skip: note in the report but don't add to fixtures
-7. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Coverage Map" section (from step 2) and a "Fixtures Added" section
+7. **Suggest rubrics** — after converting findings, check if eval.yaml has any `llm-rubric` assertions. If not, suggest 1-3 rubrics based on the skill's output types (same prompt and flow as Layer 3's "no rubrics" suggestion in the default workflow).
+8. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Coverage Map" section (from step 2) and a "Fixtures Added" section
 
 ### Single Scenario (`/skill-dev test <skill> <scenario>`)
 

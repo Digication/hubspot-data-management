@@ -9,3 +9,4 @@ build/
 .claude/user-context.md
 .claude/tests/TEST_RESULTS.md
 .claude/skills/*/.plugin-data/
+tmp/
