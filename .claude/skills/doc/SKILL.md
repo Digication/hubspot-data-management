@@ -1,8 +1,8 @@
 ---
 name: doc
-description: Manage document lifecycle conversationally. Trigger on write a spec, create a document, research a topic, review a doc, update a document, approve a doc, document status, list documents, new RFC, new proposal, draft a spec, check document history.
+description: "Trigger on: write a spec, create a document, research a topic, review a doc, update a document, approve a doc, document status, list documents, new RFC, new proposal, draft a spec, check document history, import a document, manage documents conversationally."
 metadata:
-  allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, Bash, mcp__slack__authenticate, mcp__slack__*
+  allowed-tools: Read, Write, Edit, Glob, Grep, Agent, WebSearch, WebFetch, Bash(git:*), mcp__slack__authenticate, mcp__slack__*
 ---
 
 ## Overview
@@ -78,6 +78,8 @@ draft ←→ in-review → approved → archived
 Approval is always an explicit owner decision. On approval, Claude creates a git tag (`doc/<slug>/v<N>`) so the approved state is permanently labeled and retrievable.
 
 ## Permissions
+
+**Evaluation order: First match wins** — Check if user is owner first, then contributor, then anyone.
 
 | Role | Who | Can do |
 |------|-----|--------|
@@ -171,6 +173,8 @@ Claude answers questions by reading `meta.yaml`, review files, and git history.
 - "Bring me up to speed" → Full briefing
 
 ### Next Step Engine
+
+**Evaluation order: Top-to-bottom, first match wins** — Check conditions in this order to find the best suggestion.
 
 Claude proactively suggests when a document is opened:
 
@@ -279,6 +283,8 @@ Claude scans all docs for cross-references, shows affected files, updates on con
 Owner transfers, or any team member claims (committed with reason).
 
 ## Concurrency & Edge Cases
+
+**Evaluation order: Use git as the source of truth** — When a conflict arises, git state takes precedence over in-memory state.
 
 | Scenario | Resolution |
 |----------|-----------|
