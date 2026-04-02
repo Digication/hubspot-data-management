@@ -298,6 +298,83 @@ Owner transfers, or any team member claims (committed with reason).
 
 After key events (create, review, approve, status change), Claude posts to Slack using the `/slack` skill. If Slack MCP is not connected, skip silently — never block a workflow.
 
+## Error Handling & Recovery
+
+When any operation fails, follow this strategy:
+
+**Git Operations** — If `git status`, `git commit`, `git tag` fails:
+1. Describe what failed in plain language: "I tried to save your changes but hit a git error..."
+2. Show the error (don't hide it)
+3. Offer options: retry, skip and continue, abort the workflow
+4. If user chooses skip, note in the git commit message: "Partial operation — [reason]"
+
+**File Operations** — If reading or writing document files fails:
+1. Check `git status` to see if the problem is untracked/uncommitted changes
+2. If yes, offer to commit or stash before continuing
+3. If no, report the error and suggest checking file permissions or disk space
+
+**Slack Notifications** — If MCP call fails:
+1. Log the failure internally (mention it to user but don't block workflow)
+2. Example: "Saved the document. (Note: couldn't notify Jeff via Slack — MCP not connected.)"
+3. Never retry the notification or error out — the document operation already succeeded
+
+**Meta.yaml Validation** — If `meta.yaml` is malformed or missing:
+1. If missing: create a default with `status: draft`, `owner: [current user]`
+2. If malformed: show the parse error and ask user to fix, or offer to rebuild from git history
+3. If outdated schema: run schema migration and warn user
+
+**Script Failures** — If `doc-scaffold`, `doc-validate`, etc. fail:
+1. Report the error message from the script
+2. Exit code 1 (fixable): offer to retry or diagnose
+3. Exit code 2 (fatal): explain the issue and suggest next steps (e.g., "Folder already exists. Did you mean `/doc update`?")
+
+## Gotchas
+
+### 1. **Git Operations Can Silently Fail in Merge Conflicts**
+When addressing feedback and editing documents, a `git commit` can fail if the user manually edited files outside the skill (creating local changes). Claude won't know until the commit fails.
+
+**Prevention**: Always run `git status` before making changes. If there are uncommitted changes, ask the user whether to commit them first or stash them.
+
+**Recovery**: If commit fails with "Committing is not possible because...": offer to stash the conflicting changes and retry, or ask the user to manually resolve.
+
+### 2. **Slug Resolution Breaks on Malformed Document Folders**
+If a folder under `docs/` exists but has no `meta.yaml`, or `meta.yaml` is invalid YAML, the folder won't be recognized as a document. This can happen if the user manually created a folder or if a past operation was interrupted.
+
+**Prevention**: Run `doc-validate --all` periodically to catch orphaned folders. Mention this in "next steps" if a long time has passed.
+
+**Recovery**: If `doc-validate` finds orphaned folders, ask the user what to do with them: archive, fix, or delete.
+
+### 3. **Review File Naming Creates Duplicates**
+The review file format `review_<NNN>_<date>_<author>.md` uses a sequence number (NNN) to avoid conflicts. If the user manually renames or duplicates files, the sequence breaks and the next review might overwrite an existing one.
+
+**Prevention**: Always use `doc-validate` to check file naming. Never allow manual editing of review file names.
+
+**Recovery**: If duplicates are found, ask the user which one to keep and archive the others.
+
+### 4. **Stale `based_on_commit` Hashes Can't Be Recovered**
+If a review references `based_on_commit: a1b2c3d` but the commit history was force-pushed or rebased, that commit no longer exists. The review becomes orphaned.
+
+**Prevention**: Warn users: "Force-pushing or rebasing will break any active reviews. Finish addressing feedback before rebasing." Include this in the "Before You Start" section.
+
+**Recovery**: If a review is orphaned, ask the user: merge it manually, re-do the review, or discard it.
+
+### 5. **Multiple Reviewers in Parallel Create Race Conditions**
+If two reviewers create feedback files simultaneously (same date, same author), the files might have the same name. When Claude tries to write the second review, it overwrites the first.
+
+**Prevention**: Encourage serial review when possible (one reviewer at a time). If parallel reviews are needed, add a UUID or timestamp to file names.
+
+**Recovery**: If a review is overwritten, check git history and restore it: `git show HEAD~1:.claude/skills/doc/reviews/review_001_...`.
+
+## Before You Start
+
+This skill assumes:
+- A `docs/` directory exists at project root (or will be created on first use)
+- Git is initialized and configured for the project
+- User has write access to the docs folder and can run git commands
+- Optional: Slack MCP is configured (notifications will silently fail if not connected)
+
+---
+
 ## Core Principles
 
 - Git handles all version history and integrity — no custom snapshot folders or activity logs

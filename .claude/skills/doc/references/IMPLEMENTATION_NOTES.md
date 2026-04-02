@@ -184,20 +184,29 @@ For skill-dev testing:
    - Slack notifications fire (mock the MCP call)
    - Next step engine suggests correct action based on state
 
-## Implementation Checklist
+## Implementation Status
 
-- [ ] Create `scripts/doc/` directory structure
-- [ ] Implement `doc-scaffold` with all template types
-- [ ] Implement `doc-import` with section detection
-- [ ] Implement `doc-validate` with all checks and migrations
-- [ ] Implement `doc-index` for catalog generation
-- [ ] Implement `doc-status` for smart summaries
-- [ ] Implement `doc-stats` for health overview
+### ✅ Complete
+
+- [x] Create `scripts/doc/` directory structure
+- [x] Implement `doc-scaffold` with all template types
+- [x] Implement `doc-validate` with all checks
+- [x] Implement `doc-index` for catalog generation
+- [x] Implement `doc-status` for smart summaries
+- [x] Implement `doc-stats` for health overview
+- [x] Implement `doc-import` with section detection (partial)
+
+### ⏳ Next Phase
+
 - [ ] Write unit tests for each script
 - [ ] Test end-to-end workflows
 - [ ] Test Slack MCP integration (graceful fallback if not connected)
-- [ ] Document all error scenarios and recovery paths
+- [ ] Expand `doc-import` for bulk scanning
+- [ ] Add git operations (stash, commit, tag) to scripts
 - [ ] Test with large documents (50+ pages) to verify split behavior
+- [ ] Add schema migration logic to `doc-validate --fix`
+
+All scripts are available in `scripts/doc/` and executable. See `scripts/doc/README.md` for detailed usage.
 
 ## Notes on Architecture
 
