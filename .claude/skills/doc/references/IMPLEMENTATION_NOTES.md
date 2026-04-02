@@ -4,7 +4,7 @@ This document outlines the TypeScript scripts that support the `/doc` skill and 
 
 ## TypeScript Scripts
 
-The `/doc` skill relies on TypeScript scripts in `scripts/doc/` to enforce correctness. Claude calls them automatically as part of workflows.
+The `/doc` skill is self-contained with TypeScript scripts bundled in `.claude/skills/doc/scripts/`. Claude calls them automatically as part of workflows.
 
 ### `doc-scaffold`
 
@@ -206,7 +206,7 @@ For skill-dev testing:
 - [ ] Test with large documents (50+ pages) to verify split behavior
 - [ ] Add schema migration logic to `doc-validate --fix`
 
-All scripts are available in `scripts/doc/` and executable. See `scripts/doc/README.md` for detailed usage.
+All scripts are bundled in `.claude/skills/doc/scripts/` and executable. See `.claude/skills/doc/scripts/README.md` for detailed usage.
 
 ## Notes on Architecture
 
