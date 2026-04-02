@@ -189,6 +189,8 @@ Claude proactively suggests when a document is opened:
 | `in-review`, all addressed | "All resolved. Ready to approve?" |
 | `approved`, 30+ days inactive | "Still current?" |
 
+**"30+ days inactive":** Measured by the date of the last git commit touching the document folder (`git log -1 --format="%ar" -- docs/<slug>/`). If no commit exists in 30+ days, the row matches.
+
 **"Empty" vs "has content":** A document is "empty" if it contains only template scaffolding — headings with placeholder comments like `<!-- ... -->` or no text beyond the title. "Has content" means at least one required section for the document type has substantive text beyond placeholders.
 
 ### Fresh-Eyes Review (Pre-Approval Gate)
@@ -304,7 +306,7 @@ Note: The Permissions table restricts "Anyone" to feedback and viewing, but this
 | Feedback not understood | Owner picks "need clarification"; Claude asks reviewer |
 | Clarification never comes | Item stays `needs-clarification`; next step engine reminds |
 | Reviewer responds via Slack | Claude captures and adds to review file discussion thread |
-| Document edited outside tool | `git status` detects; Claude offers to commit or revert |
+| Document edited outside tool | `git status` detects; Claude offers to commit or stash (stash is safer — preserves changes without polluting history) |
 | Owner unavailable | Any team member can claim (committed with reason) |
 
 ## Slack Notifications
@@ -404,7 +406,7 @@ This skill assumes:
 - **Never assume** the user knows what they want to write. Ask clarifying questions via interview mode.
 - **Guide every action.** Explain what will happen before committing.
 - **Show next steps.** When a workflow completes, proactively suggest what's next based on document state.
-- **Use plain language.** Translate git concepts into everyday terms.
+- **Use plain language.** Translate git concepts into everyday terms. Define jargon inline on first use — e.g., "slug (the short URL-friendly name for the folder)", "ADR (Architecture Decision Record — a record of a key technical choice)", "RFC (Request for Comments — a proposal for team input)".
 - **Respect ownership.** Only the owner can change status; anyone can give feedback.
 
 See [IMPLEMENTATION_NOTES.md](references/IMPLEMENTATION_NOTES.md) for TypeScript script details and testing approach.

@@ -133,6 +133,12 @@ tests:
       - Questions are focused and one at a time
       - Summary is provided before proceeding
       - Confirmation requested
+    assert:
+      - type: llm-rubric
+        rubric: plain-language-guidance
+        criteria: |
+          PASS if: Output uses everyday language; technical terms (git, meta.yaml, slug, status) are either avoided or defined inline; no unexplained acronyms; conversational tone that guides rather than commands.
+          FAIL if: Output assumes the user knows git concepts, yaml syntax, or document lifecycle jargon without explanation.
 
   - name: Request review with context
     prompt: |
@@ -209,6 +215,11 @@ tests:
         input: "status = draft, content = non-empty (sections filled)"
         rule: "Next Step Engine (draft, has content)"
         result: "Suggest submitting for review"
+      - type: llm-rubric
+        rubric: next-step-relevance
+        criteria: |
+          PASS if: The suggestion specifically matches the "draft, has content" row of the Next Step Engine table; mentions submitting for review; does not suggest generic actions unrelated to document state.
+          FAIL if: Suggestion is generic (e.g., "keep writing", "do something"), skips the correct row, or suggests an action the user can't take (e.g., approve when not owner).
     category: regression
     source: "Found during exploratory test on 2026-04-02, scenario next-step-draft-with-content"
 
@@ -275,6 +286,11 @@ tests:
         input: "user = sarah (contributor), action = approve"
         rule: "Permissions (Contributor can: Edit content, add research)"
         result: "Deny — approval is owner-only"
+      - type: llm-rubric
+        rubric: permission-boundary-enforcement
+        criteria: |
+          PASS if: Edit action is allowed with clear explanation that contributors can edit content; approval action is denied with a specific explanation naming the owner and stating that only the owner can change status; no ambiguity about who can do what.
+          FAIL if: Either action is handled incorrectly (edit denied, or approve allowed), or the denial is vague and doesn't explain who can approve or why.
     category: regression
     source: "Found during exploratory test on 2026-04-02, scenario contributor-edit-boundary"
 
@@ -308,4 +324,140 @@ tests:
     category: regression
     source: "Found during exploratory test on 2026-04-02, scenario owner-transfer-workflow"
 
-skill_hash: 07bbc9a8e4ec7e24dc84492853b8d8cc
+  - name: Next step approved stale
+    prompt: |
+      /doc [open a document with status: approved, last git commit to the document folder was 45 days ago]
+    expected_behavior: |
+      Claude should:
+      1. Evaluate Next Step Engine top-to-bottom, first match wins
+      2. Match row: "approved, 30+ days inactive" → suggest "Still current?"
+      3. Not skip this row or suggest a different action
+    checks:
+      - Next Step Engine matches "approved, 30+ days inactive" row
+      - Suggestion asks whether the document is still current
+    assert:
+      - type: contains-any
+        values:
+          - "Still current"
+          - "still current"
+          - "still relevant"
+          - "up to date"
+      - type: decision-trace
+        input: "status = approved, last activity = 45 days ago"
+        rule: "Next Step Engine (approved, 30+ days inactive)"
+        result: "Suggest checking if still current"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario next-step-approved-stale"
+
+  - name: Feedback need clarification blocks item
+    prompt: |
+      /doc [select document in-review]
+      User is owner. Feedback item present:
+      "### 1. Consider abstracting the retry decorator [MEDIUM]
+      Status: pending
+      > 'The retry logic is implemented inline' — Technical Design
+      This is fine but could be cleaner."
+      Owner says: "I don't understand what they mean. Need clarification."
+    expected_behavior: |
+      Claude should:
+      1. Map action to "need clarification"
+      2. Update item status to needs-clarification in review file
+      3. Notify reviewer via Slack (or mention it will do so)
+      4. Skip this item and move to the next pending one
+      Per Address Feedback: "Items with needs-clarification are blocked — Claude skips them"
+    checks:
+      - Item status set to needs-clarification
+      - Item is skipped (not resolved, not applied)
+      - Reviewer is notified via Slack
+    assert:
+      - type: contains-any
+        values:
+          - "needs-clarification"
+          - "need clarification"
+          - "needs clarification"
+      - type: contains-any
+        values:
+          - "skip"
+          - "move on"
+          - "next item"
+          - "blocked"
+      - type: decision-trace
+        input: "owner action = need clarification on item 1"
+        rule: "Address Feedback (need clarification — item blocked, skip to next)"
+        result: "Mark needs-clarification, notify reviewer, skip item"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario feedback-need-clarification"
+
+  - name: Rename shows cross-references before confirming
+    prompt: |
+      /doc [select document "payment-processing-architecture"]
+      User is owner. User says: "Rename this to payments-api-design."
+      Two other docs link to this document.
+    expected_behavior: |
+      Claude should:
+      1. Scan all docs for cross-references to "payment-processing-architecture"
+      2. Show the affected files to the user before making any changes
+      3. Ask for confirmation
+      4. Only rename and update references after confirmation
+      Per Rename workflow: "Claude scans all docs for cross-references, shows affected files, updates on confirmation"
+    checks:
+      - Affected files listed before any changes
+      - Confirmation requested
+      - Rename only proceeds after user confirms
+    assert:
+      - type: contains-any
+        values:
+          - "cross-reference"
+          - "link"
+          - "references"
+          - "affected"
+      - type: contains-any
+        values:
+          - "confirm"
+          - "proceed"
+          - "ready"
+          - "shall I"
+      - type: decision-trace
+        input: "action = rename, cross-references found in 2 other docs"
+        rule: "Rename workflow (scan cross-references, show affected, confirm, then update)"
+        result: "Show affected files, ask for confirmation before renaming"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario rename-with-cross-references"
+
+  - name: External edit detected at workflow start
+    prompt: |
+      /doc [user opens doc skill]
+      Before any workflow begins, git status shows:
+      docs/payment-processing-architecture/index.md is modified (uncommitted, edited outside the tool)
+    expected_behavior: |
+      Claude should:
+      1. Detect the uncommitted change via git status
+      2. Surface it to the user before starting any workflow
+      3. Offer options to handle it (commit or revert/stash)
+      4. Not silently continue with the workflow
+      Per Concurrency table: "Document edited outside tool → git status detects; Claude offers to commit or revert"
+    checks:
+      - Uncommitted change is detected and surfaced
+      - User is given options before workflow continues
+      - Workflow does not silently proceed
+    assert:
+      - type: contains-any
+        values:
+          - "edited outside"
+          - "changed outside"
+          - "uncommitted"
+          - "modified"
+      - type: contains-any
+        values:
+          - "commit"
+          - "revert"
+          - "stash"
+          - "discard"
+      - type: decision-trace
+        input: "git status = docs/payment-processing-architecture/index.md modified"
+        rule: "Concurrency (document edited outside tool — detect and surface)"
+        result: "Surface change, offer commit or revert before continuing"
+    category: regression
+    source: "Found during exploratory test on 2026-04-02, scenario edit-outside-tool"
+
+skill_hash: f99fb14e15cfef6a55dda2bea47d1f9b
