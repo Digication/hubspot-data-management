@@ -259,10 +259,36 @@ Run Layer 4 only. This is the discovery tool for finding unknown issues with fre
 
 4. **Run test agents** — fresh context, read-only tools (Read, Glob, Grep), `model: "sonnet"`, structured output per [TEST_PROTOCOL.md](references/TEST_PROTOCOL.md). Use the pre-loaded `skill_content_block` in all agent prompts.
 5. **Collect findings** — classify as Bug, Ambiguity, or Gap
-6. **Convert findings to fixtures** — for each finding, ask:
-   "Want me to add this as a regression test? (yes/skip)"
-   - If yes: append a new test case to `<skill>/tests/eval.yaml` with appropriate assertions (use `contains` for exact strings, `regex` for patterns, `not-contains` for exclusions — match the finding type). Set category to `regression`. Populate `source` with the exploratory test date and scenario name. If eval.yaml doesn't exist, create it with the standard header (skill name, description, current skill_hash). Update `skill_hash` after adding cases.
-   - If skip: note in the report but don't add to fixtures
+6. **Convert findings to fixtures** — present ALL findings in a single summary table with recommendations, then ask once:
+
+   ```markdown
+   ## Fixture Recommendations
+
+   | # | Scenario | Severity | Covers new row? | Recommendation |
+   |---|---|---|---|---|
+   | 1 | {name} | {Bug/Ambiguity/Gap/PASS} | {Yes (row N) / No} | {see table below} |
+   | 2 | {name} | ... | ... | ... |
+
+   Add all? (yes all / pick individually / skip all)
+   ```
+
+   **Recommendation logic** (determines the last column):
+
+   | Severity | Covers new row? | Recommendation |
+   |---|---|---|
+   | **Bug** | (any) | Recommended — locks in the fix so the bug can't come back |
+   | **Ambiguity** | Yes | Worth adding — fills a coverage gap |
+   | **Ambiguity** | No | Optional — existing test covers this path, skip unless nuance matters |
+   | **Gap** | (any) | Optional — documents a missing rule, not a behavior to test |
+   | **PASS** | Yes | Worth adding — locks in correct behavior for an untested path |
+   | **PASS** | No | Optional — nice to have, not critical |
+
+   After the user decides:
+   - **yes all**: add all findings as test cases
+   - **pick individually**: go through each one, ask "add this one? (yes/skip)"
+   - **skip all**: note all findings in the report but don't add any
+
+   For each added case: append to `<skill>/tests/eval.yaml` with appropriate assertions (use `contains` for exact strings, `regex` for patterns, `not-contains` for exclusions — match the finding type). Set category to `regression`. Populate `source` with the exploratory test date and scenario name. If eval.yaml doesn't exist, create it with the standard header (skill name, description, current skill_hash). Update `skill_hash` after adding cases.
 7. **Suggest rubrics** — after converting findings, check if eval.yaml has any `llm-rubric` assertions. If not, suggest 1-3 rubrics based on the skill's output types (same prompt and flow as Layer 3's "no rubrics" suggestion in the default workflow).
 8. **Generate report** — same format as [REPORT_FORMAT.md](references/REPORT_FORMAT.md), plus a "Coverage Map" section (from step 2) and a "Fixtures Added" section
 
@@ -454,6 +480,6 @@ On each run:
 - **`--full` includes Layer 4 with approval** — `--full` runs Layers 1-3 (applying normal cascade rules), then presents Layer 4 scenarios for approval (same table format and prompt as `--explore`). If user declines, report Layers 1-3 results only. If L1 fails, stop entirely (no L4). If L2 fails or is skipped, still offer L4 — Layer 4 is independent and can discover issues without fixtures. L4 findings follow the same fixture conversion step as `--explore` (step 6).
 - **Fixtures are regression tests** — every bug fixed should add a Layer 2 case. This prevents the "find different issues each run" problem.
 - **Judge runs 2+1** — Layer 3 rubrics use a 2+1 majority vote: run 2 judges in parallel; if they agree, the verdict is final; if they disagree, spawn a 3rd as tiebreaker. Never trust a single judge run.
-- **Explore then codify** — Layer 4 findings should be converted to Layer 2/3 cases for lasting value. The "Want me to add?" prompt lets users skip findings that are informational (Ambiguity/Gap) rather than behavioral (Bug). Bug findings should always become fixtures; Ambiguity/Gap findings are optional. Raw exploratory results without corresponding fixtures expire.
+- **Explore then codify** — Layer 4 findings should be converted to Layer 2/3 cases for lasting value. Bug findings should always become fixtures (they're regression guards). Other findings depend on weight: ambiguities that cover uncovered decision rows are worth adding; ambiguities for already-covered rows and gaps are optional — present the tradeoff and let the user decide. Raw exploratory results without corresponding fixtures expire.
 - **Coverage-aware exploration** — Layer 4 must read existing eval.yaml before designing scenarios. Only target uncovered decision table rows. This prevents the "endless new findings" problem where each run discovers different edge cases without converging.
 - **Exploration converges** — If all decision table rows are covered by Layer 2 cases AND the last Layer 4 run found zero Bug findings, report "Exploration complete" and skip scenario design. Ambiguity/Gap findings do not block convergence — only Bugs do.
