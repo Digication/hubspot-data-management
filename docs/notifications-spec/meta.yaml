@@ -1,6 +1,6 @@
 schema_version: 1
 title: User Notifications Spec
-status: approved
+status: draft
 owner: ly
 contributors: [ly, jeff]
 tags: [notifications, backend]
