@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 280" width="560" height="280" font-family="system-ui, sans-serif">
+
+  <rect width="560" height="280" fill="#f8fafc" rx="12"/>
+  <text x="280" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">Which Model Is Used at Each Step?</text>
+
+  <defs>
+    <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <!-- Question box -->
+  <rect x="180" y="48" width="200" height="44" rx="10" fill="#1e293b"/>
+  <text x="280" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="white">What kind of task</text>
+  <text x="280" y="82" text-anchor="middle" font-size="12" font-weight="700" fill="white">is this step?</text>
+
+  <!-- Arrow left -->
+  <line x1="180" y1="70" x2="110" y2="70" stroke="#64748b" stroke-width="2" marker-end="url(#arr3)"/>
+  <text x="143" y="62" text-anchor="middle" font-size="11" fill="#7c3aed" font-weight="600">Evaluation</text>
+
+  <!-- Arrow right -->
+  <line x1="380" y1="70" x2="450" y2="70" stroke="#64748b" stroke-width="2" marker-end="url(#arr3)"/>
+  <text x="418" y="62" text-anchor="middle" font-size="11" fill="#0369a1" font-weight="600">Writing</text>
+
+  <!-- Opus card -->
+  <rect x="20" y="90" width="170" height="130" rx="12" fill="#7c3aed"/>
+  <text x="105" y="116" text-anchor="middle" font-size="16" font-weight="700" fill="white">Opus 4.6</text>
+  <line x1="40" y1="124" x2="170" y2="124" stroke="#a78bfa" stroke-width="1"/>
+  <text x="105" y="142" text-anchor="middle" font-size="11" fill="#ddd6fe">Most thorough</text>
+  <text x="105" y="158" text-anchor="middle" font-size="11" fill="#ddd6fe">Sets the ceiling for</text>
+  <text x="105" y="174" text-anchor="middle" font-size="11" fill="#ddd6fe">all downstream work</text>
+  <text x="105" y="196" text-anchor="middle" font-size="12" font-weight="700" fill="#ede9fe">Discover · Measure</text>
+
+  <!-- Sonnet card -->
+  <rect x="370" y="90" width="170" height="130" rx="12" fill="#0369a1"/>
+  <text x="455" y="116" text-anchor="middle" font-size="16" font-weight="700" fill="white">Sonnet 4.6</text>
+  <line x1="390" y1="124" x2="520" y2="124" stroke="#7dd3fc" stroke-width="1"/>
+  <text x="455" y="142" text-anchor="middle" font-size="11" fill="#bae6fd">Faster + cheaper</text>
+  <text x="455" y="158" text-anchor="middle" font-size="11" fill="#bae6fd">Same quality for</text>
+  <text x="455" y="174" text-anchor="middle" font-size="11" fill="#bae6fd">drafting &amp; writing</text>
+  <text x="455" y="196" text-anchor="middle" font-size="12" font-weight="700" fill="#e0f2fe">Analyze · Apply</text>
+
+  <!-- Subagent note under Opus -->
+  <rect x="32" y="232" width="146" height="28" rx="8" fill="#ede9fe"/>
+  <text x="105" y="246" text-anchor="middle" font-size="11" fill="#7c3aed" font-weight="600">Runs as a subagent</text>
+  <text x="105" y="258" text-anchor="middle" font-size="10" fill="#7c3aed">fresh context every time</text>
+
+  <!-- Main session note under Sonnet -->
+  <rect x="382" y="232" width="146" height="28" rx="8" fill="#e0f2fe"/>
+  <text x="455" y="246" text-anchor="middle" font-size="11" fill="#0369a1" font-weight="600">Runs in main session</text>
+  <text x="455" y="258" text-anchor="middle" font-size="10" fill="#0369a1">shares conversation context</text>
+
+  <!-- Key insight box -->
+  <rect x="155" y="105" width="250" height="50" rx="10" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+  <text x="280" y="125" text-anchor="middle" font-size="11" font-weight="600" fill="#713f12">Key rule: if Discover misses</text>
+  <text x="280" y="141" text-anchor="middle" font-size="11" fill="#854d0e">a problem, nothing can fix it later</text>
+
+</svg>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimize Report — {{TOPIC}}</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --blue: #0369a1;
+    --blue-light: #e0f2fe;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --green: #15803d;
+    --green-light: #dcfce7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.2rem; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  h3 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
+  p { margin: 0.5rem 0; line-height: 1.5; }
+  .meta { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+  .tab { padding: 0.75rem 1.5rem; cursor: pointer; font-weight: 600; font-size: 0.9375rem; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; user-select: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Score hero */
+  .score-hero { display: flex; gap: 2rem; align-items: center; padding: 1.5rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; flex-wrap: wrap; }
+  .score-big { font-size: 3rem; font-weight: 800; color: var(--purple); }
+  .score-arrow { font-size: 2rem; color: var(--muted); }
+  .score-delta { display: inline-block; background: var(--green-light); color: var(--green); padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.875rem; margin-left: 0.5rem; }
+
+  /* Cycle cards */
+  .cycles { display: grid; gap: 1rem; }
+  .cycle-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+  .cycle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .cycle-label { font-weight: 700; font-size: 1rem; }
+  .cycle-score { font-weight: 700; color: var(--purple); }
+  .cycle-bar { height: 8px; background: var(--purple-light); border-radius: 4px; overflow: hidden; margin-bottom: 0.75rem; }
+  .cycle-bar-fill { height: 100%; background: var(--purple); border-radius: 4px; }
+  .cycle-stats { display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--muted); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.875rem; }
+  th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-high { background: var(--red-light); color: var(--red); }
+  .badge-medium { background: var(--amber-light); color: var(--amber); }
+  .badge-low { background: #f1f5f9; color: var(--muted); }
+  .badge-approved { background: var(--green-light); color: var(--green); }
+  .badge-rejected { background: var(--red-light); color: var(--red); }
+
+  /* Before/after diffs */
+  .diff { margin: 0.5rem 0; }
+  .diff-before, .diff-after { padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8125rem; font-family: 'SF Mono', 'Fira Code', monospace; white-space: pre-wrap; word-break: break-word; }
+  .diff-before { background: var(--red-light); border-left: 3px solid var(--red); }
+  .diff-after { background: var(--green-light); border-left: 3px solid var(--green); margin-top: 0.25rem; }
+
+  /* Model tags */
+  .model-tag { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .model-opus { background: var(--purple-light); color: var(--purple); }
+  .model-sonnet { background: var(--blue-light); color: var(--blue); }
+
+  /* Chart container */
+  .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+  .chart-container svg { width: 100%; height: auto; }
+
+  /* Collapsible details */
+  details { margin: 0.5rem 0; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 0.875rem; color: var(--blue); padding: 0.25rem 0; }
+  details[open] summary { margin-bottom: 0.5rem; }
+
+  /* How It Works section */
+  .diagram-section { margin: 1.5rem 0; }
+  .diagram-section h3 { margin-bottom: 0.5rem; }
+  .diagram-section p { color: var(--muted); font-size: 0.875rem; margin-bottom: 0.75rem; }
+  .diagram-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; overflow-x: auto; }
+  .diagram-card svg { width: 100%; height: auto; max-width: 100%; }
+
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Optimize Report — {{TOPIC}}</h1>
+<p class="meta">Generated {{DATE}} · {{TOTAL_CYCLES}} cycles · Target: <code>{{TARGET_FILE}}</code></p>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('results')">Results</div>
+  <div class="tab" onclick="switchTab('how-it-works')">How It Works</div>
+</div>
+
+<!-- ==================== TAB 1: RESULTS ==================== -->
+<div class="tab-content active" id="tab-results">
+
+  <!-- Score Hero -->
+  <div class="score-hero">
+    <div class="score-big">{{SCORE_BEFORE}}</div>
+    <div class="score-arrow">→</div>
+    <div class="score-big">{{SCORE_AFTER}}</div>
+    <div>
+      <span class="score-delta">+{{SCORE_DELTA_PCT}}%</span>
+      <br><span style="color:var(--muted); font-size:0.875rem">{{TOTAL_PROPOSALS}} proposals across {{TOTAL_CYCLES}} cycles</span>
+    </div>
+  </div>
+
+  <!-- Score Progression Chart — dynamic, generated per session -->
+  <div class="chart-container" id="score-chart">
+    {{SCORE_CHART_SVG}}
+  </div>
+
+  <!-- Cycle Summaries -->
+  <h2>Cycles</h2>
+  <div class="cycles" id="cycles">
+    {{CYCLE_CARDS}}
+  </div>
+
+  <!-- Proposals & Decisions -->
+  <h2>Proposals &amp; Decisions</h2>
+  {{PROPOSAL_TABLES}}
+
+  <!-- Model Usage -->
+  <h2>Model Usage</h2>
+  <table>
+    <tr><th>Step</th><th>Model</th><th>Why</th></tr>
+    {{MODEL_USAGE_ROWS}}
+  </table>
+
+  <!-- Rubric Definition -->
+  <h2>Rubric</h2>
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:0.75rem;">The scoring criteria used to evaluate and improve the target file. Generated during the first Discover step and confirmed by the user.</p>
+  <table>
+    <tr><th>Dimension</th><th>What it measures</th><th>0 (worst)</th><th>10 (best)</th></tr>
+    {{RUBRIC_DEFINITION}}
+  </table>
+
+  <!-- Rubric Scores Before & After -->
+  <h2>Rubric Scores — Before &amp; After</h2>
+  <table>
+    <tr><th>Dimension</th><th>Before</th><th>After</th><th>Delta</th></tr>
+    {{RUBRIC_ROWS}}
+  </table>
+
+</div>
+
+<!-- ==================== TAB 2: HOW IT WORKS ==================== -->
+<div class="tab-content" id="tab-how-it-works">
+
+  <h2>How the Optimization System Works</h2>
+  <p>These diagrams explain the loop that produced the results on the first tab.</p>
+
+  <!-- Diagram 1: The 5 Steps -->
+  <div class="diagram-section">
+    <h3>The 5 Steps Inside Every Cycle</h3>
+    <p>Each cycle runs these five steps in order. After Measure, the loop checks if there are remaining issues and decides whether to start another cycle.</p>
+    <div class="diagram-card">
+      {{DIAGRAM_LOOP_FLOWCHART}}
+    </div>
+  </div>
+
+  <!-- Diagram 2: Continue or Stop -->
+  <div class="diagram-section">
+    <h3>How the Loop Decides to Continue or Stop</h3>
+    <p>After each cycle, the system checks for remaining HIGH or MEDIUM severity issues. LOW issues alone don't trigger another cycle — they're nice-to-haves, not blockers.</p>
+    <div class="diagram-card">
+      {{DIAGRAM_CONTINUE_OR_STOP}}
+    </div>
+  </div>
+
+  <!-- Diagram 3: Model Selection -->
+  <div class="diagram-section">
+    <h3>Which Model Is Used at Each Step</h3>
+    <p>Evaluation steps (Discover, Measure) use Opus because they set the quality ceiling. Writing steps (Analyze, Apply) use Sonnet — faster and cheaper, same quality for drafting.</p>
+    <div class="diagram-card">
+      {{DIAGRAM_MODEL_SELECTION}}
+    </div>
+  </div>
+
+  <!-- Score Variation -->
+  <div class="diagram-section">
+    <h3>Why Scores Vary Between Steps</h3>
+    <p>Each Discover and Measure step uses a fresh, independent agent — like two different teachers grading the same essay. Scores may vary ±0.5–1.0 points between steps. This is normal. The important number is the <strong>delta within each cycle</strong>, not the absolute score between cycles.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  Generated by <code>/optimize</code> · Claude Code
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  if (tab === 'results') {
+    document.querySelector('.tabs .tab:first-child').classList.add('active');
+    document.getElementById('tab-results').classList.add('active');
+  } else {
+    document.querySelector('.tabs .tab:last-child').classList.add('active');
+    document.getElementById('tab-how-it-works').classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>
