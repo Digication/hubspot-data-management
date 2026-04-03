@@ -73,11 +73,19 @@ Next Step: Run `/optimize analyze` to get improvement proposals
 ```
 
 **What it does:**
-1. Reads current state
-2. Reads identified issues
-3. LLM proposes specific improvements
-4. Shows before/after for each proposal
-5. Estimates impact
+1. Reads current state (file to optimize)
+2. Loads issues from discover mode (via `--issues-from` parameter)
+3. LLM proposes specific improvements for each issue
+4. Shows before/after text for each proposal
+5. Calculates estimated improvement (on quality scale 0-10)
+
+**Parameters:**
+- `--target=<file>`: File to optimize (required)
+- `--issues-from=<file>`: Output from discover mode (JSON or text format); omit to analyze without prior issues
+- `--domain=<name>`: Force a specific domain category
+- `--count=<n>`: Maximum proposals to generate (default: all issues)
+
+**Improvement Scale:** The quality score (e.g., 5/10 → 8/10) represents overall document quality on a 0-10 scale. The baseline (5/10) is established by discover mode. Each cycle's improvement shows the delta from baseline.
 
 **Example:**
 ```
@@ -99,8 +107,11 @@ Proposal 2: Add Step 3 - Docker Startup
 
 [Continue for each proposal...]
 
-Estimated Improvement: 5/10 → 8/10 (+60%)
-Next Step: Run `/optimize approve` to accept/reject proposals
+Baseline Score (from discover): 5/10
+Estimated Score After Applying All: 8/10
+Estimated Improvement: +60%
+
+Next Step: Run `/optimize approve --proposals=<this_output>` to review and approve proposals
 ```
 
 ---
@@ -496,52 +507,56 @@ Domain-Specific Overrides:
 4. Exports data for analysis
 
 **Example Output:**
+
+When you run `/optimize status`, you'll see output like this:
+
 ```
-STATUS REPORT
-=============
-Last 10 Cycles (showing most recent 3)
+╔════════════════════════════════════════════════════════════════╗
+║                      STATUS REPORT                             ║
+║                   Last 10 Cycles (Recent 3 shown)              ║
+╚════════════════════════════════════════════════════════════════╝
 
-CYCLE 3 (2026-04-03 14:32)
-Domain: error-messages
-Duration: 25 minutes
-- Discover: 4 issues found
-- Analyze: 2 proposals
-- Approve: 2 approved, 0 rejected
-- Apply: 2 changes applied
-- Measure: 5/10 → 7/10 (+40%)
-Status: CONVERGENCE (0 new issues next cycle)
+[CYCLE 3] 2026-04-03 14:32 | error-messages | 25 minutes
+  Discover:     4 issues found
+  Analyze:      2 proposals generated
+  Approve:      2 approved  |  0 rejected
+  Apply:        2 changes applied
+  Measure:      5/10 → 7/10 (+40%) 
+  Status:       ✓ CONVERGENCE — 0 new issues in next cycle
 
-CYCLE 2 (2026-04-03 14:05)
-Domain: error-messages
-Duration: 28 minutes
-- Discover: 12 issues found
-- Analyze: 6 proposals
-- Approve: 5 approved, 1 rejected
-- Apply: 5 changes applied
-- Measure: 2/10 → 5/10 (+150%)
-Status: Continuing (more improvements possible)
+[CYCLE 2] 2026-04-03 14:05 | error-messages | 28 minutes
+  Discover:     12 issues found
+  Analyze:      6 proposals generated
+  Approve:      5 approved  |  1 rejected
+  Apply:        5 changes applied
+  Measure:      2/10 → 5/10 (+150%)
+  Status:       → Continuing — more improvements possible
 
-CYCLE 1 (2026-04-03 13:30)
-Domain: error-messages
-Duration: 35 minutes
-- Discover: 12 issues found
-- Analyze: 5 proposals
-- Approve: 4 approved, 1 rejected
-- Apply: 4 changes applied
-- Measure: Baseline established (2/10)
-Status: Starting
+[CYCLE 1] 2026-04-03 13:30 | error-messages | 35 minutes
+  Discover:     12 issues found
+  Analyze:      5 proposals generated
+  Approve:      4 approved  |  1 rejected
+  Apply:        4 changes applied
+  Measure:      Baseline established (2/10)
+  Status:       ⊙ Starting
 
+─────────────────────────────────────────────────────────────────
 SUMMARY BY DOMAIN
-=================
-error-messages: Cycles 3, Quality 2/10 → 7/10 (+250%)
-documentation:  Cycles 1, Quality 5/10 → 8/10 (+60%)
+─────────────────────────────────────────────────────────────────
+error-messages        │ 3 cycles  │ Quality: 2/10 → 7/10 (+250%)
+documentation         │ 1 cycle   │ Quality: 5/10 → 8/10 (+60%)
 
-METRICS
-=======
-Total cycles: 4
-Total time: 2 hours
-Average improvement per cycle: +150%
-Convergence rate: 50% (2 of 4 reached convergence)
+─────────────────────────────────────────────────────────────────
+AGGREGATE METRICS
+─────────────────────────────────────────────────────────────────
+Total cycles run:           4
+Total optimization time:    2 hours 1 minute
+Avg improvement per cycle:  +150%
+Convergence rate:           50% (2 of 4 domains converged)
+Largest single gain:        +150% (Cycle 2)
+
+Run `/optimize status --domain=error-messages` to drill down on a specific domain.
+Run `/optimize status --export-json` to export metrics as JSON.
 ```
 
 ---
