@@ -1,7 +1,6 @@
 ---
 name: optimize
 description: Multi-mode autonomous optimization system that improves specifications, documentation, and code through test-driven feedback loops with optional multi-LLM verification
-trigger: when user asks to optimize something, improve a spec, refactor documentation, or auto-enhance code quality
 ---
 
 # Optimize
@@ -13,12 +12,12 @@ You orchestrate the complete autonomous optimization system, guiding users throu
 The optimization system works in phases:
 1. **Discover** — Identify issues in current state (via tests, rubrics, or analysis)
 2. **Analyze** — LLM proposes specific improvements
-3. **Verify** (Optional) — Multi-LLM perspectives validate proposals (Devil's Advocate, Conservative, Pragmatist)
+3. **Verify** (Optional) — Multi-LLM perspectives validate proposals — see [VERIFICATION.md](references/VERIFICATION.md)
 4. **Approve** — Human reviews and decides
 5. **Apply** — Implement approved changes
-6. **Verify** — Retest and measure improvement
+6. **Measure** — Retest and measure improvement
 
-This system improves specs/docs/rules by **150-300%** while maintaining human oversight.
+Best practices and when to use (or skip) optimization: [BEST_PRACTICES.md](references/BEST_PRACTICES.md)
 
 ## Modes
 
@@ -26,23 +25,26 @@ This system improves specs/docs/rules by **150-300%** while maintaining human ov
 
 **Purpose:** Identify issues in current state
 
-**Usage:**
 ```
 /optimize discover --target=<file> --rubric=<rubric_file>
-/optimize discover --domain=error-messages
+/optimize discover --target=<file> --domain=error-messages
 /optimize discover --domain=documentation --target=README.md
 ```
 
+**Parameter requirements:** At least one of `--target` or `--domain` must be provided. `--target` specifies a single file; `--domain` provides a collection method to find matching files (see [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md)). When both are given, `--target` narrows the scope to that file using the domain's rubric. `--rubric` overrides the domain template's default rubric — if provided without `--domain`, it is used as-is against the target file. When `--rubric` is combined with `--domain` but no `--target`, the domain's collection method runs as normal and the custom rubric applies to all collected files.
+
 **What it does:**
-1. Reads target file/spec
-2. Evaluates against rubric (or creates default)
+1. Reads target file/spec. When `--domain` is provided without `--target`, discover uses the domain template's collection method (e.g., `grep -r "throw new Error" src/` for error-messages) to find matching files automatically — see [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md) for collection patterns per domain.
+2. Evaluates against rubric (or creates default from domain template)
 3. Identifies gaps, contradictions, missing information
-4. Outputs structured list of issues
+4. Outputs structured list of issues with severity:
+   - **HIGH**: Blocks users or causes failures (missing prerequisites, broken workflows)
+   - **MEDIUM**: Confuses users or degrades experience (unclear instructions, missing context)
+   - **LOW**: Minor improvements (formatting, wording, nice-to-have details)
+5. Establishes baseline quality score (0–10 scale)
 
-**Example:**
+**Output:**
 ```
-/optimize discover --target=README.md --rubric=docs/clarity-rubric.md
-
 DISCOVERY RESULTS
 ===============
 File: README.md
@@ -52,7 +54,6 @@ Issues Found: 12
 - HIGH: Prerequisites incomplete (missing Docker, pnpm)
 - HIGH: No Step 3 (how to start project)
 - MEDIUM: Onboarding unclear (where to type?)
-- MEDIUM: No troubleshooting section
 - LOW: Fork instructions lack detail
 
 Baseline Quality: 5/10 (clarity), 5/10 (completeness)
@@ -65,32 +66,22 @@ Next Step: Run `/optimize analyze` to get improvement proposals
 
 **Purpose:** Generate improvement proposals
 
-**Usage:**
 ```
 /optimize analyze --target=<file> --issues-from=<discovery_output>
-/optimize analyze --domain=error-messages --file=src/errors.ts
-/optimize analyze --spec=README.md --count=5
+/optimize analyze --target=src/errors.ts --domain=error-messages
+/optimize analyze --target=README.md --count=5
 ```
-
-**What it does:**
-1. Reads current state (file to optimize)
-2. Loads issues from discover mode (via `--issues-from` parameter)
-3. LLM proposes specific improvements for each issue
-4. Shows before/after text for each proposal
-5. Calculates estimated improvement (on quality scale 0-10)
 
 **Parameters:**
 - `--target=<file>`: File to optimize (required)
-- `--issues-from=<file>`: Output from discover mode (JSON or text format); omit to analyze without prior issues
+- `--issues-from=<file>`: Output from discover mode (JSON or text); omit to analyze without prior issues
 - `--domain=<name>`: Force a specific domain category
 - `--count=<n>`: Maximum proposals to generate (default: all issues)
 
-**Improvement Scale:** The quality score (e.g., 5/10 → 8/10) represents overall document quality on a 0-10 scale. The baseline (5/10) is established by discover mode. Each cycle's improvement shows the delta from baseline.
+**Quality Scale:** Scores are 0–10. The baseline comes from discover mode. Each proposal shows the estimated delta.
 
-**Example:**
+**Output:**
 ```
-/optimize analyze --target=README.md --issues-from=discover_results.txt
-
 ANALYSIS RESULTS
 ===============
 Generated 6 improvement proposals
@@ -105,13 +96,10 @@ Proposal 2: Add Step 3 - Docker Startup
 - Proposed: "docker compose up -d --build"
 - Impact: Users can now actually start project
 
-[Continue for each proposal...]
-
 Baseline Score (from discover): 5/10
-Estimated Score After Applying All: 8/10
-Estimated Improvement: +60%
+Estimated Score After Applying All: 8/10 (+60%)
 
-Next Step: Run `/optimize approve --proposals=<this_output>` to review and approve proposals
+Next Step: Run `/optimize approve` to review proposals
 ```
 
 ---
@@ -120,27 +108,31 @@ Next Step: Run `/optimize approve --proposals=<this_output>` to review and appro
 
 **Purpose:** Review proposals with optional verification
 
-**Usage:**
 ```
 /optimize approve --proposals=<analysis_output>
 /optimize approve --proposals=proposals.txt --verify
-/optimize approve --verify-personas=devil_advocate,conservative
 ```
+
+**Parameters:**
+- `--proposals=<file>`: Proposals file from analyze step. Optional within the same session (carried forward automatically); required across sessions.
+- `--verify`: Enable multi-LLM verification before each decision — see [VERIFICATION.md](references/VERIFICATION.md)
+- `--personas=<list>`: Specific verification personas to use (only with `--verify`)
+- `--threshold=<0-10>`: Confidence threshold — proposals below this score get a "LOW CONFIDENCE" warning and a "Recommend: REVIEW CAREFULLY" label instead of "Recommend: APPROVE". Does not auto-reject; the human always decides.
 
 **What it does:**
 1. Shows each proposal with before/after
-2. (Optional) Runs multi-LLM verification:
-   - Devil's Advocate: "What could go wrong?"
-   - Conservative: "Could this break anything?"
-   - Pragmatist: "Is this worth doing?"
-   - Synthesis: Aggregate results into confidence score
+2. (Optional with `--verify`) Runs multi-LLM verification — see [VERIFICATION.md](references/VERIFICATION.md)
 3. Asks human for approve/reject/modify each proposal
-4. Records approval decisions
+4. Records approval decisions (stored in session context; use `--json` to write to stdout for cross-session use)
 
-**With Verification:**
+**Decision options:**
+- **(A)pprove** — Accept the proposal as-is
+- **(R)eject** — Skip this proposal
+- **(M)odify** — Edit the proposal text inline. The skill prompts: "Enter your modified text:" and records the updated version. Modified proposals are NOT re-verified (the original score stands); re-run `optimize verify` manually if needed.
+- **(D)Details** (verified mode only) — Shows full persona reports with reasoning. Returns to the decision prompt after viewing.
+
+**With verification:**
 ```
-/optimize approve --proposals=proposals.txt --verify
-
 PROPOSAL 1: Add Docker Prerequisites
 - Confidence Score: 8.2/10 ✅ HIGH CONFIDENCE
 
@@ -152,10 +144,8 @@ Recommend: APPROVE
 Your decision: (A)pprove / (R)eject / (M)odify / (D)Details
 ```
 
-**Without Verification (Quick Mode):**
+**Without verification (quick mode):**
 ```
-/optimize approve --proposals=proposals.txt
-
 PROPOSAL 1: Add Docker Prerequisites
 - Before: "That's all you need"
 - After: "Ensure: Claude Code, VS Code, Docker, pnpm, Git, GitHub"
@@ -169,36 +159,33 @@ Approve? (Y/N/M)
 
 **Purpose:** Implement approved changes
 
-**Usage:**
 ```
 /optimize apply --approved=<approval_decisions>
 /optimize apply --proposals=proposals.txt --approved-indices=1,2,4
-/optimize apply --interactive
 ```
+
+**Parameters:**
+- `--approved=<file>`: Approval decisions file from approve step (JSON format with proposal index, decision, and optional modifications)
+- `--proposals=<file>` + `--approved-indices=<list>`: Alternative syntax — applies specific proposals by 1-based index (comma-separated) directly from the proposals file, skipping the approve step
+- `--resume-at=<n>`: Resume from proposal N after a failure (skips already-committed proposals 1 through N-1)
+- `--dry-run`: Preview changes as diffs without modifying files or creating commits
 
 **What it does:**
-1. Updates files with approved changes
-2. Creates git commits for each change
-3. Runs basic validation (syntax, format checks)
-4. Reports success/failures
+1. Checks working directory is clean (`git status`); warns if uncommitted changes exist
+2. Updates files with approved changes
+3. Runs basic validation: syntax check for code files (e.g., `node --check` for JS/TS), format check for structured files (JSON/YAML parsing)
+4. Creates a git commit per change (message format: `optimize: apply proposal N — {short description}`)
+5. Reports success/failures
 
-**Example:**
+**With `--dry-run`:** Shows diffs of what would change per proposal without modifying files or creating commits.
+
+**Output:**
 ```
-/optimize apply --approved=approvals.txt
-
 APPLYING CHANGES
 ===============
-Proposal 1: Add Docker Prerequisites
-  ✅ Updated: README.md (line 8-17)
-  ✅ Committed: "docs(README): add Docker prerequisites"
-
-Proposal 2: Add Step 3 - Docker Startup
-  ✅ Updated: README.md (after Step 2)
-  ✅ Committed: "docs(README): add docker compose startup instructions"
-
-Proposal 4: Add Troubleshooting Section
-  ✅ Updated: README.md (new section)
-  ✅ Committed: "docs(README): add troubleshooting section"
+Proposal 1: ✅ Updated README.md (line 8-17) — committed
+Proposal 2: ✅ Updated README.md (after Step 2) — committed
+Proposal 4: ✅ Updated README.md (new section) — committed
 
 Applied: 3 proposals, 0 failures
 Next Step: Run `/optimize measure` to see improvement
@@ -210,52 +197,33 @@ Next Step: Run `/optimize measure` to see improvement
 
 **Purpose:** Quantify improvements
 
-**Usage:**
 ```
 /optimize measure --target=<file> --rubric=<rubric>
-/optimize measure --compare before.txt after.txt
-/optimize measure --domain=error-messages --metric=clarity
+/optimize measure --target=<file> --before-score=5.2
 ```
 
-**What it does:**
-1. Re-evaluates target against rubric
-2. Compares before/after metrics
-3. Calculates improvement percentage
-4. Projects future improvements (if cycling)
+**Parameters:**
+- `--target=<file>`: File to measure (required)
+- `--rubric=<rubric>`: Evaluation rubric — should match the rubric used in discover for comparable before/after scores. If omitted, uses the same rubric as the discover step (from session context or domain default).
+- `--before-score=X`: Manual baseline score (use when discover ran in a different session)
 
-**Baseline Detection:**
-- **Automatic (recommended):** If you just ran discover, measure automatically retrieves that baseline from the session. You do NOT need to manually specify it.
-- **Manual:** If baseline was from a previous session, pass `--before-score=X` (e.g., `--before-score=5.2` for 5.2/10 baseline)
-- **Automatic from loop:** In loop mode, baseline is automatically carried forward from the previous cycle's measurement
-- Measure compares: (after score) - (baseline score) = improvement %
+**Score dimensions:** Dimensions come from the rubric (e.g., error-messages rubric uses Clarity, Completeness, Actionability; a custom rubric may define different dimensions). The average across all dimensions is the headline score.
 
-**Example:**
+**Baseline detection:**
+- **Automatic:** If discover ran in the same session, measure retrieves that baseline automatically
+- **Manual:** If baseline was from a previous session, pass `--before-score=X`
+- **Loop mode:** Baseline carries forward automatically from the previous cycle
+
+**Convergence:** "Convergence achieved" means discover found 0 HIGH or MEDIUM severity issues in the last cycle. LOW-severity issues do not block convergence.
+
+**Output:**
 ```
-/optimize measure --target=README.md --rubric=clarity-rubric.md
-
 MEASUREMENT RESULTS
 =================
-Domain: Documentation (README)
-Date: 2026-04-03
+BEFORE (Baseline): Clarity 5/10, Completeness 5/10, Actionability 6/10 — Avg 5.3/10
+AFTER (Current):   Clarity 9/10, Completeness 9/10, Actionability 9/10 — Avg 9/10 (+69%)
 
-BEFORE (Baseline):
-- Clarity: 5/10
-- Completeness: 5/10
-- Actionability: 6/10
-- Average: 5.3/10
-
-AFTER (Current):
-- Clarity: 9/10 (+80%)
-- Completeness: 9/10 (+80%)
-- Actionability: 9/10 (+50%)
-- Average: 9/10 (+69%)
-
-BUSINESS IMPACT:
-- Setup time: 45min → 5min (-89%)
-- User confusion: High → Low (-70%)
-- Support tickets: 3/week → 0/week
-
-STATUS: ✅ Convergence achieved (no major issues in last cycle)
+STATUS: ✅ Convergence achieved (no HIGH/MEDIUM issues in last cycle)
 ```
 
 ---
@@ -264,57 +232,30 @@ STATUS: ✅ Convergence achieved (no major issues in last cycle)
 
 **Purpose:** Run multiple cycles automatically
 
-**Usage:**
 ```
 /optimize loop --target=<file> --domain=<domain> --max-cycles=3
-/optimize loop --domain=error-messages --threshold=0.9
-/optimize loop --until-convergence
+/optimize loop --target=<file> --until-convergence
 ```
 
-**What it does:**
-1. Runs discover → analyze → approve → apply → measure
-2. Loops until convergence (0 new issues) or max cycles
-3. Shows progress and stops when value diminishes
+Runs: discover → analyze → approve → apply → measure, then repeats.
 
-**Approval Gates in Loop Mode:**
-- By default, loop requires human approval at each cycle's approve step
-- Use `--auto-approve` to skip human approval (NOT recommended for production)
-- Each cycle pauses and asks: "(A)pprove / (R)eject / (M)odify / (D)Details" for each proposal
-- If you want truly hands-off looping, use `--auto-approve`, but this bypasses safety checks
+**Approval gates:** By default, loop pauses at each cycle's approve step for human review. Use `--auto-approve` to skip (not recommended for production).
 
-**Example:**
+**Flag precedence:** `--until-convergence` takes precedence over `--max-cycles`. Use one or the other. When `--until-convergence` is used alone, a default safety cap of 10 cycles applies. If reached, the loop stops and shows the improvement trend, then asks: "Maximum cycles (10) reached. Continue? (Y/N)" — this prompt always requires human input, even when `--auto-approve` is active.
+
+**Reassessment advisory:** If no convergence after 4 cycles, the loop warns: "4 cycles without convergence — consider adjusting the rubric or restructuring the target." This is advisory only; the loop continues unless the user intervenes.
+
+**Edge cases:**
+- **Immediate convergence (cycle 1):** If discover finds 0 HIGH/MEDIUM issues on the first cycle, loop exits immediately with a note: "No issues found on first cycle. Verify your rubric and target are configured correctly." This prevents silent success on a misconfigured rubric.
+- **Score regression:** If measure detects that the score decreased after apply, loop pauses with: "Score decreased ({before} → {after}). Continue? (Y/N)" — even when `--auto-approve` is active.
+
+**Output:**
 ```
-/optimize loop --target=errors.ts --domain=error-messages --max-cycles=3
+CYCLE 1: 12 issues → 5 approved → 2/10 → 5/10 (+150%)
+CYCLE 2: 4 issues  → 2 approved → 5/10 → 7/10 (+40%)
+CYCLE 3: 0 issues  → CONVERGENCE ✅
 
-CYCLE 1
-=======
-Discover: 12 issues found
-Analyze: 6 proposals generated
-Approve: (user approves 5)
-Apply: 5 changes applied
-Measure: 2/10 → 5/10 (+150%)
-
-CYCLE 2
-=======
-Discover: 4 issues found (declining)
-Analyze: 3 proposals generated
-Approve: (user approves 2)
-Apply: 2 changes applied
-Measure: 5/10 → 7/10 (+40%)
-
-CYCLE 3
-=======
-Discover: 0 new issues found
-Status: CONVERGENCE ACHIEVED ✅
-
-FINAL RESULTS
-=============
-Starting quality: 2/10
-Final quality: 7/10
-Total improvement: +250%
-Cycles: 3
-Time invested: 1.5 hours
-Value created: Significant (errors now actionable)
+FINAL: 2/10 → 7/10 (+250%) in 3 cycles
 ```
 
 ---
@@ -323,53 +264,20 @@ Value created: Significant (errors now actionable)
 
 **Purpose:** Use pre-built domain templates
 
-**Usage:**
 ```
 /optimize template --list
-/optimize template --domain=error-messages
-/optimize template --domain=help-text --show
-/optimize template --domain=code-comments --apply
+/optimize template --domain=error-messages --show
+/optimize template --domain=error-messages --apply
 ```
 
 **What it does:**
-1. Lists available templates (30+ domains)
-2. Shows template details (rubric, examples, expected impact)
+1. `--list`: Lists all available templates grouped by tier, showing domain name, time estimate, and expected improvement
+2. `--show`: Shows template details (rubric criteria, before/after examples, collection method, expected impact)
+3. `--apply`: Applies template and starts the full optimization cycle (discover → analyze → approve → apply → measure). Uses the domain's collection method to find target files — no `--target` needed.
 
-**Available Templates:**
-The system includes 30 domain templates for specialized optimization:
-3. Applies template to your project
-4. Guides through full optimization cycle
+Each template includes a rubric optimized for that domain. Templates are type-based (all error messages, all help text), not file-based. Override with `--custom-rubric=<file>`.
 
-**Template & Rubric Behavior:**
-- Each template includes a pre-built rubric optimized for that domain (e.g., error-messages template includes clarity/completeness/actionability rubric)
-- Templates are TYPE-based (apply to all error messages, all help text, etc.), not file-based
-- When you use `--domain=error-messages`, the template automatically applies its rubric to all error patterns in your codebase
-- To override the template's rubric: `optimize template --domain=error-messages --custom-rubric=my-rubric.md`
-- Default rubric is always used unless you explicitly provide a custom one via `--custom-rubric`
-
-**Example:**
-```
-/optimize template --domain=error-messages
-
-TEMPLATE: Error Messages Optimization
-====================================
-Target: All error messages in codebase
-Complexity: Low
-Time to first result: 20 minutes
-Expected improvement: +200%
-
-What it improves:
-- Clarity: Users know what went wrong
-- Completeness: Users understand why
-- Actionability: Users know how to fix
-
-Quick start:
-1. Collect error messages: grep -r "throw new Error" src/
-2. Run: /optimize discover --domain=error-messages
-3. Continue through analyze → approve → apply → measure
-
-Ready to start? (Y/N)
-```
+Full template catalog with rubrics and before/after examples: [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md)
 
 ---
 
@@ -377,54 +285,15 @@ Ready to start? (Y/N)
 
 **Purpose:** Multi-LLM verification of proposals (standalone)
 
-**Usage:**
-```
-/optimize verify --proposal=<proposal_text>
-/optimize verify --proposals=proposals.txt
-/optimize verify --persona=devil_advocate
-/optimize verify --all-personas
-```
-
-**What it does:**
-1. Runs proposal through Devil's Advocate LLM
-2. Runs through Conservative LLM
-3. Runs through Pragmatist LLM
-4. Synthesizes into confidence score
-5. Provides recommendation
-
-**Proposal Format Requirements:**
-- Proposal text should be under 1000 tokens (~750 words max)
-- Should describe a single improvement idea (not multiple)
-- Format: Plain text description of what should change (e.g., "Add Docker prerequisites to README")
-
-**Example:**
 ```
 /optimize verify --proposal="Add Docker prerequisites to README"
-
-VERIFICATION RESULTS
-===================
-Proposal: Add Docker prerequisites to README
-
-DEVIL'S ADVOCATE REVIEW
-- Issues found: 0
-- Severity: None
-- Recommendation: ✅ No critical flaws
-
-CONSERVATIVE REVIEW
-- Risk level: Minimal (docs only)
-- Backwards compatible: Yes
-- Recommendation: ✅ Safe to apply
-
-PRAGMATIST REVIEW
-- Effort: 5 minutes
-- ROI: High (saves users 20 minutes each)
-- Feasibility: Easy
-- Recommendation: ✅ Worth doing
-
-SYNTHESIS
-- Confidence score: 8.7/10
-- Recommendation: APPROVE_CONFIDENTLY
+/optimize verify --proposals=proposals.txt
+/optimize verify --persona=devil_advocate
 ```
+
+Runs proposals through three personas (Devil's Advocate, Conservative, Pragmatist) and synthesizes a confidence score. Can also be used as part of the approve flow with `--verify`.
+
+Full details on personas, scoring, and when to use: [VERIFICATION.md](references/VERIFICATION.md)
 
 ---
 
@@ -432,59 +301,14 @@ SYNTHESIS
 
 **Purpose:** Customize optimization settings
 
-**Usage:**
 ```
 /optimize config --show
 /optimize config --set verification=enabled
-/optimize config --set personas=devil_advocate,conservative
 /optimize config --set confidence-threshold=7.0
 /optimize config --domain-specific error-messages --threshold=6.5
 ```
 
-**What it does:**
-1. Shows current configuration
-2. Updates settings
-3. Saves domain-specific customizations
-4. Validates configuration
-
-**Configuration Schema:**
-
-Global settings (stored in `.claude/optimize-config.json`):
-- `verification` (enabled/disabled) — Enable/disable multi-LLM verification layer
-- `personas` (comma-separated list) — Which personas to use: devil_advocate, conservative, pragmatist
-- `confidence-threshold` (0-10) — Minimum confidence score to approve proposals (default: 6.0)
-- `auto-approve` (true/false) — Skip human approval (default: false, NOT recommended)
-- `output-format` (human/json) — Output format (default: human-readable)
-
-Domain-specific settings override global settings:
-- `--domain-specific error-messages --threshold=6.5` — Override confidence threshold for error-messages domain only
-
-**Validation Rules:**
-- `confidence-threshold` must be 0.0-10.0 (enforced, invalid values rejected with error)
-- `personas` must be comma-separated values from: devil_advocate, conservative, pragmatist, synthesis
-- `verification` must be true/false
-- `auto-approve` must be true/false
-- Invalid settings generate error: "Invalid config: {setting}={value}. Valid values: ..."
-
-**Example:**
-```
-/optimize config --show
-
-CURRENT CONFIGURATION
-====================
-Global Settings:
-  verification: enabled
-  personas: devil_advocate, conservative, pragmatist
-  confidence-threshold: 6.5
-  auto-approve: false
-  output-format: human
-
-Domain-Specific Overrides:
-  error-messages:
-    threshold: 6.5
-  documentation:
-    personas: devil_advocate, pragmatist
-```
+Full schema, validation rules, and example config: [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md)
 
 ---
 
@@ -492,385 +316,134 @@ Domain-Specific Overrides:
 
 **Purpose:** Show optimization history and metrics
 
-**Usage:**
 ```
 /optimize status
 /optimize status --domain=error-messages
-/optimize status --show-metrics
 /optimize status --export-json
 ```
 
-**What it does:**
-1. Shows recent optimization cycles (last 10 cycles or 30 days, whichever is smaller)
-2. Displays metrics by domain
-3. Tracks improvement trends
-4. Exports data for analysis
+Shows the last 10 cycles (or 30 days, whichever is smaller). Displays per-domain metrics and aggregate improvement trends.
 
-**Example Output:**
+**`--export-json`** writes a JSON file to the current directory (e.g., `optimize-status-2026-04-03.json`) with full cycle history. Use the global `--json` flag instead to write JSON to stdout (for piping). `--export-json` is a convenience alias that writes to a file.
 
-When you run `/optimize status`, you'll see output like this:
-
+**Output:**
 ```
-╔════════════════════════════════════════════════════════════════╗
-║                      STATUS REPORT                             ║
-║                   Last 10 Cycles (Recent 3 shown)              ║
-╚════════════════════════════════════════════════════════════════╝
+[CYCLE 3] 2026-04-03 | error-messages | 25 min
+  5/10 → 7/10 (+40%) | ✓ CONVERGENCE
 
-[CYCLE 3] 2026-04-03 14:32 | error-messages | 25 minutes
-  Discover:     4 issues found
-  Analyze:      2 proposals generated
-  Approve:      2 approved  |  0 rejected
-  Apply:        2 changes applied
-  Measure:      5/10 → 7/10 (+40%) 
-  Status:       ✓ CONVERGENCE — 0 new issues in next cycle
+[CYCLE 2] 2026-04-03 | error-messages | 28 min
+  2/10 → 5/10 (+150%) | → Continuing
 
-[CYCLE 2] 2026-04-03 14:05 | error-messages | 28 minutes
-  Discover:     12 issues found
-  Analyze:      6 proposals generated
-  Approve:      5 approved  |  1 rejected
-  Apply:        5 changes applied
-  Measure:      2/10 → 5/10 (+150%)
-  Status:       → Continuing — more improvements possible
-
-[CYCLE 1] 2026-04-03 13:30 | error-messages | 35 minutes
-  Discover:     12 issues found
-  Analyze:      5 proposals generated
-  Approve:      4 approved  |  1 rejected
-  Apply:        4 changes applied
-  Measure:      Baseline established (2/10)
-  Status:       ⊙ Starting
-
-─────────────────────────────────────────────────────────────────
-SUMMARY BY DOMAIN
-─────────────────────────────────────────────────────────────────
-error-messages        │ 3 cycles  │ Quality: 2/10 → 7/10 (+250%)
-documentation         │ 1 cycle   │ Quality: 5/10 → 8/10 (+60%)
-
-─────────────────────────────────────────────────────────────────
-AGGREGATE METRICS
-─────────────────────────────────────────────────────────────────
-Total cycles run:           4
-Total optimization time:    2 hours 1 minute
-Avg improvement per cycle:  +150%
-Convergence rate:           50% (2 of 4 domains converged)
-Largest single gain:        +150% (Cycle 2)
-
-Run `/optimize status --domain=error-messages` to drill down on a specific domain.
-Run `/optimize status --export-json` to export metrics as JSON.
+SUMMARY: error-messages 2/10 → 7/10 (+250%) in 3 cycles
 ```
 
 ---
 
-## Decision Tree: Which Mode to Use
+## Decision Tree
 
 ```
 What do you want to do?
-
-├─ See what's broken?
-│  └─ /optimize discover
-│
-├─ Get improvement ideas?
-│  └─ /optimize analyze
-│
-├─ Review proposals (with/without verification)?
-│  └─ /optimize approve [--verify]
-│
-├─ Make changes?
-│  └─ /optimize apply
-│
-├─ Measure impact?
-│  └─ /optimize measure
-│
-├─ Run multiple cycles?
-│  └─ /optimize loop
-│
-├─ Use pre-built template?
-│  └─ /optimize template --domain=<name>
-│
-├─ Get detailed verification?
-│  └─ /optimize verify
-│
-├─ Adjust settings?
-│  └─ /optimize config
-│
-└─ See history?
-   └─ /optimize status
+├─ See what's broken?           → /optimize discover
+├─ Get improvement ideas?       → /optimize analyze
+├─ Review proposals?            → /optimize approve [--verify]
+├─ Make changes?                → /optimize apply
+├─ Measure impact?              → /optimize measure
+├─ Run multiple cycles?         → /optimize loop
+├─ Use pre-built template?      → /optimize template --domain=<name>
+├─ Get detailed verification?   → /optimize verify
+├─ Adjust settings?             → /optimize config
+└─ See history?                 → /optimize status
 ```
 
-## Quick Start: Full Cycle in 30 Minutes
-
-### Example: Optimize Error Messages
+## Quick Start: Full Cycle in 20 Minutes
 
 ```bash
 # Step 1: Discover issues (5 min)
-/optimize discover --domain=error-messages
+/optimize discover --target=src/errors.ts --domain=error-messages
 
-# Step 2: Get proposals (5 min)
-/optimize analyze --domain=error-messages
+# Step 2: Get proposals (5 min) — issues from step 1 carry forward automatically
+/optimize analyze --target=src/errors.ts --domain=error-messages
 
-# Step 3: Review & approve (5 min)
-/optimize approve --verify  # Shows confidence scores
+# Step 3: Review & approve (5 min) — proposals from step 2 carry forward automatically
+/optimize approve
 
-# Step 4: Apply changes (5 min)
-/optimize apply --approved=approvals.txt
+# Step 4: Apply changes (2 min) — approval decisions from step 3 carry forward automatically
+/optimize apply
 
-# Step 5: Measure improvement (5 min)
-/optimize measure --domain=error-messages
-
-# Result: +200% improvement, documented, tested ✅
+# Step 5: Measure improvement (3 min) — baseline from step 1 carries forward automatically
+/optimize measure --target=src/errors.ts
 ```
+
+For verified approval (adds ~15 min), use `/optimize approve --verify` in step 3.
 
 ## Parameters
 
-### Global Parameters
-- `--help` — Show help for any mode
-- `--verbose` — Show detailed output
-- `--dry-run` — Show what would happen without applying
-- `--json` — Output in JSON format
-- `--quiet` — Minimal output
+### Global
+- `--help` — Show mode-specific help: parameter list, usage examples, and one-line descriptions
+- `--verbose` — Show detailed output: includes rubric evaluation reasoning (discover), per-issue scoring (analyze), persona full-text responses (verify). Mutually exclusive with `--quiet`; if both are given, `--verbose` wins.
+- `--dry-run` — Preview without applying (apply mode: shows diffs, no commits; loop mode: shows what each cycle would do)
+- `--json` — Output in structured JSON format (writes to stdout). Useful for piping between modes across sessions. Each mode defines its own JSON schema matching its output fields.
+- `--quiet` — Minimal output: single-line summary per mode (e.g., discover: "12 issues found, baseline 5/10"). Mutually exclusive with `--verbose`.
 
-### Domain Parameters
-- `--domain=<name>` — Use pre-built domain (error-messages, documentation, comments, etc.)
+### Domain
+- `--domain=<name>` — Use pre-built domain template
 - `--target=<file>` — File to optimize
 - `--rubric=<file>` — Evaluation rubric to use
 
-### Verification Parameters
+### Verification
 - `--verify` — Enable multi-LLM verification
 - `--personas=<list>` — Specific personas (devil_advocate, conservative, pragmatist)
-- `--threshold=<0-10>` — Confidence threshold (skip proposals below this)
+- `--threshold=<0-10>` — Confidence threshold
 
-### Cycle Parameters
-- `--max-cycles=<n>` — Maximum cycles (default: 3)
-- `--until-convergence` — Loop until 0 issues found
-- `--auto-approve` — Skip human approval (not recommended)
+### Cycle
+- `--max-cycles=<n>` — Maximum cycles (default: 3, must be ≥ 1)
+- `--until-convergence` — Loop until 0 HIGH/MEDIUM issues found (safety cap: 10 cycles)
+- `--auto-approve` — Skip human approval (not recommended for production)
 
-**Flag Precedence (when both provided):**
-- `--until-convergence` takes precedence over `--max-cycles`
-- Example: `/optimize loop --max-cycles=3 --until-convergence` will run until convergence (0 new issues), ignoring the 3-cycle limit
-- Use one or the other, not both, to avoid confusion
+## State Between Modes
 
-## Output Format
+**Within a single session:** Each mode's output is held in conversation context and automatically passed to the next mode. No file flags are needed — just run the modes in order.
 
-By default, outputs are human-readable. Use `--json` for automation:
+**Across sessions:** State is not persisted between conversations. Use explicit file flags to pass data:
+- **discover → analyze:** `--issues-from=<file>` (accepts JSON or plain text — discover outputs JSON by default when `--json` is used, otherwise plain text matching the output format shown above)
+- **analyze → approve:** `--proposals=<file>` (JSON array of proposal objects with index, description, current/proposed text, and impact)
+- **approve → apply:** `--approved=<file>` (JSON with proposal index, decision: approve/reject/modify, and optional modifications)
+- **discover → measure:** `--before-score=X` (single number, the baseline average from discover)
 
-```json
-{
-  "mode": "discover",
-  "domain": "error-messages",
-  "baseline_quality": 2.5,
-  "issues": [
-    {
-      "severity": "high",
-      "description": "Errors are too vague",
-      "example": "Invalid input",
-      "impact": "Users don't know what to fix"
-    }
-  ],
-  "next_step": "analyze"
-}
-```
+**If you forget a flag in a new session:** The mode runs without prior context — analyze generates proposals from scratch (no prior issues), measure reports current score only (no delta). No error is raised; the mode simply operates independently.
 
-## Examples
+## Error Handling
 
-### Optimize Error Messages (20 min)
-```
-You: Optimize my error messages
-Claude: Let's improve your error messages to be clearer and more actionable.
-        This typically takes 20 minutes and improves clarity by 200%.
-        Ready? (Y/N)
-
-You: yes
-
-Claude: [Runs discover → analyze → approve → apply → measure]
-        Result: Error clarity 2/10 → 6/10 (+200%)
-```
-
-### Optimize with Verification (45 min)
-```
-You: Optimize README with verification
-
-Claude: I'll optimize your README with multi-LLM verification
-        for confidence and safety. This takes 45 minutes.
-
-Claude: [Discovers 12 issues]
-        [Generates 6 proposals]
-        [Verifies each with Devil's Advocate, Conservative, Pragmatist]
-        [Shows confidence scores for human review]
-        [Applies approved changes]
-        [Measures improvement: 5/10 → 9/10 (+80%)]
-```
-
-### Quick Template (30 min)
-```
-You: Optimize help text
-
-Claude: Using pre-built help-text template
-        Complexity: Low, Time: 20-30 min, Expected improvement: +150%
-
-Claude: [Full cycle with template]
-        Result: Help text clarity 2/7 → 5/7 (+150%)
-```
-
-### Auto Loop Until Convergence
-```
-You: Optimize API docs until convergence
-
-Claude: [Cycle 1: Issues 8 → Fixed 6 → Quality 4 → 6]
-        [Cycle 2: Issues 3 → Fixed 2 → Quality 6 → 8]
-        [Cycle 3: Issues 0 → Convergence achieved]
-        Final result: API doc quality 4/10 → 8/10 (+100%)
-```
+Full error catalog with recovery steps: [ERROR_HANDLING.md](references/ERROR_HANDLING.md)
 
 ## Safety Features
 
-- **Human Approval Required** — By default, approval gates every change
-- **Verification Optional** — Multi-LLM verification catches errors before apply
-- **Dry-Run Mode** — Preview changes before applying (--dry-run)
+- **Human approval required** — Approval gates every change by default
+- **Verification optional** — Multi-LLM verification catches errors before apply
+- **Dry-run mode** — Preview changes before applying (`--dry-run`)
 - **Reversible** — All changes are git commits, easy to revert
 - **Measurable** — Always shows before/after metrics
 
-## Error Handling & Recovery
-
-### File Not Found
-**Error:** `optimize discover --target=nonexistent.md`  
-**Behavior:** Skill aborts with clear error message: "File not found: nonexistent.md"  
-**Recovery:** Check filename, verify path, and retry with correct file  
-**Prevention:** Always verify file exists before running discover
-
-### Malformed Rubric
-**Error:** Invalid YAML/JSON in rubric file  
-**Behavior:** Skill rejects rubric with validation error: "Invalid rubric format at line X: {error details}"  
-**Recovery:** Fix rubric format using `optimize config --show` for format reference, then retry  
-**Prevention:** Validate rubric with `--dry-run` before running analyze
-
-### Zero Proposals Approved
-**Error:** User rejects or skips all proposals in approve step  
-**Behavior:** Apply step skips (no changes), measure still shows baseline quality unchanged  
-**Recovery:** Run analyze again to generate different proposals, or adjust rubric to find better improvements  
-**Prevention:** Review proposals carefully; modify rejected ones instead of rejecting outright
-
-### All Proposals Rejected (Loop)
-**Behavior:** If every cycle finds 0 approved proposals, loop terminates early with message: "No proposals approved in this cycle. Stopping to avoid infinite loop."  
-**Recovery:** Review rejection patterns, adjust approval criteria, then retry with `--until-convergence`
-
-### Git Conflicts During Apply
-**Error:** Local git changes conflict with proposed changes  
-**Behavior:** Apply halts with error: "Git conflict detected. Cannot apply proposal X. Conflicting file: {filename}"  
-**Recovery:**
-1. Manually resolve conflict in {filename}
-2. Run `git add {filename}` to mark as resolved
-3. Retry apply: `/optimize apply --approved=approvals.txt --resume-at=X`
-**Prevention:** Ensure working directory is clean before running apply (`git status` should show no uncommitted changes)
-
-### Baseline Not Found (Measure)
-**Error:** Running measure without prior discover in same session  
-**Behavior:** Measure prompts: "No baseline found. Use `--before-score=X` to provide manually, or run discover first."  
-**Recovery:** Either pass `--before-score=5.2` or re-run discover to establish baseline  
-**Prevention:** Always run discover first in a cycle
-
-### Invalid Configuration
-**Error:** `optimize config --set confidence-threshold=15`  
-**Behavior:** Config validation rejects with: "Invalid confidence-threshold: 15. Must be 0.0-10.0"  
-**Recovery:** Correct the value and re-run config --set  
-**Prevention:** Review config constraints via `optimize config --show`
-
-### Convergence Takes Too Long
-**Error:** Loop reaches --max-cycles without convergence  
-**Behavior:** Loop terminates after N cycles with message: "Maximum cycles (N) reached. Current improvement trend: {trend}. Continue? (Y/N)"  
-**Recovery:** Review improvement trend and decide: continue with `--until-convergence`, or accept current quality  
-**Prevention:** Start with `--max-cycles=3`, increase if improvements are still declining
-
-### Proposal Text Too Large (Verify)
-**Error:** Proposal exceeds verify mode limits (~1000 tokens)  
-**Behavior:** Verify rejects with: "Proposal too large. Summarize to under 1000 tokens and retry."  
-**Recovery:** Split into multiple proposals or summarize the proposal text  
-**Prevention:** Verify targets concise proposals (one improvement idea per proposal)
-
 ## Common Workflows
 
-### Workflow 1: Quick Single Improvement (20 min)
-```
-discover → analyze → approve → apply → measure
-```
-
-### Workflow 2: Full Cycle with Verification (45 min)
-```
-discover → analyze → [verify] → approve → apply → measure
-```
-
-### Workflow 3: Iterative Optimization (Multiple cycles)
-```
-loop (discover → analyze → approve → apply → measure) × N until convergence
-```
-
-### Workflow 4: Using Templates
-```
-template --show → template --apply → [full cycle]
-```
-
-### Workflow 5: Custom Rubric (for specific domain)
-```
-discover --custom-rubric → analyze → approve → apply → measure
-```
-
-## Output Format Examples
-
-### Discover Output
-```
-DISCOVER RESULTS
-Domain: Error Messages
-Issues: 12 found
-- 3 critical (vague, no guidance)
-- 4 high (missing context)
-- 5 low (formatting)
-Baseline quality: 2/10
-Next: /optimize analyze
-```
-
-### Analyze Output
-```
-PROPOSALS: 6 generated
-1. "Invalid input" → "Email invalid (format: user@example.com)"
-   Impact: Clarity -2→6, Actionability -2→6
-2. "Auth failed" → "Password incorrect. Reset at /forgot-password"
-   Impact: User satisfaction +70%
-[...more proposals...]
-Estimated improvement: 2/10 → 6/10 (+200%)
-```
-
-### Measure Output
-```
-IMPROVEMENT SUMMARY
-Before: 2/10 (clarity), 2/10 (completeness), 2/10 (actionability)
-After:  6/10, 6/10, 6/10
-Change: +200%
-Impact: Support tickets -60%, User frustration -70%
-ROI: Excellent (20 min investment → 100+ hours user time saved)
-```
-
----
+| Workflow | Steps | Time |
+|---|---|---|
+| Quick single improvement | discover → analyze → approve → apply → measure | 20 min |
+| Full cycle with verification | discover → analyze → approve --verify → apply → measure | 35 min |
+| Iterative optimization | loop (full cycle × N until convergence) | 1–2 hrs |
+| Template-guided | template → full cycle | 30 min |
 
 ## Related Skills
 
-- `/task` — For managing workspace and saving work between sessions
-- `/implement` — For larger implementation projects
-- `/doc` — For creating and managing documents
-- `/skill-dev` — For testing and validating skills
+- `/task` — Save work between sessions
+- `/implement` — Larger implementation projects
+- `/doc` — Create and manage documents
+- `/skill-dev` — Test and validate skills
 
----
+## References
 
-## Learn More
-
-For detailed guides and examples, see:
-- `docs/AUTONOMOUS_OPTIMIZATION.md` — Complete system overview
-- `docs/QUICK_WIN_DOMAIN_TEMPLATES.md` — 5 ready-to-use templates
-- `docs/VERIFICATION_LAYER_IMPLEMENTATION.md` — How verification works
-- `docs/COMPLETE_SYSTEM_INTEGRATION.md` — Integration guide
-
----
-
-**Status:** Production-ready autonomous optimization system  
-**Modes:** 10 (discover, analyze, approve, apply, measure, loop, template, verify, config, status)  
-**Supported domains:** 30+ (error messages, documentation, code comments, API specs, etc.)  
-**Time to first result:** 20-30 minutes  
-**Expected improvement:** 150-300%
+- [ERROR_HANDLING.md](references/ERROR_HANDLING.md) — Error catalog with recovery steps
+- [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md) — Configuration schema and validation rules
+- [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md) — Template catalog with rubrics and examples
+- [VERIFICATION.md](references/VERIFICATION.md) — Multi-LLM verification personas and scoring
+- [BEST_PRACTICES.md](references/BEST_PRACTICES.md) — Lessons learned, when to use/skip optimization

@@ -1,0 +1,607 @@
+---
+skill: optimize
+description: Multi-mode autonomous optimization system with test-driven feedback loops
+skill_hash: "cb4100f8d1d8534726d4b7872ed22ee4"
+
+test_cases:
+  # SCENARIO 1: Full Optimization Cycle (7 findings)
+
+  - name: "full_cycle_analyze_output_format"
+    description: "Test that analyze mode output format is documented and consumable by approve mode"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 1"
+    command: "/optimize analyze --target=src/errors.ts --domain=error-messages"
+    assertions:
+      - type: "contains"
+        value: "Proposal"
+        description: "Should show individual proposals"
+      - type: "regex"
+        value: "Current:|Before:"
+        description: "Should show before state (skill uses 'Current:' in example output)"
+      - type: "regex"
+        value: "Proposed:|After:"
+        description: "Should show after state (skill uses 'Proposed:' in example output)"
+      - type: "contains"
+        value: "proposals"
+        description: "Should reference output file or format"
+      - type: "llm-rubric"
+        name: "documentation_clarity"
+        description: "Language is clear, jargon is explained, examples are concrete and follow-able"
+        pass_criteria: "Documentation uses plain language without undefined terms; examples show what output users will see"
+        fail_criteria: "Contains unexplained jargon, vague wording, or examples missing key context"
+
+  - name: "approve_file_format_documented"
+    description: "Test that approval decisions file format is documented so apply mode can parse it"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 2"
+    command: "/optimize approve --proposals=proposals.txt"
+    assertions:
+      - type: "contains"
+        value: "APPROVE\|REJECT\|MODIFY"
+        description: "Should specify approval decision format"
+      - type: "regex"
+        value: "approvals|approval decisions|approval"
+        description: "Should reference output format or file"
+
+  - name: "measure_baseline_detection"
+    description: "Test that measure mode documents how baseline is detected or recovered"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 3"
+    command: "/optimize measure --target=README.md --rubric=rubric.md"
+    assertions:
+      - type: "contains"
+        value: "baseline\|before"
+        description: "Should reference baseline measurement"
+      - type: "contains"
+        value: "automatic\|manual\|session"
+        description: "Should clarify how baseline is determined"
+
+  - name: "error_handling_documented"
+    description: "Test that error handling and recovery paths are documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 4"
+    command: "/optimize discover --target=nonexistent.md"
+    assertions:
+      - type: "contains"
+        value: "error\|Error\|ERROR\|fail\|Fail"
+        description: "Should document error behavior"
+      - type: "contains"
+        value: "recover\|retry\|rollback"
+        description: "Should document recovery"
+
+  - name: "parameter_naming_consistency"
+    description: "Test that parameter names are consistent across modes (--target vs --file)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 5"
+    command: "/optimize discover --target=file.md"
+    assertions:
+      - type: "not-contains"
+        value: "--file="
+        description: "Should use --target consistently"
+
+  - name: "loop_safety_gates_documented"
+    description: "Test that loop mode documents whether it requires approval at each cycle"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 6"
+    command: "/optimize loop --target=file.md --max-cycles=3"
+    assertions:
+      - type: "contains"
+        value: "approval\|Approval\|human\|Human"
+        description: "Should clarify approval requirements"
+
+  - name: "template_domain_count_consistent"
+    description: "Test that domain count is consistent (15+ vs 30+)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Full Cycle | Finding 7"
+    command: "/optimize template --list"
+    assertions:
+      - type: "contains"
+        value: "domain"
+        description: "Should list available domains"
+      - type: "regex"
+        value: "[0-9]+ domain"
+        description: "Should specify exact count, not range"
+
+  # SCENARIO 2: Loop Convergence (3 findings)
+
+  - name: "loop_convergence_definition"
+    description: "Test that loop mode documents what 'convergence' means exactly"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 2: Loop | Finding 8"
+    command: "/optimize loop --until-convergence"
+    assertions:
+      - type: "contains"
+        value: "convergence\|Convergence"
+        description: "Should explicitly define convergence"
+      - type: "contains"
+        value: "0.*issue\|new.*issue"
+        description: "Should specify issue count or type criteria"
+
+  - name: "loop_flag_precedence"
+    description: "Test that flag precedence is documented (--max-cycles vs --until-convergence)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 2: Loop | Finding 9"
+    command: "/optimize loop --max-cycles=3 --until-convergence"
+    assertions:
+      - type: "contains"
+        value: "precedence\|priority\|override"
+        description: "Should document flag interaction"
+
+  - name: "loop_baseline_carryover"
+    description: "Test that loop documents how baseline carries across cycles"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 2: Loop | Finding 10"
+    command: "/optimize loop --max-cycles=3"
+    assertions:
+      - type: "contains"
+        value: "Cycle.*2\|cycle 2"
+        description: "Should show example multi-cycle flow"
+      - type: "contains"
+        value: "Baseline.*Cycle"
+        description: "Should clarify baseline in each cycle"
+
+  # SCENARIO 3: Templates (3 findings)
+
+  - name: "template_show_vs_apply"
+    description: "Test that template documents difference between --show and --apply"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 3: Template | Finding 11"
+    command: "/optimize template --domain=error-messages --show"
+    assertions:
+      - type: "contains"
+        value: "--show\|--apply"
+        description: "Should explain both flags"
+      - type: "contains"
+        value: "preview\|display\|apply\|run"
+        description: "Should clarify behavioral difference"
+
+  - name: "template_rubric_relationship"
+    description: "Test that template documents how rubric is auto-filled or overridden"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 3: Template | Finding 12"
+    # Note: Use sonnet for this case — haiku sometimes refuses with brief context
+    model: sonnet
+    command: "/optimize template --domain=error-messages"
+    assertions:
+      - type: "contains"
+        value: "rubric"
+        description: "Should mention rubric behavior"
+      - type: "regex"
+        value: "default|auto|custom|override|built-in"
+        description: "Should clarify rubric source"
+
+  # SCENARIO 4: Verify Mode (2 findings)
+
+  - name: "verify_proposal_format"
+    description: "Test that verify documents what format proposal text should be in"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 4: Verify | Finding 14"
+    command: "/optimize verify --proposal='Add Docker prerequisites'"
+    assertions:
+      - type: "contains"
+        value: "proposal.*format\|text.*length\|example"
+        description: "Should document proposal format"
+
+  - name: "verify_persona_parameter"
+    description: "Test that --persona parameter is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 4: Verify | Finding 15"
+    command: "/optimize verify --persona=devil_advocate"
+    assertions:
+      - type: "contains"
+        value: "--persona"
+        description: "Should document --persona flag"
+      - type: "contains"
+        value: "devil_advocate\|conservative\|pragmatist"
+        description: "Should list available personas"
+
+  # SCENARIO 5: Approve Modes (1 finding)
+
+  - name: "approve_mode_output_difference"
+    description: "Test that quick-mode vs verified-mode outputs are differentiated"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 5: Approve | Finding 17"
+    command: "/optimize approve --proposals=proposals.txt --verify"
+    assertions:
+      - type: "contains"
+        value: "Confidence\|Score\|verification"
+        description: "Should show confidence scores in verified mode"
+
+  # SCENARIO 6: Config Mode (4 findings)
+
+  - name: "config_settings_schema"
+    description: "Test that all available config settings are documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 6: Config | Finding 18"
+    command: "/optimize config --show"
+    assertions:
+      - type: "contains"
+        value: "verification\|personas\|threshold"
+        description: "Should list all configurable settings"
+      - type: "contains"
+        value: ":\|="
+        description: "Should show setting format"
+
+  - name: "config_storage_format"
+    description: "Test that config storage format and location is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 6: Config | Finding 19"
+    command: "/optimize config --set verification=enabled"
+    assertions:
+      - type: "contains"
+        value: "save\|store\|persist\|file\|location"
+        description: "Should document where config is stored"
+      - type: "contains"
+        value: "json\|yaml\|toml"
+        description: "Should specify config format"
+
+  - name: "config_validation_rules"
+    description: "Test that config input validation rules are documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 6: Config | Finding 20"
+    command: "/optimize config --set confidence-threshold=15"
+    assertions:
+      - type: "contains"
+        value: "valid\|range\|error\|must be"
+        description: "Should document validation rules"
+
+  # SCENARIO 7: Status Mode (2 findings)
+
+  - name: "status_output_example"
+    description: "Test that status mode provides example output (only mode without one)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 7: Status | Finding 21"
+    command: "/optimize status"
+    assertions:
+      - type: "contains"
+        value: "Cycle\|cycle\|optimization\|result"
+        description: "Should show status output example"
+      - type: "contains"
+        value: "before\|after\|improvement\|metric"
+        description: "Should show metrics in status"
+      - type: "llm-rubric"
+        name: "output_format_completeness"
+        description: "All modes show expected output format with concrete examples of what users will see"
+        pass_criteria: "Status mode includes example output showing cycles, metrics, and before/after values; users know exactly what to expect"
+        fail_criteria: "Mode described without showing actual output; examples missing or incomplete"
+
+  - name: "status_history_scope"
+    description: "Test that 'recent cycles' is defined precisely (count or time window)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 7: Status | Finding 22"
+    command: "/optimize status"
+    assertions:
+      - type: "contains"
+        value: "recent.*[0-9]\|last [0-9]\|time"
+        description: "Should specify what 'recent' means"
+
+  # SCENARIO 8: Error Handling (3 findings)
+
+  - name: "error_missing_file"
+    description: "Test that missing target file error is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 8: Error Handling | Finding 24"
+    command: "/optimize discover --target=does-not-exist.md"
+    assertions:
+      - type: "contains"
+        value: "not found\|does not exist\|error"
+        description: "Should document file-not-found error"
+      - type: "llm-rubric"
+        name: "error_handling_usefulness"
+        description: "Error documentation is specific, actionable, and helps users recover"
+        pass_criteria: "Error message is specific about what went wrong, suggests recovery steps (retry, check path, etc.), and guides user to next action"
+        fail_criteria: "Generic error message, no recovery guidance, vague language, or user left confused about what to do next"
+
+  - name: "error_malformed_rubric"
+    description: "Test that malformed rubric validation is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 8: Error Handling | Finding 25"
+    command: "/optimize discover --rubric=bad-yaml.md"
+    assertions:
+      - type: "contains"
+        value: "valid\|format\|error\|must"
+        description: "Should document rubric validation"
+
+  - name: "error_zero_proposals_approved"
+    description: "Test that behavior when user approves 0 proposals is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 8: Error Handling | Finding 26"
+    command: "/optimize approve --proposals=proposals.txt"
+    assertions:
+      - type: "contains"
+        value: "no.*approved\|all rejected\|skip"
+        description: "Should document behavior when 0 approved"
+
+  - name: "error_git_conflict_handling"
+    description: "Test that git conflict handling during apply is documented"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 8: Error Handling | Finding 27"
+    command: "/optimize apply --approved=approvals.txt"
+    assertions:
+      - type: "contains"
+        value: "conflict\|merge\|rollback\|revert"
+        description: "Should document conflict recovery"
+      - type: "llm-rubric"
+        name: "error_handling_usefulness"
+        description: "Error documentation is specific, actionable, and helps users recover"
+        pass_criteria: "Error message is specific about what went wrong, suggests recovery steps (retry, check path, etc.), and guides user to next action"
+        fail_criteria: "Generic error message, no recovery guidance, vague language, or user left confused about what to do next"
+
+  # SCENARIO 9: Template --apply Cycle (from Layer 4 exploratory)
+
+  - name: "template_apply_needs_target_or_collection"
+    description: "Test that --apply documents whether --target is required or collection method is auto-invoked"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 1: Template Apply | Bug 1"
+    command: "/optimize template --domain=error-messages --apply"
+    assertions:
+      - type: "regex"
+        value: "target|collection|discover|scan|grep"
+        description: "Should specify how files are found when --apply runs"
+      - type: "regex"
+        value: "cycle|discover.*analyze|step"
+        description: "Should specify what steps run after --apply"
+
+  # SCENARIO 10: Config Verification Type Conflict (from Layer 4 exploratory)
+
+  - name: "verification_type_consistency"
+    description: "Test that verification setting type is consistent (enabled/disabled vs true/false)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 2: Config Domain Override | Bug 1"
+    command: "/optimize config --set verification=enabled"
+    assertions:
+      - type: "not-contains"
+        value: "Invalid verification"
+        description: "Setting verification=enabled should not trigger a validation error"
+      - type: "regex"
+        value: "enabled|disabled"
+        description: "Verification should accept enabled/disabled values"
+
+  # SCENARIO 11: Loop Auto-Approve Safety (from Layer 4 exploratory)
+
+  - name: "auto_approve_convergence_safety_cap"
+    description: "Test that --auto-approve + --until-convergence has a safety limit"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 4: Loop Auto-Approve | Bug 1"
+    command: "/optimize loop --target=README.md --auto-approve --until-convergence"
+    assertions:
+      - type: "regex"
+        value: "max|limit|cap|safety|ceiling"
+        description: "Should document a safety limit when both flags are combined"
+      - type: "regex"
+        value: "warning|caution|not recommended|risk"
+        description: "Should warn about auto-approve risks"
+
+  # SCENARIO 12: Analyze --count Validation (from Layer 4 exploratory)
+
+  - name: "count_zero_validation"
+    description: "Test that --count=0 and negative values are rejected"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 5: Analyze Count | Bug 1"
+    command: "/optimize analyze --target=src/errors.ts --count=0"
+    assertions:
+      - type: "regex"
+        value: "error|invalid|must be|positive"
+        description: "Should reject --count=0 with a validation error"
+
+  # SCENARIO 13: Dry-Run Apply Behavior (from Layer 4 exploratory)
+
+  - name: "dry_run_apply_documented"
+    description: "Test that --dry-run on apply mode has documented behavior (diff, skip commit, etc.)"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 6: Global Params | Bug 1"
+    command: "/optimize apply --dry-run"
+    assertions:
+      - type: "regex"
+        value: "preview|diff|skip|would"
+        description: "Should describe what dry-run does on apply mode"
+      - type: "not-contains"
+        value: "commit"
+        description: "Dry-run should not mention creating actual commits"
+
+  # SCENARIO 14: Status --export-json Format (from Layer 4 exploratory)
+
+  - name: "export_json_format_documented"
+    description: "Test that --export-json has documented output format and destination"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 3: Status Export JSON | Gap 1"
+    command: "/optimize status --export-json"
+    assertions:
+      - type: "contains"
+        value: "json"
+        description: "Should reference JSON format"
+      - type: "regex"
+        value: "stdout|file|output|write"
+        description: "Should specify where JSON output goes"
+
+  # SCENARIO 15: Config Domain Override Scope (from Layer 4 exploratory)
+
+  - name: "domain_override_settings_list"
+    description: "Test that domain-specific override documents which settings can be overridden"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 2: Config Domain Override | Ambiguity 1"
+    command: "/optimize config --domain-specific error-messages --threshold=6.5"
+    assertions:
+      - type: "contains"
+        value: "threshold"
+        description: "Should mention threshold as overridable"
+      - type: "regex"
+        value: "override|domain-specific|per-domain"
+        description: "Should explain override semantics"
+
+  # SCENARIO 16: Analyze --count Prioritization (from Layer 4 exploratory)
+
+  - name: "count_prioritization_rule"
+    description: "Test that --count documents how proposals are prioritized when limited"
+    category: regression
+    source: "Exploratory 2026-04-03 | Scenario 5: Analyze Count | Ambiguity 2"
+    command: "/optimize analyze --target=src/errors.ts --count=2"
+    assertions:
+      - type: "regex"
+        value: "impact|severity|priority|order|rank"
+        description: "Should specify proposal selection criteria when count limits output"
+
+  # SCENARIO 17: Discover --domain collection method (from Layer 4 Round 1)
+
+  - name: "discover_domain_collection_method"
+    description: "Test that --domain without --target documents collection method behavior"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 1 | Scenario: discover domain+target | Bug 1"
+    command: "/optimize discover --domain=error-messages"
+    assertions:
+      - type: "regex"
+        value: "collection|grep|scan|find|pattern"
+        description: "Should reference the domain's collection method for finding files"
+      - type: "regex"
+        value: "DOMAIN_TEMPLATES|template"
+        description: "Should reference domain templates as the source of collection patterns"
+
+  # SCENARIO 18: Quick Start time consistency (from Layer 4 Round 1)
+
+  - name: "quick_start_time_consistent"
+    description: "Test that Quick Start time matches Common Workflows table"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 1 | Scenario: severity and quick start | Bug 2"
+    command: "/optimize discover --target=src/errors.ts --domain=error-messages"
+    assertions:
+      - type: "regex"
+        value: "20 [Mm]inutes|20 min"
+        description: "Quick Start should say 20 minutes (matching Common Workflows)"
+      - type: "not-contains"
+        value: "30 Minutes"
+        description: "Quick Start should NOT say 30 minutes (old inconsistent value)"
+
+  # SCENARIO 19: State passing within session (from Layer 4 Round 1)
+
+  - name: "state_passing_in_session_documented"
+    description: "Test that within-session state passing is explicitly documented"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 1 | Scenario: state passing | Bug 1"
+    command: "/optimize analyze --target=README.md"
+    assertions:
+      - type: "regex"
+        value: "session|context|automatic|carry forward"
+        description: "Should document that state passes automatically within a session"
+      - type: "regex"
+        value: "across sessions|cross.session|separate session|new session"
+        description: "Should document cross-session behavior"
+
+  # SCENARIO 20: Apply --resume-at documented (from Layer 4 Round 1)
+
+  - name: "apply_resume_at_documented"
+    description: "Test that --resume-at is documented as an apply parameter, not just in error recovery"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 1 | Scenario: apply alternative syntax | Bug 1"
+    command: "/optimize apply --approved=approvals.txt --resume-at=3"
+    assertions:
+      - type: "contains"
+        value: "--resume-at"
+        description: "Should document --resume-at in apply parameters"
+      - type: "regex"
+        value: "1-based|proposal N|skip|already-committed"
+        description: "Should explain what --resume-at does"
+
+  # SCENARIO 21: Loop safety cap (from Layer 4 Round 2)
+
+  - name: "loop_safety_cap_documented"
+    description: "Test that --until-convergence has a documented safety cap"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 2 | Scenario: loop edge cases | Bug 1"
+    command: "/optimize loop --target=README.md --auto-approve --until-convergence"
+    assertions:
+      - type: "regex"
+        value: "10 cycles|safety cap|cap of 10"
+        description: "Should document 10-cycle safety cap"
+      - type: "regex"
+        value: "human input|always requires|cannot be bypassed"
+        description: "Should state safety cap prompt requires human input even with --auto-approve"
+
+  # SCENARIO 22: Discover requires --target or --domain (from Layer 4 Round 2)
+
+  - name: "discover_requires_target_or_domain"
+    description: "Test that discover documents --target or --domain as required"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 2 | Scenario: discover params | Bug 2"
+    command: "/optimize discover --rubric=my-rubric.md"
+    assertions:
+      - type: "regex"
+        value: "at least one|required|must be provided"
+        description: "Should state that --target or --domain is required"
+
+  # SCENARIO 23: Convergence definition aligned (from Layer 4 Round 3)
+
+  - name: "convergence_definition_aligned"
+    description: "Test that convergence is defined consistently as 0 HIGH/MEDIUM issues"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 3 | Scenario: BEST_PRACTICES alignment | Bug 1"
+    command: "/optimize measure --target=README.md"
+    assertions:
+      - type: "regex"
+        value: "HIGH.*MEDIUM|0 HIGH|no HIGH/MEDIUM"
+        description: "Should define convergence as 0 HIGH/MEDIUM issues"
+      - type: "not-contains"
+        value: "0 new issues"
+        description: "Should NOT use vague '0 new issues' phrasing"
+
+  # SCENARIO 24: Approve (M)odify flow documented (from Layer 4 Round 3)
+
+  - name: "approve_modify_flow_documented"
+    description: "Test that the (M)odify decision option has documented behavior"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 3 | Scenario: approve params | Bug 1"
+    command: "/optimize approve --proposals=proposals.txt"
+    assertions:
+      - type: "regex"
+        value: "Modify|modify|inline"
+        description: "Should document the Modify option"
+      - type: "regex"
+        value: "not re-verified|original score|NOT re-verified"
+        description: "Should clarify that modified proposals are not re-verified"
+
+  # SCENARIO 25: Loop immediate convergence warning (from Layer 4 Round 4)
+
+  - name: "loop_immediate_convergence_warning"
+    description: "Test that loop warns on immediate cycle 1 convergence (misconfigured rubric)"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 4 | Scenario: end-to-end | Bug 1"
+    command: "/optimize loop --target=config.md --domain=config-docs --max-cycles=3"
+    assertions:
+      - type: "regex"
+        value: "first cycle|cycle 1|immediate|misconfigured|verify.*rubric"
+        description: "Should document behavior when 0 issues found on first cycle"
+
+  # SCENARIO 26: Loop score regression guard (from Layer 4 Round 4)
+
+  - name: "loop_score_regression_guard"
+    description: "Test that loop pauses if score decreases after apply"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 4 | Scenario: end-to-end | Bug 2"
+    command: "/optimize loop --target=README.md --auto-approve --max-cycles=3"
+    assertions:
+      - type: "regex"
+        value: "decrease|regression|score.*drop"
+        description: "Should document behavior when score decreases"
+
+  # SCENARIO 27: Config verification type consistency (from Layer 4 Round 2)
+
+  - name: "config_verification_enabled_disabled"
+    description: "Test that verification config accepts enabled/disabled consistently"
+    category: regression
+    source: "Exploratory 2026-04-03 Round 2 | Scenario: config validation | Bug 1"
+    command: "/optimize config --set verification=enabled"
+    assertions:
+      - type: "regex"
+        value: "enabled.*disabled|enabled/disabled"
+        description: "Verification should consistently use enabled/disabled"
+      - type: "not-contains"
+        value: "Must be true/false"
+        description: "Verification should NOT use true/false"
+
+summary:
+  total_cases: 43
+  categories:
+    regression: 43
+  coverage:
+    modes: "All 10 modes (1-10) covered"
+    decision_rows: "43 decision paths including 19 from Layer 4 exploratory (4 rounds)"
+    error_handling: "Complete error recovery flows including safety caps, regressions, and edge cases"
