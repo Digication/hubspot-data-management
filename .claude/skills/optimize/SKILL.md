@@ -126,10 +126,20 @@ Here's what I'll do:
 5. Approval: Review proposals each cycle
 6. Report: Generate at the end
 
-Starting now...
 ```
 
-This is informational — not a confirmation prompt. The user already approved the plan through the interview. If they want to change something, they can say so and you adjust.
+After showing the recap, use `AskUserQuestion` to confirm before starting:
+
+```
+AskUserQuestion:
+  Q1: "Does this plan look right?"
+      header: "Confirm"
+      options:
+        - "Looks good, start (Recommended)" → begin Discover
+        - "Adjust something" → ask which item to change, update, re-show recap
+```
+
+Do not begin work until the user confirms. This gives them a chance to catch mistakes or adjust priorities before any cycles run.
 
 ### Respecting User Profile
 
