@@ -99,6 +99,7 @@ When selecting dimensions, ensure coverage across these categories:
 | **Operational fitness** | How it works in production | Runtime Context, Log Distinguishability, Machine Readability |
 | **Stakeholder safety** | Who it could harm | Information Safety, Compliance, Accessibility |
 | **System integration** | How it fits the broader system | Consistency, i18n Readiness, Brand Voice |
+| **Structural efficiency** | Whether content is lean and non-redundant | Duplication (same idea in multiple places), YAGNI (sections no workflow uses), Conciseness (says in 200 words what 50 could) |
 
 A good rubric has at least one dimension from **Content quality** and at least one from another category. If all dimensions are Content quality, the rubric has the blind spot we're trying to fix.
 

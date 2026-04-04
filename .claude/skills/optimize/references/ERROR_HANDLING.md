@@ -1,101 +1,101 @@
 # Error Handling & Recovery
 
-How the optimize skill handles failures at each stage. Each entry describes the trigger, what the user sees, how to recover, and how to prevent it.
+How the optimize skill handles failures at each stage. This skill uses conversational invocation — users never type flags or commands. Each entry describes what triggers the error, what the user sees, and how to recover.
 
-## Missing Required Parameters (Discover)
+## No Target Provided (Discover)
 
-**Trigger:** `optimize discover` with neither `--target` nor `--domain`
-**Message:** "Error: At least one of --target or --domain is required. Use --target=<file> for a specific file, or --domain=<name> to scan matching patterns."
-**Recovery:** Add `--target` for a single file, or `--domain` to use a domain template's collection method.
+**Trigger:** User says "optimize" without specifying a file or domain, and the interview fails to resolve a target.
+**What to do:** Run the interview flow (see SKILL.md Interview section) to ask the user what they want to optimize. Never show a flag-based error message.
 
 ## File Not Found
 
-**Trigger:** `optimize discover --target=nonexistent.md`
-**Message:** "File not found: nonexistent.md"
-**Recovery:** Check filename and path, retry with correct file.
-**Prevention:** Verify file exists before running discover.
+**Trigger:** The file the user referenced does not exist.
+**What to say:** "I can't find that file — could you check the path?"
+**Recovery:** Ask the user to confirm the filename and path. Use glob search to suggest similar files if possible.
 
 ## Malformed Rubric
 
-**Trigger:** Invalid YAML/JSON in rubric file
-**Message:** "Invalid rubric format at line X: {error details}"
-**Recovery:** Fix rubric format using `optimize config --show` for reference, then retry.
-**Prevention:** Validate rubric with `--dry-run` before running analyze.
+**Trigger:** A user-provided rubric file has invalid YAML/JSON syntax.
+**What to say:** "The rubric file has a formatting issue at line X: {error details}. Want me to fix it?"
+**Recovery:** Offer to fix the syntax automatically, or ask the user to correct it and retry.
 
 ## Zero Proposals Approved
 
-**Trigger:** User rejects or skips all proposals in approve step
+**Trigger:** User rejects or skips all proposals in the approve step.
 **Behavior:** Apply step skips (no changes made). Measure still shows baseline quality unchanged.
-**Recovery:** Run analyze again to generate different proposals, or adjust rubric. Consider modifying rejected proposals instead of rejecting outright.
+**Recovery:** Offer to run analyze again with a different approach, or suggest adjusting the rubric. Remind the user they can modify proposals instead of rejecting them outright.
 
 ## All Proposals Rejected in Loop
 
-**Trigger:** Every cycle finds 0 approved proposals
-**Message:** "No proposals approved in this cycle. Stopping to avoid infinite loop."
-**Recovery:** Review rejection patterns, adjust approval criteria, then retry with `--until-convergence`.
+**Trigger:** Every cycle produces 0 approved proposals.
+**What to say:** "No proposals were approved this cycle. I'll stop here to avoid going in circles."
+**Recovery:** Ask the user to review what they're looking for. Suggest adjusting the rubric or narrowing the scope.
 
 ## Git Conflicts During Apply
 
-**Trigger:** Local git changes conflict with proposed changes
-**Message:** "Git conflict detected. Cannot apply proposal X. Conflicting file: {filename}"
+**Trigger:** Local git changes conflict with proposed changes.
+**What to say:** "There's a conflict in {filename} — my proposed changes overlap with your uncommitted work."
 **Recovery:**
-1. Manually resolve conflict in {filename}
-2. Run `git add {filename}` to mark as resolved
-3. Retry: `/optimize apply --approved=approvals.txt --resume-at=X`
-
-**Prevention:** Ensure working directory is clean before running apply (`git status` should show no uncommitted changes).
+1. Ask the user to resolve the conflict in {filename}
+2. After resolution, retry applying the remaining proposals
+**Prevention:** The apply phase checks `git status` first and warns if uncommitted changes exist.
 
 ## Missing Cross-Session State (Analyze)
 
-**Trigger:** Running analyze in a new session without `--issues-from` after discover ran in a previous session
-**Behavior:** Analyze proceeds without discover context — generates proposals from scratch based on its own analysis. No error is raised.
-**Message:** None (silent). The mode runs independently.
-**Recovery:** Re-run discover in the current session, or pass `--issues-from=<file>` with the discover output from the previous session.
-**Prevention:** When running a multi-step workflow across sessions, always pass the explicit file flags (`--issues-from`, `--proposals`, `--approved`, `--before-score`).
+**Trigger:** Running analyze in a new session when discover ran in a previous (now-closed) session.
+**Behavior:** Analyze runs independently — it generates proposals from scratch based on its own analysis. No error is raised; it works fine but won't reference prior discover results.
+**Recovery:** Re-run discover in the current session to get fresh issues, or point to the saved JSON from the previous session's `./tmp/<topic>-<timestamp>/` folder.
 
 ## Baseline Not Found (Measure)
 
-**Trigger:** Running measure without prior discover in same session
-**Message:** "No baseline found. Use `--before-score=X` to provide manually, or run discover first."
-**Recovery:** Either pass `--before-score=5.2` or re-run discover to establish baseline.
-**Prevention:** Always run discover first in a cycle.
+**Trigger:** Running measure without a prior discover step in the same session.
+**What to say:** "I don't have a baseline score to compare against. Want me to run a quick discover first, or do you have a score from a previous run?"
+**Recovery:** Run discover to establish the baseline, or ask the user to provide a previous score manually.
 
-## Invalid Configuration
+## Invalid Configuration Value
 
-**Trigger:** `optimize config --set confidence-threshold=15`
-**Message:** "Invalid confidence-threshold: 15. Must be 0.0-10.0"
-**Recovery:** Correct the value and re-run `config --set`.
-**Prevention:** Review constraints via `optimize config --show`.
+**Trigger:** User asks to set a config value outside its valid range (e.g., confidence threshold of 15).
+**What to say:** "That value is out of range — confidence threshold must be between 0.0 and 10.0."
+**Recovery:** Ask for a corrected value.
 
 ## Convergence Takes Too Long
 
-**Trigger:** Loop reaches `--max-cycles` (or 10-cycle safety cap when using `--until-convergence` alone) without convergence
-**Message:** "Maximum cycles (N) reached. Current improvement trend: {trend}. Continue? (Y/N)"
-**Note:** This prompt always requires human input, even when `--auto-approve` is active — the safety cap cannot be bypassed.
-**Recovery:** Review trend and decide: continue with higher `--max-cycles`, or accept current quality.
-**Prevention:** Start with `--max-cycles=3`, increase if improvements are still declining. If no convergence after 4 cycles, consider adjusting the rubric or restructuring the target.
+**Trigger:** Loop reaches the configured max cycles (default 3, safety cap 10) without convergence.
+**What to say:** "We've hit {N} cycles without fully converging. The trend is {trend}. Want to keep going or stop here?"
+**Note:** This prompt always requires human input — the safety cap cannot be bypassed even if the user previously chose to approve all proposals.
+**Recovery:** User decides: continue with more cycles, accept current quality, or adjust the rubric.
 
-## Invalid --max-cycles Value
+## Partial Apply Failure
 
-**Trigger:** `--max-cycles=0`, `--max-cycles=-1`, or non-numeric value
-**Message:** "Invalid --max-cycles: {value}. Must be a positive integer (≥ 1)."
-**Recovery:** Use a value of 1 or higher.
-
-## Conflicting Global Flags
-
-**Trigger:** `--verbose` and `--quiet` both provided
-**Behavior:** `--verbose` takes precedence. A warning is shown: "Both --verbose and --quiet specified; using --verbose."
+**Trigger:** Some proposals apply successfully but one or more fail (e.g., the target text was modified since analyze, a file was deleted, or an edit conflicts with an earlier proposal in the same batch).
+**What to say:** "I applied {N} of {M} proposals. {K} failed — here's what happened:"
+Then list each failed proposal with its index, title, and reason (e.g., "Proposal #3 'Add prerequisites': target text not found — the section may have been edited since analysis").
+**Recovery:**
+1. **Successfully applied proposals remain in place** — do not roll back edits that worked.
+2. **For each failed proposal**, offer options via `AskUserQuestion`:
+   - "Skip it" — mark as skipped, continue to measure
+   - "Show me the conflict" — display the expected text vs. actual file content so the user can apply manually
+   - "Re-analyze this section" — re-read the current file content and generate a fresh proposal for the same issue
+3. Proceed to measure with whatever was successfully applied.
 
 ## Dirty Working Directory (Apply)
 
-**Trigger:** Running apply when `git status` shows uncommitted changes
-**Message:** "Warning: uncommitted changes detected. Apply creates commits per proposal — existing changes may cause conflicts. Commit or stash first, or proceed at your own risk."
-**Recovery:** Run `git stash` or commit current changes, then retry apply.
-**Prevention:** Always start apply with a clean working directory.
+**Trigger:** Running apply when `git status` shows uncommitted changes.
+**What to say:** "You have uncommitted changes that might conflict with the edits I'm about to make. Want me to proceed anyway, or would you rather commit/stash your current work first?"
+**Recovery:** Offer to stash or suggest committing, then retry apply.
+
+## Subagent Failure (Discover / Measure)
+
+**Trigger:** The `Agent` tool call fails, times out, or returns an error during the discover or measure phase (e.g., model unavailable, context too large, network issue).
+**What to say:** "The evaluation step failed — I'll retry once automatically. If it fails again, I'll run a simpler evaluation in the main session instead."
+**Recovery:**
+1. **Retry once** with the same prompt. Transient failures (timeouts, rate limits) often resolve on retry.
+2. **If retry fails:** Fall back to running the evaluation in the current conversation model (typically Sonnet) instead of Opus. This produces slightly less thorough rubric evaluation but keeps the workflow moving.
+3. **Log the failure:** When verbosity is medium or detailed, note: "Subagent unavailable — used fallback evaluation with [model name]."
+**Prevention:** Keep subagent prompts under the 50K token limit (see Context Window Management in SKILL.md). For very large files, summarize before sending to the subagent.
 
 ## Proposal Text Too Large (Verify)
 
-**Trigger:** Proposal exceeds verify mode limits (~1000 tokens / ~750 words)
-**Message:** "Proposal too large. Summarize to under 1000 tokens and retry."
-**Recovery:** Split into multiple proposals or summarize the proposal text.
-**Prevention:** Verify targets concise proposals — one improvement idea per proposal.
+**Trigger:** A proposal exceeds verify mode limits (~1000 tokens / ~750 words).
+**What to do:** Automatically split the proposal into smaller pieces or summarize it before sending to verification personas.
+**Prevention:** Generate concise proposals — one improvement idea per proposal.

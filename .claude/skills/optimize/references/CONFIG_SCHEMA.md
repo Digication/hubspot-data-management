@@ -16,11 +16,19 @@ Settings for the optimize skill. Stored in `.claude/optimize-config.json`.
 
 Domain settings override global settings for a specific domain only.
 
-```
-optimize config --domain-specific error-messages --threshold=6.5
+For example, if the user says "set the confidence threshold to 6.5 for error messages", update the config file to add a domain-specific override:
+
+```json
+"domains": {
+  "error-messages": {
+    "confidence-threshold": 6.5
+  }
+}
 ```
 
 This sets the confidence threshold to 6.5 for the `error-messages` domain without changing the global default.
+
+> **Key naming rule:** Domain overrides use the same key names as global settings. For example, the global `confidence-threshold` is overridden per-domain as `confidence-threshold`, not `threshold`.
 
 ## Validation Rules
 
@@ -38,13 +46,13 @@ This sets the confidence threshold to 6.5 for the `error-messages` domain withou
   "global": {
     "verification": "enabled",
     "personas": ["devil_advocate", "conservative", "pragmatist"],
-    "confidence-threshold": 6.5,
+    "confidence-threshold": 6.0,
     "auto-approve": false,
     "output-format": "human"
   },
   "domains": {
     "error-messages": {
-      "threshold": 6.5
+      "confidence-threshold": 6.5
     },
     "documentation": {
       "personas": ["devil_advocate", "pragmatist"]
@@ -55,21 +63,21 @@ This sets the confidence threshold to 6.5 for the `error-messages` domain withou
 
 ## Example Output
 
+When the user asks "show my optimize settings" or "what are my current settings", display:
+
 ```
-/optimize config --show
+Current settings:
 
-CURRENT CONFIGURATION
-====================
-Global Settings:
-  verification: enabled
-  personas: devil_advocate, conservative, pragmatist
-  confidence-threshold: 6.5
-  auto-approve: false
-  output-format: human
+Global:
+  Verification: enabled
+  Personas: devil_advocate, conservative, pragmatist
+  Confidence threshold: 6.0
+  Auto-approve: false
+  Output format: human
 
-Domain-Specific Overrides:
+Domain overrides:
   error-messages:
-    threshold: 6.5
+    Confidence threshold: 6.5
   documentation:
-    personas: devil_advocate, pragmatist
+    Personas: devil_advocate, pragmatist
 ```

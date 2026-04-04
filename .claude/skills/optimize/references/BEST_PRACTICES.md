@@ -10,7 +10,7 @@ Lessons learned from real optimization cycles. Follow these to get better result
 
 3. **Start with discover.** Always establish a baseline before generating proposals. Skipping this makes measurement meaningless.
 
-4. **Preserve backwards compatibility.** Never break what already works. The Conservative persona catches this — use `--verify` when in doubt.
+4. **Preserve backwards compatibility.** Never break what already works. The Conservative verification persona catches this — ask for verification when in doubt.
 
 5. **Stop when convergence is reached.** When discover finds 0 HIGH or MEDIUM severity issues, you're done. LOW-severity issues do not block convergence. Continuing past this point wastes time with diminishing returns.
 
@@ -32,7 +32,7 @@ Lessons learned from real optimization cycles. Follow these to get better result
 
 4. **Don't optimize the wrong metric.** Clarity and actionability matter more than word count or formatting.
 
-5. **Don't use `--auto-approve` for production content.** It's there for experimentation, not for real work.
+5. **Don't skip human review for production content.** The approval gate exists for a reason — auto-approving everything is fine for experiments, but always review proposals manually for real work.
 
 ## When Optimization Works Best
 

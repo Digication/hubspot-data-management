@@ -9,6 +9,21 @@ Optional verification layer that validates proposals before human approval. Uses
 3. Results are synthesized into a single confidence score (0–10)
 4. The confidence score helps the human decide: approve, reject, or modify
 
+## Implementation
+
+Run all three personas in a **single prompt** within the main conversation model (no subagent needed). Structure the prompt as follows:
+
+1. Provide the proposal text and the target file context
+2. Instruct the model to evaluate the proposal from each persona's perspective **in sequence**, producing a separate section per persona with:
+   - A score (0–10)
+   - A list of concerns (or "none")
+   - A one-line recommendation (approve / caution / reject)
+3. After all three persona sections, instruct the model to produce a **Synthesis** section that averages the three scores and resolves any conflicting recommendations
+
+**Why one prompt, not three calls:** The personas are analysis lenses, not independent agents. A single call is faster, cheaper, and avoids context duplication. Three separate calls are acceptable if the user explicitly requests independent evaluation (e.g., "run each persona separately").
+
+**Model:** Use the current conversation model. Verification is a lightweight review step — it does not need Opus.
+
 ## Personas
 
 ### Devil's Advocate
@@ -80,19 +95,18 @@ SYNTHESIS
 - Should describe a single improvement idea (not multiple)
 - Format: Plain text description of what should change
 
-## Parameters
+## How to Request Verification
 
-- `--verify` — Enable verification on the approve step
-- `--persona=devil_advocate` — Run a single persona only
-- `--all-personas` — Run all three (default when `--verify` is used)
-- `--personas=devil_advocate,conservative` — Run specific subset
+Users can request verification conversationally at any point:
+- "verify these proposals" — runs all three personas on the current proposals
+- "run the devil's advocate check" — runs a single persona
+- "get a second opinion on proposal 3" — runs verification on a specific proposal
+
+By default, all three personas run. The user can ask for a specific subset.
 
 ## Standalone Usage
 
-Verify can also be used independently (outside the approve flow):
-
-```
-/optimize verify --proposal="Add Docker prerequisites to README"
-/optimize verify --proposals=proposals.txt
-/optimize verify --persona=devil_advocate
-```
+Verification can also be used independently (outside the full optimization loop). Examples of what a user might say:
+- "verify this proposal: Add Docker prerequisites to README"
+- "run a conservative review on my proposals"
+- "check these proposals with the devil's advocate persona"

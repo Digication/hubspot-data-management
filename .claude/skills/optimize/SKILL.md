@@ -27,6 +27,12 @@ General notes on conversational UI patterns for skills: [CONVERSATIONAL_UI.md](r
 
 This skill uses **conversational invocation** — the user describes what they want in natural language, and you infer the intent. There are no required parameters or flags. Never tell the user to run a command with `--flags`.
 
+### File Reference Detection
+
+Before classifying intent, check whether the user's message already contains a file reference (e.g., `@path/to/file.md`, a file path, or a file attached via IDE context). If a file reference is present, treat it as the target — do not ask "What would you like to optimize?" since the user already answered that by providing the file.
+
+A referenced file counts as a known target for Intent Detection and Smart Skip, even if the user didn't explicitly say "optimize [filename]."
+
 ### Intent Detection
 
 When the user invokes `/optimize` (or says "optimize", "improve", "review", etc.), classify their intent:
@@ -38,17 +44,20 @@ When the user invokes `/optimize` (or says "optimize", "improve", "review", etc.
 | "what's wrong with this file?" / "check README" | Discover only | Run discover, show results |
 | "suggest improvements for X" | Analyze only | Run discover + analyze, show proposals |
 | "verify these proposals" | Verify only | Run verification on active proposals |
-| "show optimization status" / "how's it going?" | Status | Show history |
 | "generate a rubric for error messages" | Rubric | Run rubric generation |
 | Ambiguous or no target specified | Interview | Ask clarifying questions |
 
 ### Smart Skip
 
-When the user's intent is clear (target file + mode are both obvious), **skip the full interview** and show a short confirmation prompt instead:
+Skip the full interview and show a short confirmation prompt when **both** conditions are met:
+1. **Target is known:** The user named a file, referenced a file (see File Reference Detection), or a domain template matches unambiguously
+2. **Mode is known:** The user's words match a specific row in the Intent Detection table (not the "Ambiguous" row)
+
+If either condition is missing, run the full Interview.
 
 **Example:** User says "optimize loop README.md"
-→ Intent is clear: loop mode, target is README.md
-→ Show one confirmation prompt with defaults:
+→ Target known: README.md. Mode known: "loop" matches "Loop (explicit)".
+→ Both conditions met — show one confirmation prompt with defaults:
 
 ```
 Use AskUserQuestion:
@@ -57,7 +66,11 @@ Use AskUserQuestion:
 - Max cycles: 3 (default) — adjust? (options: 3 (Recommended) / 5 / Let me decide after each cycle)
 ```
 
-When the user's intent is **ambiguous** (no target, unclear what they want), run the full Interview.
+**Examples of when NOT to skip:**
+- "optimize" (no target, no mode) → Interview
+- "improve things" (no target) → Interview
+- "check README.md" (target known, mode known: "Discover only") → Smart Skip
+- User attaches a file but says nothing else (target known, mode unknown) → Interview
 
 ---
 
@@ -67,7 +80,7 @@ Use `AskUserQuestion` prompts — never ask questions as inline text. This gives
 
 ### When to Interview
 
-- User provides no target file
+- User provides no target file **and** no file reference was detected (see File Reference Detection)
 - User's intent doesn't match any row in the Intent Detection table
 - User says "optimize" with no other context
 - First time using optimize in this project (no prior history)
@@ -187,17 +200,44 @@ And after each phase:
 
 **Purpose:** Identify issues in current state.
 
-**Model selection:** Defaults to Opus subagent (`model: "opus"`) — rubric quality sets the ceiling for the entire optimization. If discover misses an issue, no later step can fix it. Other phases use the current conversation model.
+**Model selection:** Defaults to Opus subagent — rubric quality sets the ceiling for the entire optimization. If discover misses an issue, no later step can fix it. Other phases use the current conversation model.
+
+**How to spawn the subagent:** Use the `Agent` tool with `model: "opus"`. Provide a prompt that includes:
+1. The target file content (or a summary if too large — see Context Window Management below)
+2. The rubric dimensions and scoring anchors
+3. Instructions to output a structured list of issues with severity (HIGH/MEDIUM/LOW) and a baseline score (0-10)
+
+Collect the subagent's response and parse the issues list and baseline score for use in the next phase.
 
 **What it does:**
 1. Reads target file/spec. When a domain is specified, uses the domain template's collection method to find matching files — see [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md).
-2. Selects rubric: uses provided rubric if any, else domain template default, else generates one using the [Rubric Generation Protocol](references/RUBRIC_PROTOCOL.md) with Stakeholder Analysis and Failure Mode Analysis (5-7 dimensions).
-3. Identifies gaps, contradictions, missing information.
-4. Outputs structured list of issues with severity:
+2. **Audience detection:** Before generating a rubric, classify the target audience using these rules in priority order (first match wins):
+   1. **User-specified:** If the user stated the audience (e.g., "this is for developers"), use that — skip the rules below.
+   2. **Path-based rules:**
+      - `.claude/skills/**` or `.claude/CLAUDE.md` → **AI agent**
+      - `src/**`, `lib/**`, `packages/**` (code files) → **developer**
+      - `docs/**`, `*.md` in project root (except CLAUDE.md) → **human reader**
+      - `.github/**`, `Dockerfile`, `docker-compose*`, `*.yml` in CI paths → **ops/DevOps**
+   3. **Content-based fallback** (if path is ambiguous) — check the first 50 lines for these signals:
+      - **AI agent** (2+ of): imperative verbs as line-starters ("Run", "Use", "Check"), numbered phases/steps, rule tables with "When X do Y" format, ALL-CAPS keywords (MUST, NEVER, ALWAYS), `{{placeholder}}` tokens
+      - **Human reader** (2+ of): first-person or second-person prose ("you can", "we recommend"), paragraphs of 3+ sentences, no code blocks in the first 30 lines, FAQ or tutorial structure
+      - **Developer** (2+ of): code blocks or inline code in >30% of lines, import/require statements, function/class definitions, JSDoc/docstring comments
+      - If signals are mixed or fewer than 2 match any category → **mixed**
+   4. **Default:** **mixed** (e.g., README read by both humans and CI)
+
+   Show the classification and confirm with the user via `AskUserQuestion` before proceeding. The audience shapes the entire rubric — "clarity" means something different for an AI agent (unambiguous, machine-parseable instructions) vs. a human reader (plain language, scannable headings). Getting this wrong produces irrelevant proposals.
+3. Selects rubric using this priority order:
+   - **User-provided rubric file:** If the user attached or referenced a rubric file (e.g., `@my-rubric.md` or "use this rubric"), read it and validate that it contains dimension names with 0/5/10 score anchors. If the format is invalid, show what's wrong and offer to fix it or generate a new one.
+   - **Domain template default:** If a domain template is active, use its built-in rubric.
+   - **Generate fresh:** Use the [Rubric Generation Protocol](references/RUBRIC_PROTOCOL.md) with Stakeholder Analysis and Failure Mode Analysis (5-7 dimensions).
+   
+   **The rubric must reflect the confirmed audience** — dimensions, scoring anchors, and severity definitions should all be calibrated to what matters for that audience.
+4. Identifies gaps, contradictions, missing information.
+5. Outputs structured list of issues with severity:
    - **HIGH**: Blocks users or causes failures (missing prerequisites, broken workflows)
    - **MEDIUM**: Confuses users or degrades experience (unclear instructions, missing context)
    - **LOW**: Minor improvements (formatting, wording, nice-to-have details)
-5. Establishes baseline quality score (0–10 scale).
+6. Establishes baseline quality score (0–10 scale).
 
 **Score variation note:** Each discover/measure step uses a fresh, independent evaluation agent. Like two different teachers grading the same essay, scores may vary slightly between steps (±0.5–1.0 points is normal). The important number is the delta within each cycle, not the absolute score between cycles. When verbosity is medium or detailed, mention this on the first cycle.
 
@@ -205,9 +245,11 @@ And after each phase:
 
 After Discover completes, show the rubric dimensions and baseline scores, then confirm with the user before proceeding to Analyze. This is important because the rubric shapes all proposals — if it's wrong, everything downstream will be off.
 
-Display the rubric inline:
+Display the rubric inline (include the confirmed audience so the user can verify the rubric matches):
 
 ```
+Target audience: <predicted and confirmed audience, e.g., "AI agent", "developer", "end user">
+
 The rubric I'll use to evaluate and improve this file:
 
 | # | Dimension | Score | What it measures |
@@ -240,7 +282,7 @@ AskUserQuestion:
 
 **Purpose:** Generate improvement proposals.
 
-Uses the current conversation model (typically Sonnet). Reads the issues from discover and generates specific before/after proposals for each one.
+Uses the current conversation model (typically Sonnet). Reads the issues from discover and generates specific before/after proposals for each one. When generating proposals, also check for duplication (same idea in multiple places), unnecessary content (sections no workflow references), and verbosity (content that could be shorter without losing meaning) — surface these as proposals even if not explicitly flagged by the rubric.
 
 **Formatting proposals with embedded code:** When proposed text contains markdown code blocks, do NOT wrap the entire before/after in a fenced code block — this creates broken nested fences. Use blockquotes (`>`) for multi-line proposed content that contains code blocks.
 
@@ -264,6 +306,16 @@ Uses the current conversation model (typically Sonnet). Reads the issues from di
 ```
 
 The `decision` and `modified_text` fields are populated during the approval step.
+
+---
+
+### Verify (Optional)
+
+**Purpose:** Multi-LLM verification of proposals.
+
+Runs proposals through three personas (Devil's Advocate, Conservative, Pragmatist) and synthesizes a confidence score. Can be requested during the interview or at any time. When verification is enabled in config, it runs automatically between Analyze and Approve.
+
+Full details on personas, scoring, and when to use: [VERIFICATION.md](references/VERIFICATION.md)
 
 ---
 
@@ -329,7 +381,10 @@ After approval, update `decision` and `modified_text` fields in `./tmp/<topic>-<
 
 **Purpose:** Quantify improvements.
 
-Uses a fresh Opus subagent — same model as discover, same independence requirement.
+**How to run:** Spawn a fresh Opus subagent using the `Agent` tool with `model: "opus"`. This must be a new invocation (not the same one used for discover) to ensure independent scoring. Provide:
+1. The updated file content
+2. The same rubric dimensions used in discover
+3. Instructions to score all dimensions from scratch (no anchoring to prior scores) and return per-dimension scores
 
 **What it does:**
 1. Re-reads the updated file
@@ -344,16 +399,6 @@ Uses a fresh Opus subagent — same model as discover, same independence require
 BEFORE: Clarity 5/10, Completeness 5/10, Actionability 6/10 — Avg 5.3/10
 AFTER:  Clarity 9/10, Completeness 9/10, Actionability 9/10 — Avg 9.0/10 (+70%)
 ```
-
----
-
-### Verify (Optional)
-
-**Purpose:** Multi-LLM verification of proposals.
-
-Runs proposals through three personas (Devil's Advocate, Conservative, Pragmatist) and synthesizes a confidence score. Can be requested during the interview or at any time.
-
-Full details on personas, scoring, and when to use: [VERIFICATION.md](references/VERIFICATION.md)
 
 ---
 
@@ -375,7 +420,8 @@ Full details on personas, scoring, and when to use: [VERIFICATION.md](references
 |---|---|
 | No HIGH/MEDIUM issues in discover | Convergence — inform user, ask if they want another cycle anyway |
 | Max cycles reached | Stop, show summary, ask "Continue for more cycles?" |
-| Score regression (score went down) | Pause with warning, ask to continue or revert |
+| Score regression (score dropped by more than 1.0 point) | Pause with warning: "Score dropped by X.X points (from Y to Z). Drops of up to 1.0 can be normal scoring variation, but this exceeds that range." Ask to continue or revert. |
+| Score dip within noise (score dropped by 1.0 or less) | Note at medium/detailed verbosity: "Score dipped slightly (Y → Z) — this is within normal ±1.0 variation between independent evaluations." Continue without pausing. |
 | 4 cycles without convergence | Advisory: "Consider adjusting the rubric or restructuring the target" |
 | Immediate convergence (cycle 1) | Note: "No issues found. Verify rubric and target are configured correctly." |
 
@@ -414,8 +460,14 @@ AskUserQuestion:
    - `{{MODEL_USAGE_ROWS}}` — table rows showing which model ran each step and why
    - `{{RUBRIC_DEFINITION}}` — full rubric table with dimension name, definition, and score anchors (0/5/10)
    - `{{RUBRIC_ROWS}}` — before/after scores per dimension with delta
-   - `{{SCORE_CHART_SVG}}` — generate an inline SVG chart showing score progression
-3. Write the populated report to `./tmp/<topic>/report.html`
+   - `{{SCORE_CHART_SVG}}` — generate an inline SVG bar chart showing score progression. Specifications:
+     - **Dimensions:** `width="600" height="200"` with `viewBox="0 0 600 200"`
+     - **Structure:** One group of paired bars per cycle (before = `#e2e8f0`, after = `#7c3aed`), x-axis labels ("Cycle 1", "Cycle 2", ...), y-axis scale 0-10
+     - **Layout:** 60px left margin for y-axis labels, bars 40px wide with 20px gap between before/after, 60px gap between cycles
+     - **Labels:** Score value centered above each bar (font-size 12px, font-family system-ui)
+     - **Single cycle:** If only 1 cycle, show a single before/after pair centered
+     - Calculate bar height as `score / 10 * 180` (max bar height 180px), y position as `180 - barHeight + 10`
+3. Write the populated report to `./tmp/<topic>-<UTC_TIMESTAMP>/report.html`
 4. Write the proposals JSON to `./tmp/<topic>-<UTC_TIMESTAMP>/proposals.json` (if not already written)
 5. **Print the path and ask if the user wants to open it:**
    - Print: `Report saved to ./tmp/<topic>-<UTC_TIMESTAMP>/report.html`
@@ -480,17 +532,29 @@ Full template catalog: [DOMAIN_TEMPLATES.md](references/DOMAIN_TEMPLATES.md)
 3. **Dimension Selection** — 5-7 dimensions with 0/5/10 anchors
 4. **Adversarial Validation** — Tests rubric against sample file (if provided)
 
+**Output:** Display the generated rubric inline as a markdown table (dimensions, 0/5/10 anchors, what each measures). Then ask:
+
+```
+AskUserQuestion:
+  Q1: "What would you like to do with this rubric?"
+      header: "Rubric Output"
+      options:
+        - "Save to file" → write to `.claude/rubrics/<domain>.md` and confirm path
+        - "Use it now — start optimizing" → transition to loop mode with this rubric
+        - "Just reviewing — done for now" → end
+```
+
 ### Config
 
 **When:** User wants to adjust settings ("change the confidence threshold", "show my optimize settings").
 
-Full schema and validation: [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md)
+**How it works:**
+1. Settings are stored in `.claude/optimize-config.json` at the project root
+2. If the file doesn't exist, use defaults (verification: enabled, confidence threshold: 6.0, auto-approve: false)
+3. When the user asks to change a setting, validate the value against [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md), then update the JSON file
+4. When the user asks to see settings, read the file and display current values in a readable format
 
-### Status
-
-**When:** User wants to see history ("show optimization history", "how did the last run go?").
-
-Shows the last 10 cycles (or 30 days). Displays per-domain metrics and trends.
+**Integration with other phases:** At the start of any optimization cycle, read `.claude/optimize-config.json` (if it exists) and apply the settings. For example, if `verification` is `enabled`, automatically run verification during the approve step. If a domain-specific override exists for the current target's domain, use those values instead of the globals.
 
 ---
 
@@ -499,11 +563,21 @@ Shows the last 10 cycles (or 30 days). Displays per-domain metrics and trends.
 - **Human approval required** — Approval gate every cycle by default
 - **No auto-commit** — Changes are applied to files but not committed unless the user asks
 - **Verification optional** — Multi-LLM verification available on request
-- **Dry-run available** — Say "show me what would change" to preview without applying
 - **Reversible** — If changes were committed, easy to revert with git
 - **Measurable** — Always shows before/after metrics
 
 ---
+
+## Context Window Management
+
+**Maximum file size:** If the target file exceeds ~800 lines or ~30KB, do not load the entire file into the subagent prompt. Instead:
+1. Read the file in chunks, focusing on sections relevant to the rubric dimensions
+2. For discover: summarize each section and note line ranges, then evaluate
+3. For apply: edit specific line ranges rather than rewriting the entire file
+
+**Multiple files (domain mode):** When a domain template collects many files, process them in batches of 5-10 files per subagent call. Prioritize files with the most issues.
+
+**Subagent prompt size:** Keep subagent prompts under 50K tokens total (file content + rubric + instructions). If the content is larger, summarize or split across multiple calls.
 
 ## State Between Sessions
 
@@ -518,13 +592,6 @@ Shows the last 10 cycles (or 30 days). Displays per-domain metrics and trends.
 Full error catalog with recovery steps: [ERROR_HANDLING.md](references/ERROR_HANDLING.md)
 
 ---
-
-## Related Skills
-
-- `/task` — Save work between sessions
-- `/implement` — Larger implementation projects
-- `/doc` — Create and manage documents
-- `/skill-dev` — Test and validate skills
 
 ## References
 
