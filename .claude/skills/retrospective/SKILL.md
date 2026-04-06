@@ -25,6 +25,8 @@ This skill operates in two modes based on arguments:
 | Args contain feedback (a statement, preference, or correction) | **Direct Feedback** | Classify, route, and apply the feedback |
 | No args, or args are a question (e.g., "what did we learn?") | **Conversation Review** | Scan the conversation for learnings |
 
+**Ambiguous input fallback:** If the args don't clearly fit either mode (e.g., "/retrospective I wonder if we should use pnpm"), treat as **Direct Feedback** — it's safer to propose a concrete change the user can reject than to scan the conversation and miss the hint.
+
 ## Direct Feedback Mode
 
 When the user provides feedback directly (e.g., `/retrospective always use pnpm` or `/retrospective the commit skill should not use emojis`):
@@ -41,10 +43,15 @@ When the user provides feedback directly (e.g., `/retrospective always use pnpm`
    | Is it personal to this user? | Yes | [MEMORY_CAPTURE](references/MEMORY_CAPTURE.md) |
    | Is it temporary project context? | Yes | [MEMORY_CAPTURE](references/MEMORY_CAPTURE.md) |
    | Is it a pointer to an external system? | Yes | [MEMORY_CAPTURE](references/MEMORY_CAPTURE.md) |
+   | None of the above match? | — | Ask the user to clarify what they'd like to change and where it should be saved |
 
 3. **Propose** the change using the template for the matched route
 4. **Wait for approval** before applying
+   - If approved: proceed to step 5
+   - If rejected: acknowledge and stop — do not offer alternatives or re-route unless the user provides new direction
+   - If the user suggests a modification: incorporate their feedback, re-propose once
 5. **Apply** following the matched route's save/update process
+6. **If apply fails** (file not found, edit conflict, validation error): show the error, suggest the user check the target path or resolve conflicts manually, and do not retry automatically
 
 ### Ambiguous Feedback
 
@@ -65,6 +72,8 @@ When no direct feedback is provided, review the current conversation for potenti
 
 ### Check For
 
+Check in this order (but collect **all** matches — unlike Direct Feedback, multiple categories can fire from one conversation):
+
 1. **Skill corrections** - A skill was used but needed adjustment
    -> Follow [SKILL_IMPROVEMENT](references/SKILL_IMPROVEMENT.md)
    -> If the correction is also cross-cutting, apply both routes (see "Dual-Route Learnings" in SKILL_IMPROVEMENT)
@@ -83,6 +92,8 @@ When no direct feedback is provided, review the current conversation for potenti
    -> Route to the skill that owns the command ([SKILL_IMPROVEMENT](references/SKILL_IMPROVEMENT.md))
 
 ## Multiple Learnings
+
+Applies to **both** modes — Direct Feedback can contain compound statements, and Conversation Review naturally surfaces multiple items.
 
 When a conversation contains more than one learning:
 
@@ -144,7 +155,7 @@ User: No, we use pnpm in this project, not npm
 User: /retrospective
 Agent: I noticed a general preference:
        **Package manager**: This project uses pnpm, not npm.
-       I'll save this to the project CLAUDE.md.
+       I'll add this to the root `CLAUDE.md` (environment fact).
 ```
 
 ### After a Personal Preference or Project Context (Memory Capture)
@@ -200,7 +211,7 @@ Agent: I noticed a general preference:
 
        **Run tests before push**: Always run the test suite before pushing to main.
 
-       I'll add this to the project CLAUDE.md. Proceed?
+       I'll add this to `.claude/CLAUDE.md` (behavioral rule). Proceed?
 ```
 
 ### Direct Feedback: Personal / Memory

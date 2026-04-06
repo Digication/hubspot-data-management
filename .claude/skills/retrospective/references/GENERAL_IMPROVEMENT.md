@@ -1,6 +1,6 @@
 # General Improvement Protocol
 
-> Capture cross-cutting preferences in the project root `CLAUDE.md`.
+> Capture cross-cutting preferences in the appropriate `CLAUDE.md` — use root `CLAUDE.md` for environment facts (package manager, language, dev setup) and `.claude/CLAUDE.md` for behavioral rules (workflow patterns, style preferences). See the "CLAUDE.md File Roles" section in `.claude/CLAUDE.md` for guidance.
 
 ## When This Applies
 
@@ -33,18 +33,21 @@ I noticed a general preference:
 
 **[Preference Title]**: [Description of preference and correct usage].
 
-I'll add this to the project CLAUDE.md. Proceed?
+I'll add this to `[root CLAUDE.md or .claude/CLAUDE.md]`. Proceed?
 ```
 
 ## Save Process
 
-1. Check if `CLAUDE.md` exists at the project root
-2. **Search for duplicates** — before proposing, scan existing `CLAUDE.md` content for:
+1. **Determine target file** — classify the preference:
+   - Environment facts (package manager, language, dev setup) → root `CLAUDE.md`
+   - Behavioral rules (workflow patterns, style preferences) → `.claude/CLAUDE.md`
+2. Check if the target file exists
+3. **Search for duplicates** — scan **both** `CLAUDE.md` files for:
    - **Exact match**: same rule already stated → inform user ("This is already in CLAUDE.md: [quote]") and skip
    - **Semantic match**: same intent, different wording → inform user and skip (or offer to consolidate)
    - **Contradiction**: opposite instruction exists → surface both versions, ask which to keep
-3. If not found (and no contradiction), propose the addition with section, content, and reason
-4. Ask for approval before applying
+4. If not found (and no contradiction), propose the addition with section, content, and reason
+5. Ask for approval before applying
 
 ### Example Project CLAUDE.md Structure
 
