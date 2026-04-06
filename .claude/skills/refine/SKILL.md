@@ -287,6 +287,8 @@ Classify the target audience (first match wins):
 
 Show classification and confirm before proceeding. Audience shapes the entire rubric.
 
+**Domain adapter auto-activation:** When audience is "developer" AND the target file has a code extension (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`), automatically activate the `code-quality` domain adapter from [DOMAIN_ADAPTERS.md](references/DOMAIN_ADAPTERS.md). This overrides generic rubric generation and uses the code-specific dimensions (Type Safety, Error Handling, Separation of Concerns, etc.) which produce better proposals than the generic clarity/completeness rubric.
+
 #### Step 3 — Rubric Selection
 
 Priority order:
@@ -539,6 +541,8 @@ AFTER:  Clarity 8/10, Completeness 7/10, Accuracy 6/10 — Avg 7.0/10 (+75%)
 **Convergence:** 0 HIGH or MEDIUM issues. LOW doesn't block convergence. Human's "good enough" always overrides metrics.
 
 **Score variation note (first cycle, medium+ verbosity):** "Each evaluation uses a fresh, independent agent. Scores may vary ±0.5–1.0 between steps — the delta within a cycle is more meaningful than absolute scores across cycles."
+
+**Ceiling noise rule:** When the baseline or prior cycle average is ≥ 8.0, treat score deltas within ±1.0 as measurement noise. Do not report these as regressions or improvements — instead note: "Scores within measurement noise — artifact is at quality ceiling for this rubric." This prevents false regression alerts on already-good artifacts and avoids over-refining.
 
 ---
 

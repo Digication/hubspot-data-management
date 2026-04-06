@@ -89,6 +89,58 @@ glob patterns:
 
 **Apply strategy:** per-file.
 
+### code-quality
+
+**Description:** Source code files — functions, modules, services. Evaluates implementation quality, not just correctness.
+
+**Audience:** Developer (maintainer)
+
+**Risk level:** MEDIUM
+
+**Collection:**
+```
+glob patterns:
+  - src/**/*.ts
+  - src/**/*.js
+  - src/**/*.py
+  - src/**/*.go
+  - lib/**/*.ts
+  - packages/**/*.ts
+```
+
+**Auto-activation:** When the target file has a code extension (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`) AND audience is detected as "developer", activate this adapter automatically. This overrides the generic rubric generation.
+
+**Rubric (7 dimensions):**
+
+| Dimension | 0/10 | 5/10 | 10/10 |
+|---|---|---|---|
+| Type Safety | `any` everywhere, no interfaces | Some types but holes remain (`any` in key spots) | Full type coverage, interfaces for all boundaries, generics where appropriate |
+| Error Handling | No try/catch, errors swallowed silently | Happy path handled, some catch blocks with generic messages | All failure modes handled, specific error types, errors propagated with context |
+| Separation of Concerns | Everything in one function (validation + logic + I/O + formatting) | Some extraction but business logic mixed with transport | Clean layers: validation, business logic, data access, and formatting separated |
+| Naming & Readability | Single-letter vars (`u`, `e`), magic numbers, no comments on complex logic | Descriptive names but verbose or inconsistent | Clear idiomatic names, self-documenting code, comments only where logic isn't obvious |
+| Input Validation | No validation, trusts all input | Validates presence (null checks) | Validates presence, type, format, and range at system boundaries |
+| Security | SQL injection, unescaped output, hardcoded secrets | Parameterized queries, basic sanitization | Parameterized queries, output escaping, no secrets in code, principle of least privilege |
+| Testability | Tightly coupled, global state, side effects everywhere | Can test with extensive mocking | Pure functions, dependency injection, side effects at edges |
+
+**Pre-checks:**
+
+| Check | Tool | Severity |
+|---|---|---|
+| Syntax validation | `Bash`: `node --check <file>` (JS/TS), `python -m py_compile <file>` (Python) | FAIL → HIGH |
+| `any` type count | `Grep` for `: any` or `as any` in target | Count > 5 → WARN |
+| TODO/FIXME count | `Grep` for `TODO\|FIXME\|HACK` in target | Count > 0 → INFO |
+| `console.log` in non-debug code | `Grep` for `console\.log` in target | Count > 0 → WARN |
+| Loose equality | `Grep` for `[^=!]==[^=]` in target (JS/TS only) | Count > 0 → WARN |
+| SQL string concatenation | `Grep` for `['"\`] *\+.*query\|query.*\+ *['"\`]` in target | Count > 0 → HIGH |
+
+**Apply strategy:** whole-file (code changes are interdependent — a type change in one place ripples to others).
+
+**Proposal guidelines for code:**
+- Always show the complete function/block being changed, not just the modified lines
+- When proposing type additions, include the interface/type definitions
+- When extracting functions, show both the extracted function and the updated call site
+- Prefer structural proposals (rewrite a function) over scattered line edits
+
 ### skill-files
 
 **Description:** Claude Code skill files (SKILL.md) — instructions for AI agents.
