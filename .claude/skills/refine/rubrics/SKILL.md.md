@@ -15,6 +15,9 @@ last_used: 2026-04-06
 | Human Interaction Design | "Ask the user" with no format | Some AskUserQuestion examples | Every touchpoint with exact prompt format and options |
 | Structural Efficiency | Massive duplication, bloated | Some overlap between inline and references | Each concept once, references for details, no redundancy |
 
+## Known Context
+(No annotations captured yet)
+
 ## Score History
 | Date | Unambiguity | Completeness | Phase Seq | Error Recovery | Tool Usage | Human Interaction | Structural Eff | Avg | Cycles |
 |---|---|---|---|---|---|---|---|---|---|

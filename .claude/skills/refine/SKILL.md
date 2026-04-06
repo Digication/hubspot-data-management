@@ -21,7 +21,7 @@ Loop (repeats until convergence)
 
 Creation and improvement are the same process at different starting points.
 
-Best practices for conversational UI: [CONVERSATIONAL_UI.md](../optimize/references/CONVERSATIONAL_UI.md)
+Best practices for conversational UI: [CONVERSATIONAL_UI.md](references/CONVERSATIONAL_UI.md)
 
 ---
 
@@ -291,11 +291,18 @@ Show classification and confirm before proceeding. Audience shapes the entire ru
 
 #### Step 3 — Rubric Selection
 
+**Rubric storage path** — determined by the target file's location:
+
+| Target file location | Rubric path | Rationale |
+|---|---|---|
+| `.claude/skills/<skill>/...` | `.claude/skills/<skill>/rubrics/<target-filename>.md` | Quality contract ships with the skill |
+| Anywhere else | `.claude/rubrics/<target-filename>.md` | Project-level, skill-agnostic |
+
 Priority order:
 1. **User-provided rubric** — validate format (dimensions with 0/5/10 anchors)
-2. **Persisted rubric** — check `.claude/rubrics/<target-filename>.md`. Offer: reuse / adjust / start fresh
+2. **Persisted rubric** — check the storage path above. Offer: reuse / adjust / start fresh
 3. **Domain template** — if a domain adapter is active, use its rubric
-4. **Generate fresh** — use the [Rubric Generation Protocol](../optimize/references/RUBRIC_PROTOCOL.md)
+4. **Generate fresh** — use the [Rubric Generation Protocol](references/RUBRIC_PROTOCOL.md)
 
 #### Step 4 — LLM Evaluation
 
@@ -408,7 +415,7 @@ Produces a confidence score (0-10) per proposal.
 
 **For auto-approve decisions:** Use multi-round deliberation instead of single-pass. Perspectives examine each other's concerns, concede or defend, produce a rationale.
 
-Full details: [VERIFICATION.md](../optimize/references/VERIFICATION.md)
+Full details: [VERIFICATION.md](references/VERIFICATION.md)
 
 ---
 
@@ -675,14 +682,14 @@ Run discover + analyze, show proposals, stop.
 ### Rubric
 
 **When:** "Generate a rubric for X"
-Run the [Rubric Generation Protocol](../optimize/references/RUBRIC_PROTOCOL.md): Stakeholder Analysis → Failure Mode Analysis → Dimension Selection → Adversarial Validation.
+Run the [Rubric Generation Protocol](references/RUBRIC_PROTOCOL.md): Stakeholder Analysis → Failure Mode Analysis → Dimension Selection → Adversarial Validation.
 
 Output rubric as markdown table, then:
 ```
 AskUserQuestion:
   Q1: "What would you like to do with this rubric?"
       options:
-        - "Save to file" → write to .claude/rubrics/<domain>.md
+        - "Save to file" → write to rubric storage path (see Rubric Selection)
         - "Use it now — start refining" → transition to loop
         - "Done for now"
 ```
@@ -776,7 +783,11 @@ Timestamp format: `YYYYMMDD'T'HHmmss'Z'` (UTC).
 
 ### Across Sessions
 
-Rubrics and score history persist to `.claude/rubrics/<target-filename>.md`:
+Rubrics persist to the path determined by Rubric Selection (Step 3):
+- **Skill files** → `.claude/skills/<skill>/rubrics/<target-filename>.md`
+- **Other files** → `.claude/rubrics/<target-filename>.md`
+
+Both locations are git-tracked — rubrics contain human-curated quality standards, not ephemeral output.
 
 ```markdown
 ---
@@ -790,13 +801,25 @@ last_used: 2026-04-06
 |---|---|---|---|
 | Clarity | ... | ... | ... |
 
+## Known Context
+Accumulated domain knowledge from Resonance captures. Persisted across sessions.
+- [factual] Auth service uses client_assertion for legacy tokens
+- [constraint] Feature X is deprecated — do not reference
+- [preference] Team prefers concise over thorough
+
 ## Score History
 | Date | Clarity | Completeness | ... | Avg | Cycles |
 |---|---|---|---|---|---|
 | 2026-04-06 | 5→9 | 4→8 | ... | 4.8→8.5 | 3 |
 ```
 
-Session data (proposals, reports, annotations) lives in `./tmp/<topic>-<UTC_TIMESTAMP>/`.
+**Known Context rules:**
+- After each session, persist unresolved **factual** and **constraint** annotations from `context-annotations.json` into the rubric's Known Context section
+- **Preference** annotations → persist only if confirmed across 2+ cycles
+- On rubric reuse, feed Known Context into the Discover evaluator prompt as prior knowledge
+- Prune entries that contradict the current artifact content (domain knowledge can become stale)
+
+Session data (proposals, reports, full annotations) lives in `./tmp/<topic>-<UTC_TIMESTAMP>/`.
 
 ---
 
@@ -859,6 +882,6 @@ See [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md) for full schema and validati
 - [PROGRESSIVE_AUTONOMY.md](references/PROGRESSIVE_AUTONOMY.md) — Role tracking, transitions, per-phase behavior
 - [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md) — Configuration schema and validation
 - [DOMAIN_ADAPTERS.md](references/DOMAIN_ADAPTERS.md) — Domain sweep configuration and collection methods
-- [RUBRIC_PROTOCOL.md](../optimize/references/RUBRIC_PROTOCOL.md) — 4-step rubric generation protocol (shared)
-- [VERIFICATION.md](../optimize/references/VERIFICATION.md) — Multi-perspective verification (shared)
-- [CONVERSATIONAL_UI.md](../optimize/references/CONVERSATIONAL_UI.md) — Conversational UI patterns (shared)
+- [RUBRIC_PROTOCOL.md](references/RUBRIC_PROTOCOL.md) — 4-step rubric generation protocol
+- [VERIFICATION.md](references/VERIFICATION.md) — Multi-perspective verification
+- [CONVERSATIONAL_UI.md](references/CONVERSATIONAL_UI.md) — Conversational UI patterns

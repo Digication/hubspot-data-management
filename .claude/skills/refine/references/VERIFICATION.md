@@ -6,7 +6,7 @@ Optional verification layer that validates proposals before human approval. Uses
 
 1. Each proposal is evaluated by three independent "personas" (different analysis perspectives)
 2. Each persona scores the proposal and flags concerns
-3. Results are synthesized into a single confidence score (0–10)
+3. Results are synthesized into a single confidence score (0-10)
 4. The confidence score helps the human decide: approve, reject, or modify
 
 ## Implementation
@@ -15,7 +15,7 @@ Run all three personas in a **single prompt** within the main conversation model
 
 1. Provide the proposal text and the target file context
 2. Instruct the model to evaluate the proposal from each persona's perspective **in sequence**, producing a separate section per persona with:
-   - A score (0–10)
+   - A score (0-10)
    - A list of concerns (or "none")
    - A one-line recommendation (approve / caution / reject)
 3. After all three persona sections, instruct the model to produce a **Synthesis** section that averages the three scores and resolves any conflicting recommendations
@@ -50,9 +50,9 @@ The synthesis step combines all three persona scores:
 
 | Score | Label | Meaning |
 |---|---|---|
-| 8.0–10.0 | HIGH CONFIDENCE | All personas agree — safe to approve |
-| 5.0–7.9 | MODERATE | Some concerns — review carefully |
-| 0.0–4.9 | LOW CONFIDENCE | Significant issues — consider rejecting or modifying |
+| 8.0-10.0 | HIGH CONFIDENCE | All personas agree — safe to approve |
+| 5.0-7.9 | MODERATE | Some concerns — review carefully |
+| 0.0-4.9 | LOW CONFIDENCE | Significant issues — consider rejecting or modifying |
 
 ## When to Use Verification
 
@@ -71,18 +71,18 @@ PROPOSAL: Add Docker prerequisites to README
 DEVIL'S ADVOCATE REVIEW
 - Issues found: 0
 - Severity: None
-- Recommendation: ✅ No critical flaws
+- Recommendation: No critical flaws
 
 CONSERVATIVE REVIEW
 - Risk level: Minimal (docs only)
 - Backwards compatible: Yes
-- Recommendation: ✅ Safe to apply
+- Recommendation: Safe to apply
 
 PRAGMATIST REVIEW
 - Effort: 5 minutes
 - ROI: High (saves users 20 minutes each)
 - Feasibility: Easy
-- Recommendation: ✅ Worth doing
+- Recommendation: Worth doing
 
 SYNTHESIS
 - Confidence score: 8.7/10
@@ -106,7 +106,7 @@ By default, all three personas run. The user can ask for a specific subset.
 
 ## Standalone Usage
 
-Verification can also be used independently (outside the full optimization loop). Examples of what a user might say:
+Verification can also be used independently (outside the full refinement loop). Examples of what a user might say:
 - "verify this proposal: Add Docker prerequisites to README"
 - "run a conservative review on my proposals"
 - "check these proposals with the devil's advocate persona"

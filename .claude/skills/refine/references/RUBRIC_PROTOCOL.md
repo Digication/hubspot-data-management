@@ -80,7 +80,7 @@ From Steps 1-2, you'll have a list of candidate dimensions. Select **5-7 dimensi
 Test the rubric before using it in production.
 
 1. Take a **deliberately bad test case** from the target domain
-2. Run the optimize cycle (discover → analyze → apply) using your new rubric
+2. Run the refinement cycle (discover → analyze → apply) using your new rubric
 3. After apply, ask these challenge questions:
    - "What improvements would a domain expert make that the rubric didn't prompt?"
    - "What stakeholder from Step 1 would still be unhappy with the output?"

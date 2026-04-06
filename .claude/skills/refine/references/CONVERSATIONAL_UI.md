@@ -1,6 +1,6 @@
 # Conversational UI for Skills
 
-> **Purpose:** Reference note for applying conversational UI patterns to any skill. The `/optimize` skill was the first to adopt this approach — use it as a reference implementation.
+> **Purpose:** Reference note for applying conversational UI patterns to any skill. The `/refine` skill uses this approach — see its "Entry Point" and "Interview" sections as a reference implementation.
 
 ## The Problem
 
@@ -10,7 +10,7 @@ Skills that use CLI-style parameters (`--target`, `--verify`, `--proposals`) cre
 
 Instead of parsing flags, the skill should:
 
-1. **Infer from natural language** — "optimize my README" → target is README.md, mode is loop
+1. **Infer from natural language** — "refine my README" → target is README.md, mode is loop
 2. **Interview when ambiguous** — Use `AskUserQuestion` prompts (not inline text questions) to clarify intent
 3. **Smart skip** — When intent is obvious, skip the interview and confirm defaults in one short prompt
 4. **Respect user profile** — Read `.claude/user-context.md` for tier and purpose; adjust verbosity and ceremony accordingly
@@ -26,9 +26,9 @@ Instead of parsing flags, the skill should:
 
 | Before (parameters) | After (conversational) |
 |---|---|
-| `/optimize loop --target=README.md --max-cycles=3 --verbose` | "optimize README.md" → interview fills in the rest |
-| `/optimize approve --verify --threshold=7` | Interview asks: "Want extra verification?" |
-| `/optimize discover --domain=error-messages` | "check our error messages" → skill infers domain |
+| `/refine loop --target=README.md --max-cycles=3 --verbose` | "refine README.md" → interview fills in the rest |
+| `/refine approve --verify --threshold=7` | Interview asks: "Want extra verification?" |
+| `/refine discover --domain=error-messages` | "check our error messages" → skill infers domain |
 
 ## Applying to Other Skills
 
@@ -42,4 +42,4 @@ When updating a skill to use conversational UI:
 
 ## Reference Implementation
 
-See `/optimize` SKILL.md — specifically the "Entry Point" and "Interview" sections.
+See `/refine` SKILL.md — specifically the "Entry Point" and "Interview" sections.

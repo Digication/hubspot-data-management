@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refine Report — {{TOPIC}}</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --blue: #0369a1;
+    --blue-light: #e0f2fe;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --green: #15803d;
+    --green-light: #dcfce7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --teal: #0d9488;
+    --teal-light: #ccfbf1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.2rem; margin: 2rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+  h3 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
+  p { margin: 0.5rem 0; line-height: 1.5; }
+  .meta { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+  .tab { padding: 0.75rem 1.5rem; cursor: pointer; font-weight: 600; font-size: 0.9375rem; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; user-select: none; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Score hero */
+  .score-hero { display: flex; gap: 2rem; align-items: center; padding: 1.5rem; background: var(--card); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem; flex-wrap: wrap; }
+  .score-big { font-size: 3rem; font-weight: 800; color: var(--purple); }
+  .score-arrow { font-size: 2rem; color: var(--muted); }
+  .score-delta { display: inline-block; background: var(--green-light); color: var(--green); padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 700; font-size: 0.875rem; margin-left: 0.5rem; }
+
+  /* Cycle cards */
+  .cycles { display: grid; gap: 1rem; }
+  .cycle-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+  .cycle-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+  .cycle-label { font-weight: 700; font-size: 1rem; }
+  .cycle-score { font-weight: 700; color: var(--purple); }
+  .cycle-bar { height: 8px; background: var(--purple-light); border-radius: 4px; overflow: hidden; margin-bottom: 0.75rem; }
+  .cycle-bar-fill { height: 100%; background: var(--purple); border-radius: 4px; }
+  .cycle-stats { display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--muted); flex-wrap: wrap; }
+  .cycle-role { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--blue-light); color: var(--blue); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.875rem; }
+  th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 600; }
+  td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+  .badge-high { background: var(--red-light); color: var(--red); }
+  .badge-medium { background: var(--amber-light); color: var(--amber); }
+  .badge-low { background: #f1f5f9; color: var(--muted); }
+  .badge-approved { background: var(--green-light); color: var(--green); }
+  .badge-rejected { background: var(--red-light); color: var(--red); }
+  .badge-modified { background: var(--amber-light); color: var(--amber); }
+
+  /* Before/after diffs */
+  .diff { margin: 0.5rem 0; }
+  .diff-before, .diff-after { padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8125rem; font-family: 'SF Mono', 'Fira Code', monospace; white-space: pre-wrap; word-break: break-word; }
+  .diff-before { background: var(--red-light); border-left: 3px solid var(--red); }
+  .diff-after { background: var(--green-light); border-left: 3px solid var(--green); margin-top: 0.25rem; }
+
+  /* Context annotations */
+  .annotation { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin: 0.5rem 0; }
+  .annotation-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+  .annotation-type { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .annotation-type-factual { background: var(--teal-light); color: var(--teal); }
+  .annotation-type-constraint { background: var(--red-light); color: var(--red); }
+  .annotation-type-preference { background: var(--purple-light); color: var(--purple); }
+  .annotation-cycle { font-size: 0.75rem; color: var(--muted); }
+  .annotation-content { font-size: 0.8125rem; color: var(--text); line-height: 1.4; }
+  .annotation-resolved { opacity: 0.5; text-decoration: line-through; }
+
+  /* Role transitions */
+  .role-timeline { display: flex; align-items: center; gap: 0; margin: 1rem 0; flex-wrap: wrap; }
+  .role-node { display: flex; flex-direction: column; align-items: center; padding: 0.5rem 1rem; }
+  .role-name { font-weight: 700; font-size: 0.875rem; }
+  .role-cycles { font-size: 0.75rem; color: var(--muted); }
+  .role-connector { width: 2rem; height: 2px; background: var(--border); flex-shrink: 0; }
+  .role-connector-arrow { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+
+  /* Chart container */
+  .chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; }
+  .chart-container svg { width: 100%; height: auto; }
+
+  /* Collapsible details */
+  details { margin: 0.5rem 0; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 0.875rem; color: var(--blue); padding: 0.25rem 0; }
+  details[open] summary { margin-bottom: 0.5rem; }
+
+  /* How It Works section */
+  .how-section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .how-section h3 { margin-top: 0; }
+  .how-section p { color: var(--muted); font-size: 0.875rem; }
+  .loop-diagram { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; margin: 1rem 0; }
+  .loop-step { background: var(--purple-light); color: var(--purple); padding: 0.5rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.8125rem; text-align: center; }
+  .loop-step-resonance { background: var(--teal-light); color: var(--teal); }
+  .loop-arrow { color: var(--muted); font-size: 1rem; flex-shrink: 0; }
+
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Refine Report — {{TOPIC}}</h1>
+<p class="meta">Generated {{DATE}} · {{TOTAL_CYCLES}} cycles · Target: <code>{{TARGET_FILE}}</code></p>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('results')">Results</div>
+  <div class="tab" onclick="switchTab('context')">Context Expansion</div>
+  <div class="tab" onclick="switchTab('how-it-works')">How It Works</div>
+</div>
+
+<!-- ==================== TAB 1: RESULTS ==================== -->
+<div class="tab-content active" id="tab-results">
+
+  <!-- Score Hero -->
+  <div class="score-hero">
+    <div class="score-big">{{SCORE_BEFORE}}</div>
+    <div class="score-arrow">&rarr;</div>
+    <div class="score-big">{{SCORE_AFTER}}</div>
+    <div>
+      <span class="score-delta">+{{SCORE_DELTA_PCT}}%</span>
+      <br><span style="color:var(--muted); font-size:0.875rem">{{TOTAL_PROPOSALS}} proposals across {{TOTAL_CYCLES}} cycles</span>
+    </div>
+  </div>
+
+  <!-- Score Progression Chart -->
+  <div class="chart-container" id="score-chart">
+    {{SCORE_CHART_SVG}}
+  </div>
+
+  <!-- Role Transitions -->
+  <h2>Autonomy Progression</h2>
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:0.75rem;">Your involvement level adjusted as alignment was demonstrated across cycles.</p>
+  {{ROLE_TRANSITIONS}}
+
+  <!-- Cycle Summaries -->
+  <h2>Cycles</h2>
+  <div class="cycles" id="cycles">
+    {{CYCLE_CARDS}}
+  </div>
+
+  <!-- Proposals & Decisions -->
+  <h2>Proposals &amp; Decisions</h2>
+  {{PROPOSAL_TABLES}}
+
+  <!-- Rubric Definition -->
+  <h2>Rubric</h2>
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:0.75rem;">The scoring criteria used to evaluate and improve the target file. Generated during the first Discover phase and confirmed by the user.</p>
+  <table>
+    <tr><th>Dimension</th><th>What it measures</th><th>0 (worst)</th><th>10 (best)</th></tr>
+    {{RUBRIC_DEFINITION}}
+  </table>
+
+  <!-- Rubric Scores Before & After -->
+  <h2>Rubric Scores — Before &amp; After</h2>
+  <table>
+    <tr><th>Dimension</th><th>Before</th><th>After</th><th>Delta</th></tr>
+    {{RUBRIC_ROWS}}
+  </table>
+
+</div>
+
+<!-- ==================== TAB 2: CONTEXT EXPANSION ==================== -->
+<div class="tab-content" id="tab-context">
+
+  <h2>Context Expansion via Resonance</h2>
+  <p style="color:var(--muted);font-size:0.875rem;margin-bottom:1rem;">Each time you reviewed a proposal, your corrections and comments surfaced new information that wasn't available at the start. This context accumulated across cycles, making each round of proposals more accurate than the last.</p>
+
+  {{CONTEXT_EXPANSION_SUMMARY}}
+
+</div>
+
+<!-- ==================== TAB 3: HOW IT WORKS ==================== -->
+<div class="tab-content" id="tab-how-it-works">
+
+  <h2>How Iterative Refinement Works</h2>
+  <p>These sections explain the process that produced the results on the first tab.</p>
+
+  <!-- The Loop -->
+  <div class="how-section">
+    <h3>The Refinement Loop</h3>
+    <p>Each cycle runs seven phases. The key insight: the Approve phase doesn't just filter proposals &mdash; it captures new context from your reactions, which feeds into the next cycle's evaluation.</p>
+    <div class="loop-diagram">
+      <div class="loop-step">Discover</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step">Analyze</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step">Verify</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step loop-step-resonance">Approve + Capture</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step">Apply</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step">Measure</div>
+      <div class="loop-arrow">&rarr;</div>
+      <div class="loop-step">Reflect</div>
+    </div>
+  </div>
+
+  <!-- Resonance -->
+  <div class="how-section">
+    <h3>The Resonance Mechanism</h3>
+    <p>The most effective way to surface what a person knows is not to ask them, but to show them something concrete and let them react. When the AI is specifically wrong in a domain the human knows, the mismatch activates deep recall.</p>
+    <p style="margin-top:0.75rem;">This is why the system shows concrete before/after proposals instead of asking open-ended questions. Your corrections carry far more information than unprompted answers &mdash; each "no, actually..." reveals constraints, facts, and preferences that improve subsequent cycles.</p>
+    <p style="margin-top:0.75rem;">Context annotations are classified as:</p>
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;">
+      <span class="annotation-type annotation-type-factual">Factual</span>
+      <span style="font-size:0.8125rem;color:var(--muted);">Domain knowledge surfaced by corrections</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.375rem;flex-wrap:wrap;">
+      <span class="annotation-type annotation-type-constraint">Constraint</span>
+      <span style="font-size:0.8125rem;color:var(--muted);">Boundaries and limitations revealed by rejections</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.375rem;flex-wrap:wrap;">
+      <span class="annotation-type annotation-type-preference">Preference</span>
+      <span style="font-size:0.8125rem;color:var(--muted);">Style and tone signals from modifications</span>
+    </div>
+  </div>
+
+  <!-- Progressive Autonomy -->
+  <div class="how-section">
+    <h3>Progressive Autonomy</h3>
+    <p>Your involvement level adjusts based on demonstrated alignment. When your approvals consistently match the system's recommendations, it gradually takes on more routine decisions &mdash; escalating only what matters.</p>
+    <table style="margin-top:0.75rem;">
+      <tr><th>Role</th><th>You review</th><th>Auto-handled</th></tr>
+      <tr><td><strong>Reviewer</strong></td><td>Everything</td><td>Nothing</td></tr>
+      <tr><td><strong>Supervisor</strong></td><td>HIGH severity</td><td>LOW + MEDIUM proposals</td></tr>
+      <tr><td><strong>Director</strong></td><td>Regressions only</td><td>All proposals (with notification)</td></tr>
+    </table>
+    <p style="margin-top:0.5rem;">You can always type "review" to drop back to Reviewer for any cycle.</p>
+  </div>
+
+  <!-- Score Variation -->
+  <div class="how-section">
+    <h3>Why Scores Vary Between Steps</h3>
+    <p>Each Discover and Measure phase uses a fresh, independent evaluator &mdash; like two different reviewers grading the same work. Scores may vary &plusmn;0.5&ndash;1.0 points between phases. The important number is the <strong>delta within each cycle</strong>, not the absolute score between cycles. When scores are &ge;8.0, deltas within &plusmn;1.0 are treated as measurement noise.</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  Generated by <code>/refine</code> &middot; Claude Code
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tabs .tab');
+  const map = { 'results': 0, 'context': 1, 'how-it-works': 2 };
+  if (map[tab] !== undefined) {
+    tabs[map[tab]].classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>
