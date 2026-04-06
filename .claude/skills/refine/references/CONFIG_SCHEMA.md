@@ -14,7 +14,8 @@ Settings for the Refine skill, stored at `.claude/refine-config.json`.
   "auto_approve_after_cycle": null,
   "default_max_cycles": 3,
   "default_verbosity": "short | medium | detailed",
-  "progressive_autonomy": true
+  "progressive_autonomy": true,
+  "codex_evaluator": "auto"
 }
 ```
 
@@ -74,6 +75,17 @@ Settings for the Refine skill, stored at `.claude/refine-config.json`.
 - **Default:** `true`
 - **Effect:** Controls whether the progressive autonomy system (Reviewer → Supervisor → Director transitions) is active. When false, the human stays as Reviewer for the entire session. Graduated auto-approve rules still apply independently.
 - **Validation:** Must be boolean.
+
+### codex_evaluator
+- **Type:** `"auto"` | `"enabled"` | `"disabled"`
+- **Default:** `"auto"`
+- **Effect:** Controls whether Codex CLI is used as a third evaluator (alongside 2 Opus subagents) in Discover and Measure phases. Codex provides model diversity — a GPT-based model evaluating alongside Claude reduces shared blindspots.
+  - `"auto"`: At the start of the first Discover phase, check for Codex CLI (`which codex`). If found, suggest using it. If not found, skip silently.
+  - `"enabled"`: Always use Codex. If Codex is not installed, warn and proceed with Opus-only evaluation.
+  - `"disabled"`: Never use Codex, don't check or suggest.
+- **Validation:** Must be one of the three string values.
+- **Invocation:** `codex exec --ephemeral --output-schema <schema> -o <output> -c 'sandbox_permissions=["disk-full-read-access"]' "<prompt>"` with 180s timeout.
+- **Failure behavior:** If Codex fails or times out, log a warning and proceed with Opus-only scores. Never block a session on Codex availability.
 
 ## Graduated Auto-Approve Evaluation
 

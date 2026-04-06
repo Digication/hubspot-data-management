@@ -324,6 +324,41 @@ If Opus is unavailable (Agent tool returns a model availability error), fall bac
 
 **Timeouts:** Set `timeout: 120000` (2 minutes) on each `Agent` call. If a subagent times out, retry once. If both attempts time out, fall back to the conversation model.
 
+#### Optional: Codex Evaluator (Model Diversity)
+
+When available, Codex CLI adds a **third evaluator from a different model family** (GPT-based), reducing shared blindspots inherent in same-model evaluation.
+
+**Detection (once per session, at start of first Discover):**
+```bash
+which codex && codex --version
+```
+
+**Behavior based on config `codex_evaluator`:**
+
+| Config value | Behavior |
+|---|---|
+| `"auto"` (default) | If Codex detected, suggest: "Codex CLI is available — use it as a third evaluator for model diversity? (Recommended)" |
+| `"enabled"` | Use Codex without asking. If not installed, warn and skip. |
+| `"disabled"` | Never use Codex, don't suggest. |
+
+**When enabled, spawn in parallel with the Opus subagents:**
+
+1. Write the evaluator prompt to `<output_dir>/evaluator-prompt.md` (already done — same file)
+2. Write a JSON output schema to `<output_dir>/codex-eval-schema.json` matching the expected evaluation format. **Critical:** OpenAI structured output requires `"additionalProperties": false` on every `"type": "object"` node in the schema — omitting this causes a 400 error.
+3. Spawn via `Bash`:
+```bash
+codex exec --ephemeral \
+  --output-schema <output_dir>/codex-eval-schema.json \
+  -o <output_dir>/codex-eval-result.json \
+  -c 'sandbox_permissions=["disk-full-read-access"]' \
+  "Read the evaluator prompt at <output_dir>/evaluator-prompt.md and the target file it references. Follow the instructions exactly. Output your evaluation in the specified JSON format. Do NOT modify any files."
+```
+4. Parse `<output_dir>/codex-eval-result.json` for scores and issues
+
+**Timeout:** 180s (Codex may be slower than Opus subagents). If it times out or fails, log a warning and proceed with Opus-only scores.
+
+**Score integration:** Average Codex scores into the evaluator pool alongside the 2 Opus scores. When reporting spread, note model source: "Codex scored [dimension] at X vs. Opus average Y — model diversity flagged a difference."
+
 Average scores per dimension and report spread. When spread exceeds 1.5 on any dimension, flag it: "Evaluators disagreed on [dimension] — consider manual review."
 
 **Issue deduplication:** Two issues are duplicates when BOTH: same rubric dimension AND same target region (same heading, same entity, or overlapping lines). Merge duplicates: keep higher severity, combine descriptions, note "flagged by N/M evaluators."
@@ -533,10 +568,10 @@ The **progressive autonomy** system can also trigger auto-approve based on the h
 
 **Purpose:** Quantify improvement with fresh evaluation.
 
-Spawn fresh Opus subagent(s) — new invocations, not reused from Discover.
+Spawn fresh Opus subagent(s) — new invocations, not reused from Discover. If Codex evaluator is enabled for this session, spawn it here too (same parallel pattern as Discover Step 4).
 
 1. Write evaluator prompt to `<output_dir>/measure-evaluator-prompt.md`
-2. Spawn 2-3 independent subagents (recommended for loop mode)
+2. Spawn 2-3 independent subagents (recommended for loop mode), plus Codex if enabled
 3. Score all dimensions from scratch (no anchoring to prior scores)
 4. Compare to baseline, report per-dimension deltas
 
@@ -780,6 +815,7 @@ Timestamp format: `YYYYMMDD'T'HHmmss'Z'` (UTC).
 | `cycle_scores` | Measure | Reflect, Stopping conditions |
 | `context_annotations` | Approve | Reflect, next Discover |
 | `role` | Progressive Autonomy | All phases (controls what's shown/asked) |
+| `codex_available` | Discover (first cycle) | Discover Step 4, Measure (controls whether Codex evaluator is spawned) |
 
 ### Across Sessions
 
@@ -837,7 +873,8 @@ Settings at `.claude/refine-config.json`:
   "auto_approve_after_cycle": null,
   "default_max_cycles": 3,
   "default_verbosity": "medium",
-  "progressive_autonomy": true
+  "progressive_autonomy": true,
+  "codex_evaluator": "auto"
 }
 ```
 
@@ -863,6 +900,8 @@ See [CONFIG_SCHEMA.md](references/CONFIG_SCHEMA.md) for full schema and validati
 | Error | Recovery |
 |---|---|
 | Subagent fails or times out | Retry once (timeout: 120s). Fall back to conversation model with quality warning. |
+| Codex CLI not found or fails | Log warning, proceed with Opus-only evaluation. Do not block the session. |
+| Codex schema validation error (400) | Likely missing `additionalProperties: false` in schema. Fix schema and retry once. If still failing, skip Codex. |
 | Git operation fails | `git status` fails: warn, skip dirty-check, proceed. Revert fails: show error, suggest manual `git checkout -- <file>`. |
 | Target file not found | Ask user to confirm path. |
 | Rubric file invalid | Offer to generate fresh. |
