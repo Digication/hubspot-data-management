@@ -1,7 +1,7 @@
 # How Refine Works: Common Scenarios
 
 **Date:** 2026-04-06
-**Companion docs:** [concept.md](concept.md) (theory), [skill-blueprint.md](skill-blueprint.md) (implementation spec), [use-cases.md](use-cases.md) (detailed walkthroughs)
+**Companion docs:** [concept.md](concept.md) (theory + implementation spec), [use-cases.md](use-cases.md) (detailed walkthroughs)
 
 ---
 

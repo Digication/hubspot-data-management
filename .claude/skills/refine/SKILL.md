@@ -194,47 +194,35 @@ When detailed, show a status line before each phase:
 
 ---
 
+## Session Initialization
+
+Before entering any phase, create the session's output directory:
+
+1. Derive `<topic>` from the target filename (e.g., `SKILL.md` → `skill-md`)
+2. Create `output_dir` at `./tmp/<topic>-<UTC_TIMESTAMP>/` (timestamp: `YYYYMMDD'T'HHmmss'Z'` UTC)
+3. All subsequent phases write artifacts (evaluator prompts, proposals, annotations, reports) to this directory
+
+This step runs once per session, immediately after the Interview/Smart Skip confirmation.
+
+---
+
 ## Phases
 
 ### Bootstrap: Creation From Nothing
 
-See [BOOTSTRAP.md](references/BOOTSTRAP.md) for detailed guidance.
+Full guidance: [BOOTSTRAP.md](references/BOOTSTRAP.md) (source of truth for Extract and Draft phases).
 
-#### Extract
+Bootstrap has two phases:
 
-Gather requirements through verification, not generation.
+1. **Extract** — Propose an outline, capture corrections. Keep to 1-2 rounds. If user provides a brain dump, skip to Draft.
+2. **Draft** — Generate a complete first artifact. Be intentionally specific, not cautiously vague — every paragraph should trigger "yes" or "no, actually..." from the human.
 
-1. Read available context: project structure, file path hints, user's stated goal
-2. Generate a **proposed outline**: "Based on [sources], here's what I think this needs — what's missing or wrong?"
-3. Present with `AskUserQuestion`:
-   ```
-   options:
-     - "Looks right, draft it (Recommended)"
-     - "Missing something" → capture additions, regenerate
-     - "Wrong direction" → ask what's off, regenerate
-   ```
-4. **Keep Extract to 1-2 rounds.** The goal isn't a perfect outline — it's a starting point concrete enough to trigger reactions in the draft review.
-5. **If the user provides a brain dump directly**, skip Extract — go straight to Draft.
+**Critical rules (detailed in BOOTSTRAP.md):**
+- Flag opinionated design decisions as verification prompts for the first Analyze cycle
+- Ask about specific gaps rather than hedging
+- Brain dump provided → skip Extract entirely
 
-#### Draft
-
-Generate a complete first artifact from the extracted requirements (or brain dump).
-
-**Critical rule: Be intentionally specific, not cautiously vague.**
-- "The recovery process: restart from the backup" triggers a specific correction with branching paths
-- "The process should be documented" triggers "yes it should" — no new information
-
-Quality bar: every paragraph triggers either "yes" or "no, actually..." from the human.
-
-**For technical content** (specs, architecture docs): The draft inevitably makes design decisions. Flag opinionated sections in the first Analyze cycle as verification prompts: "This proposes token bucket — is that the right algorithm?"
-
-**Gap-specific inquiry:** When writing the draft, if you encounter a gap where you'd normally hedge ("assuming the rollback process is standard..."), instead ask about the specific gap before proceeding. A specific question about a concrete gap triggers targeted retrieval.
-
-After writing the draft to the target file with the `Write` tool, enter the standard loop at Discover:
-1. Discover reads the newly written file from disk (not from memory)
-2. First-cycle rubric confirmation applies — the user confirms the rubric before proposals
-3. Baseline scores reflect the draft's quality, not "nothing"
-4. The draft's opinionated decisions become Analyze's first verification prompts
+After writing the draft with `Write`, enter the standard loop at Discover. First-cycle rubric confirmation applies. Baseline scores reflect the draft's quality.
 
 ---
 
@@ -283,11 +271,22 @@ Classify the target audience (first match wins):
    - AI agent: imperative verbs, numbered phases, rule tables, ALL-CAPS keywords
    - Human reader: prose paragraphs, first/second person, FAQ structure
    - Developer: code blocks >30% of lines, imports, definitions
-4. **Default:** mixed
+4. **Default:** mixed — use a balanced rubric combining documentation clarity and technical accuracy dimensions. No domain adapter activates for mixed audience.
 
-Show classification and confirm before proceeding. Audience shapes the entire rubric.
+**Sequence:** (1) Classify audience using rules above → (2) Confirm with `AskUserQuestion` → (3) Check domain adapter conditions against the *confirmed* audience.
 
-**Domain adapter auto-activation:** When audience is "developer" AND the target file has a code extension (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`), automatically activate the `code-quality` domain adapter from [DOMAIN_ADAPTERS.md](references/DOMAIN_ADAPTERS.md). This overrides generic rubric generation and uses the code-specific dimensions (Type Safety, Error Handling, Separation of Concerns, etc.) which produce better proposals than the generic clarity/completeness rubric.
+```
+AskUserQuestion:
+  Q1: "Detected audience: <audience>. Correct?"
+      header: "Audience"
+      options:
+        - "<detected> (Recommended)"
+        - "AI agent"
+        - "Developer"
+        - "Human reader"
+```
+
+**Domain adapter auto-activation:** After audience confirmation, when audience is "developer" AND the target file has a code extension (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`), activate the `code-quality` domain adapter from [DOMAIN_ADAPTERS.md](references/DOMAIN_ADAPTERS.md). This overrides generic rubric generation. If the user changed the audience during confirmation, re-evaluate domain adapter eligibility against the new audience.
 
 #### Step 3 — Rubric Selection
 
@@ -442,7 +441,7 @@ Three perspectives evaluated in **one prompt to the current conversation model**
 - **Conservative:** Regressions, compatibility, scope creep
 - **Pragmatist:** Effort vs. impact, feasibility, alternatives
 
-Produces a confidence score (0-10) per proposal.
+Produces a confidence score (0-10) per proposal. If all proposals score below the configured `confidence_threshold` (default 6.0), skip Approve and return to Analyze with adjusted parameters (max 2 regeneration attempts). After 2 failed attempts, present the low-confidence proposals to the user with a warning: "Proposals scored below confidence threshold after regeneration — review recommended."
 
 **Default:** Runs automatically between Analyze and Approve in loop mode (lightweight single-prompt mode).
 
@@ -476,6 +475,8 @@ AskUserQuestion:
         - "Approve all (Recommended)"
         - "Reject all"
         - "Review individually" → for each proposal, show full before/after, then:
+
+**Context capture on batch decisions:** After "Approve all" or "Reject all," check the user's response text for non-decision content. Example: "Approve all — but note that we're deprecating the auth module" → capture **constraint:** auth module is being deprecated. Same annotation rules as individual decisions.
           ```
           AskUserQuestion:
             Q1: "Proposal #N: <title>"
@@ -556,9 +557,9 @@ The **progressive autonomy** system can also trigger auto-approve based on the h
 **Batching:** Multiple proposals targeting the same file → single `Write` operation (not sequential `Edit` calls).
 
 **Conflict resolution:** When proposals target overlapping regions:
-1. Apply higher-severity first
-2. Re-locate second proposal's target in modified file
-3. If consumed, skip with note
+1. Apply higher-severity first. **Tiebreaker:** lower proposal index (earlier in list)
+2. Re-locate second proposal's target: search modified file for the proposal's `current` text. If exact match not found, fall back to line-number proximity (±5 lines from original location)
+3. If the proposal's `current` text cannot be found as a substring in the modified file (exact match fails), skip with note: "Proposal #N skipped — target region modified by Proposal #M"
 
 **Structural proposals:** Apply as whole-file rewrite rather than targeted edits.
 
@@ -571,7 +572,7 @@ The **progressive autonomy** system can also trigger auto-approve based on the h
 Spawn fresh Opus subagent(s) — new invocations, not reused from Discover. If Codex evaluator is enabled for this session, spawn it here too (same parallel pattern as Discover Step 4).
 
 1. Write evaluator prompt to `<output_dir>/measure-evaluator-prompt.md`
-2. Spawn 2-3 independent subagents (recommended for loop mode), plus Codex if enabled
+2. Spawn **2** independent Opus subagents (same count as Discover), plus Codex if enabled. If one subagent fails after retry, use the single score plus a conversation-model evaluation to maintain the 2-evaluator minimum.
 3. Score all dimensions from scratch (no anchoring to prior scores)
 4. Compare to baseline, report per-dimension deltas
 
@@ -612,6 +613,17 @@ Reflection (Cycle 2 → 3):
 - Next focus: Completeness, Accuracy dimensions.
 ```
 
+**Reflect Output Contract — inputs to next cycle:**
+
+| Reflect finding | Next-cycle effect | Mechanism |
+|---|---|---|
+| Saturated dimension (9+ for 2 cycles) | Remove from evaluator prompt rubric | Drop dimension from scoring, note in cycle header |
+| Stagnating dimension | Prepend structural prompt to Analyze | "Consider structural changes for [dimension]" |
+| Rejected proposal pattern | Exclude category from Analyze | Add to evaluator prompt: "Do NOT propose [category] changes" |
+| Modification pattern | Adjust Analyze generation style | Add to evaluator prompt: "Human prefers [direction]" |
+| Unintegrated context annotations | Prepend to evaluator prompt as known context | Same as Context Expansion integration |
+| Low approval rate on dimension | Flag for rubric recalibration | Note in cycle header, suggest rubric adjustment |
+
 **Rubric changes:** Can be recommended but require human confirmation.
 
 ---
@@ -636,14 +648,10 @@ Default: **Reviewer** (review everything). The role is shown in each cycle's hea
 
 ### Per-Phase Behavior
 
-| Phase | Reviewer | Supervisor | Director |
-|---|---|---|---|
-| Discover | Full results | Summary | Only regressions |
-| Analyze | All proposals with before/after | Proposal table (summary) | Proposal count only |
-| Verify | All perspective results | Only concerns | Silent |
-| Approve | Review everything | Auto-approve LOW/MEDIUM, review HIGH | Auto-approve all, notify |
-| Apply | Confirm first | Automatic | Automatic |
-| Measure | Full scores | Delta summary | Only if regression |
+Full matrix: [PROGRESSIVE_AUTONOMY.md](references/PROGRESSIVE_AUTONOMY.md). Key rules kept inline:
+
+- **Approve phase:** Supervisor auto-approves LOW/MEDIUM, reviews HIGH. Director auto-approves all with notification.
+- **Apply phase:** Reviewer confirms first. Supervisor and Director: automatic.
 
 ### Pullback
 
@@ -666,7 +674,7 @@ If the human says "review" at any point, immediately drop to Reviewer for the cu
 ═══ Cycle 2 of 3 | Role: Supervisor | Context: 4 annotations active ═══
 ```
 
-**Fresh evaluation per cycle:** Each Discover MUST re-read and score from scratch. No carrying forward.
+**Fresh evaluation per cycle:** Each Discover MUST re-read and score from scratch. No carrying forward. Before scoring, check for external changes: compare file hash or run `git diff` against last Apply output. If the file changed externally, note: "Target modified outside this session since last cycle" and include the diff summary in the evaluator prompt as context.
 
 **Approval gate per cycle:** After Analyze, show batch approval (adjusted by role).
 
@@ -676,10 +684,11 @@ If the human says "review" at any point, immediately drop to Reviewer for the cu
 
 | Condition | Action |
 |---|---|
-| No HIGH/MEDIUM issues | Convergence — offer to stop |
+| No HIGH/MEDIUM issues (cycle 1) | Show scores: "No significant issues found." Offer: adjust rubric / try different audience / done |
+| No HIGH/MEDIUM issues (cycle 2+) | Convergence — offer to stop |
 | Max cycles reached | Stop, show summary, offer to continue |
-| Score regression > 1.0 | Pause with options (see below) |
-| Score dip ≤ 1.0 | Note at medium+ verbosity, continue |
+| Score regression > 1.0 (or > 1.5 when prior cycle avg ≥ 8.0) | Pause with options (see below) |
+| Score dip within noise range (≤ 1.0, or ≤ 1.5 when prior avg ≥ 8.0) | Note at medium+ verbosity, continue |
 | Score plateau (delta < 0.5 for 2 cycles) | Suggest stopping or restructuring |
 | 4 cycles without convergence | Advisory: adjust rubric or restructure |
 | Human says "good enough" | Stop immediately |
@@ -790,12 +799,7 @@ AskUserQuestion:
 
 ### Output Folder Naming
 
-```
-./tmp/<topic>-<UTC_TIMESTAMP>/
-```
-Example: `./tmp/readme-20260406T143022Z/`
-
-Timestamp format: `YYYYMMDD'T'HHmmss'Z'` (UTC).
+Uses the session's `output_dir` (see State Management). Reports and proposals are written alongside other session artifacts.
 
 ---
 
@@ -810,7 +814,9 @@ Timestamp format: `YYYYMMDD'T'HHmmss'Z'` (UTC).
 | `rubric` | Discover | Analyze, Measure, Reflect |
 | `issues` | Discover | Analyze |
 | `baseline_scores` | Discover | Measure |
-| `output_dir` | Discover | All subsequent phases |
+| `output_dir` | Session start (before Discover Step 1) | All phases |
+
+**Output directory:** Created at session start. Path: `./tmp/<topic>-<UTC_TIMESTAMP>/` (e.g., `./tmp/readme-20260406T143022Z/`). Timestamp: `YYYYMMDD'T'HHmmss'Z'` (UTC). All session artifacts (evaluator prompts, proposals, annotations, reports) are written here.
 | `proposals` | Analyze | Verify, Approve, Apply |
 | `cycle_scores` | Measure | Reflect, Stopping conditions |
 | `context_annotations` | Approve | Reflect, next Discover |

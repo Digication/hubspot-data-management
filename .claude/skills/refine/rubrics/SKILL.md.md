@@ -3,6 +3,7 @@ target: .claude/skills/refine/SKILL.md
 audience: AI agent
 created: 2026-04-06
 last_used: 2026-04-06
+last_session_cycles: 3
 ---
 
 | Dimension | 0 (worst) | 5 (acceptable) | 10 (best) |
@@ -16,9 +17,12 @@ last_used: 2026-04-06
 | Structural Efficiency | Massive duplication, bloated | Some overlap between inline and references | Each concept once, references for details, no redundancy |
 
 ## Known Context
-(No annotations captured yet)
+- [factual] Structural Efficiency stalls at 7.0 with inline fixes — needs reference-doc extraction (Codex evaluator spawning, Report Generation details) to break through
+- [factual] Adding edge-case handling increases evaluator surface area, keeping scores flat — "completeness paradox"
+- [constraint] Tool Usage Specificity and Human Interaction Design saturated at 9.0 — drop from active evaluation in future sessions
 
 ## Score History
 | Date | Unambiguity | Completeness | Phase Seq | Error Recovery | Tool Usage | Human Interaction | Structural Eff | Avg | Cycles |
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-04-06 | 7→8 | 8→8 | 8→9 | 6.5→7 | 5→8 | 8.5→9 | 8→8 | 7.1→8.1 | 2 |
+| 2026-04-06 | 8→7.5 | 8.5→8 | 7.5→8 | 8→7 | 8→9 | 9→9 | 7→7 | 8.0→7.9 | 3 |
