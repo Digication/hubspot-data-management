@@ -228,3 +228,42 @@ export async function listPipelines(
   );
   return out.results;
 }
+
+export async function deletePipeline(
+  objectType: string,
+  pipelineId: string,
+): Promise<void> {
+  await request<void>(`/crm/v3/pipelines/${objectType}/${pipelineId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Removes a stage from a pipeline. HubSpot rejects this if the stage
+ * still has deals associated with it.
+ */
+export async function deletePipelineStage(
+  objectType: string,
+  pipelineId: string,
+  stageId: string,
+): Promise<void> {
+  await request<void>(
+    `/crm/v3/pipelines/${objectType}/${pipelineId}/stages/${stageId}`,
+    { method: "DELETE" },
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Object updates
+// -----------------------------------------------------------------------------
+
+export async function updateObject(
+  objectType: string,
+  id: string,
+  properties: Record<string, string>,
+): Promise<{ id: string; properties: Record<string, string | null> }> {
+  return request<{ id: string; properties: Record<string, string | null> }>(
+    `/crm/v3/objects/${objectType}/${id}`,
+    { method: "PATCH", body: JSON.stringify({ properties }) },
+  );
+}
