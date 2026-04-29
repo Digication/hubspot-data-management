@@ -28,19 +28,34 @@ export interface FieldTarget {
 
 // -----------------------------------------------------------------------------
 // Review 1 — Obvious Deletions (zero or near-zero records)
+//
+// Note: 3 fields originally listed here turned out to be HubSpot-defined and
+// not archivable via the API (PROPERTY_INVALID, "read-only definition").
+// They've been moved to HUBSPOT_DEFINED_NOT_ARCHIVABLE below. Discovery date:
+// 2026-04-29 during Step 1 execution.
 // -----------------------------------------------------------------------------
 const review1: FieldTarget[] = [
-  { name: "googleplus_page",            object: "companies", review: 1, approxRecords: 0, reason: "Google+ shut down 2019",          action: "delete" },
-  { name: "facebookfans",               object: "companies", review: 1, approxRecords: 0, reason: "Never populated",                 action: "delete" },
   { name: "imported_from_salesforce",   object: "companies", review: 1, approxRecords: 0, reason: "Never populated",                 action: "delete" },
   { name: "imported_from_salesforce",   object: "contacts",  review: 1, approxRecords: 0, reason: "Never populated",                 action: "delete" },
   { name: "imported_from_salesforce",   object: "deals",     review: 1, approxRecords: 0, reason: "Never populated",                 action: "delete" },
-  { name: "kloutscoregeneral",          object: "contacts",  review: 1, approxRecords: 0, reason: "Klout shut down 2018",            action: "delete" },
   { name: "amount__c",                  object: "contacts",  review: 1, approxRecords: 0, reason: "Empty Salesforce legacy",         action: "delete" },
   { name: "income_category__c",         object: "contacts",  review: 1, approxRecords: 0, reason: "Empty Salesforce legacy",         action: "delete" },
   { name: "system_url__c",              object: "contacts",  review: 1, approxRecords: 0, reason: "Empty + misplaced (company data)", action: "delete" },
   { name: "totalstudents__c",           object: "contacts",  review: 1, approxRecords: 0, reason: "Empty + misplaced (company data)", action: "delete" },
   { name: "amount__c",                  object: "companies", review: 1, approxRecords: 2, reason: "Near-empty Salesforce legacy",    action: "delete" },
+];
+
+/**
+ * HubSpot-defined properties that we'd ideally remove but cannot — the API
+ * rejects archive attempts with PROPERTY_INVALID ("read-only definition").
+ * Documented here so future sessions don't re-attempt them.
+ */
+export const HUBSPOT_DEFINED_NOT_ARCHIVABLE: Array<
+  Omit<FieldTarget, "action"> & { discoveredOn: string }
+> = [
+  { name: "googleplus_page",   object: "companies", review: 1, approxRecords: 0, reason: "Google+ shut down 2019; HubSpot-defined, not archivable", discoveredOn: "2026-04-29" },
+  { name: "facebookfans",      object: "companies", review: 1, approxRecords: 0, reason: "HubSpot-defined social field, not archivable",            discoveredOn: "2026-04-29" },
+  { name: "kloutscoregeneral", object: "contacts",  review: 1, approxRecords: 0, reason: "Klout shut down 2018; HubSpot-defined, not archivable",   discoveredOn: "2026-04-29" },
 ];
 
 // -----------------------------------------------------------------------------
@@ -293,7 +308,11 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 
 // These numbers must match the summary in review-decisions.md Review 11.
 // If they drift, someone edited the manifest without updating the doc (or vice versa).
-const EXPECTED_DELETES = 109;
+//
+// 2026-04-29: Reduced from 109 to 106 after discovering 3 HubSpot-defined
+// properties (googleplus_page, facebookfans, kloutscoregeneral) cannot be
+// archived via the API. See HUBSPOT_DEFINED_NOT_ARCHIVABLE above.
+const EXPECTED_DELETES = 106;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {

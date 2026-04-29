@@ -5,23 +5,39 @@
 
 ---
 
-## Confirmed Deletions (109 fields + ~182 contacts + 1 pipeline) + 4 archives
+## Confirmed Deletions (106 fields + ~182 contacts + 1 pipeline) + 4 archives
+
+> **Note (2026-04-29):** Original count was 109. During Step 1 execution, 3 fields
+> (`googleplus_page`, `facebookfans`, `kloutscoregeneral`) turned out to be
+> HubSpot-defined and not archivable via API (HubSpot returns
+> `PROPERTY_INVALID` / "read-only definition"). They've been moved to the
+> "HubSpot-defined / not archivable" section below. Same category as
+> `hubspotscore`.
 
 ### Review 1: Obvious Deletions (zero or near-zero records)
 
 | # | Field | Object | Records | Reason |
 |---|-------|--------|---------|--------|
-| 1 | `googleplus_page` | Company | 0 | Google+ shut down 2019 |
-| 2 | `facebookfans` | Company | 0 | Never populated |
-| 3 | `imported_from_salesforce` | Company | 0 | Never populated |
-| 4 | `imported_from_salesforce` | Contact | 0 | Never populated |
-| 5 | `imported_from_salesforce` | Deal | 0 | Never populated |
-| 6 | `kloutscoregeneral` | Contact | 0 | Klout shut down 2018 |
-| 7 | `amount__c` | Contact | 0 | Empty Salesforce legacy |
-| 8 | `income_category__c` | Contact | 0 | Empty Salesforce legacy |
-| 9 | `system_url__c` | Contact | 0 | Empty + misplaced (company data) |
-| 10 | `totalstudents__c` | Contact | 0 | Empty + misplaced (company data) |
-| 11 | `amount__c` | Company | 2 | Near-empty Salesforce legacy |
+| 1 | `imported_from_salesforce` | Company | 0 | Never populated |
+| 2 | `imported_from_salesforce` | Contact | 0 | Never populated |
+| 3 | `imported_from_salesforce` | Deal | 0 | Never populated |
+| 4 | `amount__c` | Contact | 0 | Empty Salesforce legacy |
+| 5 | `income_category__c` | Contact | 0 | Empty Salesforce legacy |
+| 6 | `system_url__c` | Contact | 0 | Empty + misplaced (company data) |
+| 7 | `totalstudents__c` | Contact | 0 | Empty + misplaced (company data) |
+| 8 | `amount__c` | Company | 2 | Near-empty Salesforce legacy |
+
+#### HubSpot-defined / not archivable (discovered 2026-04-29)
+
+These were originally in the deletion list but HubSpot's API rejects archive
+attempts. They have 0 records and are invisible in normal CRM workflows, so
+the practical impact of leaving them is zero.
+
+| Field | Object | Records | Reason |
+|-------|--------|---------|--------|
+| `googleplus_page` | Company | 0 | Google+ shut down 2019; HubSpot-defined |
+| `facebookfans` | Company | 0 | HubSpot-defined social field |
+| `kloutscoregeneral` | Contact | 0 | Klout shut down 2018; HubSpot-defined |
 
 ### Review 2: Archived/Obsolete Fields
 
@@ -350,7 +366,8 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Fields to **delete** | 109 | Across Contact, Company, Deal objects |
+| Fields to **delete** | 106 | Across Contact, Company, Deal objects (was 109 — see Review 1 note about 3 HubSpot-defined fields) |
+| Fields HubSpot-defined / not archivable | 3 | `googleplus_page`, `facebookfans`, `kloutscoregeneral` — left in place |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |
 | **Contacts** to delete | ~182 | Recruiting candidates (Review 5) |
 | **Pipelines** to delete immediately | 1 | Hiring - Frontend Engineering (0 deals) |
@@ -409,7 +426,7 @@ These cannot be done cleanly via API. HubSpot's native export is the authoritati
 
 Runs while Part A exports queue. Focused, grep-able, easy to review later.
 
-1. **Per-field CSV dumps** — for each of the 109 fields, pull `(record_id, record_name, field_value)` → one CSV per field
+1. **Per-field CSV dumps** — for each of the 106 fields, pull `(record_id, record_name, field_value)` → one CSV per field
 2. **Schema re-snapshot** → `backups/schemas/<DATE>/` (in case anything changed since April)
 3. **RFP Pipeline deals dump** — all 11 deals with full detail before move
 4. **Candidate contacts dump** — all ~182 recruiting contacts before deletion
@@ -498,7 +515,7 @@ Breaking Phase 2 into sessions so any downstream damage (broken workflows, repor
 - Per-action log file saved to `backups/phase2-pre-execution/<DATE>/execution-log.jsonl`
 - Fails fast and loudly on any unexpected API response
 
-Manual UI deletion for 109 fields is unrealistic. HubSpot MCP tools are designed for queries, not batch mutations.
+Manual UI deletion for 106 fields is unrealistic. HubSpot MCP tools are designed for queries, not batch mutations.
 
 ---
 

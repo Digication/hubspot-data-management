@@ -4,12 +4,9 @@
  * Uses the built-in Node fetch (Node 20+). No SDK dependency — keeps this
  * scripts bundle small and readable.
  *
- * Auth: expects HUBSPOT_ACCESS_TOKEN in the environment. Create a Private App
- * in HubSpot (Settings → Integrations → Private Apps) with read scopes on
- * crm.objects.contacts, crm.objects.companies, crm.objects.deals,
- * crm.schemas.contacts, crm.schemas.companies, crm.schemas.deals, and
- * crm.pipelines.deals. Write scopes are NOT needed for Phase 2 Part B —
- * these scripts only read.
+ * Auth: expects HUBSPOT_ACCESS_TOKEN in the environment. Generate a Service
+ * Key in HubSpot (Settings → Integrations → Service Keys); see .env.example
+ * for the required scopes.
  */
 
 const BASE = "https://api.hubapi.com";
@@ -51,6 +48,7 @@ async function request<T>(
     err.body = body;
     throw err;
   }
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
@@ -85,6 +83,50 @@ export async function listProperties(
     `/crm/v3/properties/${objectType}?archived=false`,
   );
   return out.results;
+}
+
+export async function getProperty(
+  objectType: string,
+  name: string,
+): Promise<HubSpotProperty | null> {
+  try {
+    return await request<HubSpotProperty>(
+      `/crm/v3/properties/${objectType}/${encodeURIComponent(name)}?archived=false`,
+    );
+  } catch (err) {
+    if ((err as HubSpotError).status === 404) return null;
+    throw err;
+  }
+}
+
+/**
+ * Archives a property. HubSpot's "delete" is actually a soft archive —
+ * the property disappears from the UI but is recoverable from the
+ * Archived tab in Settings → Properties for ~90 days.
+ */
+export async function archiveProperty(
+  objectType: string,
+  name: string,
+): Promise<void> {
+  await request<void>(
+    `/crm/v3/properties/${objectType}/${encodeURIComponent(name)}`,
+    { method: "DELETE" },
+  );
+}
+
+/**
+ * Returns the count of records where the given property has any value
+ * (HAS_PROPERTY filter). Used as a pre-deletion safety check.
+ */
+export async function countWithProperty(
+  objectType: string,
+  propertyName: string,
+): Promise<number> {
+  const res = await search(objectType, {
+    filterGroups: [{ filters: [{ propertyName, operator: "HAS_PROPERTY" }] }],
+    limit: 1,
+  });
+  return res.total;
 }
 
 // -----------------------------------------------------------------------------
