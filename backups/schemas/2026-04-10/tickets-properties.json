@@ -1,0 +1,537 @@
+[
+  {
+    "name": "closed_date",
+    "label": "Close date",
+    "description": "The date the ticket was closed"
+  },
+  {
+    "name": "content",
+    "label": "Ticket description",
+    "description": "Description of the ticket"
+  },
+  {
+    "name": "createdate",
+    "label": "Create date",
+    "description": "The date the ticket was created"
+  },
+  {
+    "name": "first_agent_reply_date",
+    "label": "First agent email response date",
+    "description": ""
+  },
+  {
+    "name": "hs_added_to_waitlist_at",
+    "label": "Added to waitlist at",
+    "description": ""
+  },
+  {
+    "name": "hs_all_assigned_business_unit_ids",
+    "label": "Brands",
+    "description": ""
+  },
+  {
+    "name": "hs_all_associated_contact_emails",
+    "label": "All associated contact emails",
+    "description": ""
+  },
+  {
+    "name": "hs_assigned_team_ids",
+    "label": "Assigned Teams",
+    "description": ""
+  },
+  {
+    "name": "hs_copied_at",
+    "label": "Copied at",
+    "description": ""
+  },
+  {
+    "name": "hs_copied_by_user",
+    "label": "Copied by user",
+    "description": ""
+  },
+  {
+    "name": "hs_copied_from_ticket",
+    "label": "Copied ticket",
+    "description": ""
+  },
+  {
+    "name": "hs_copied_ticket_source",
+    "label": "Copied ticket source",
+    "description": ""
+  },
+  {
+    "name": "hs_created_by_user_id",
+    "label": "Created by user ID",
+    "description": ""
+  },
+  {
+    "name": "hs_customer_agent_matched_segment",
+    "label": "Customer Agent Matched Segment",
+    "description": ""
+  },
+  {
+    "name": "hs_customer_agent_ticket_status",
+    "label": "Customer Agent ticket status",
+    "description": ""
+  },
+  {
+    "name": "hs_cx_score_range",
+    "label": "CX Score range",
+    "description": ""
+  },
+  {
+    "name": "hs_feedback_last_ces_follow_up",
+    "label": "Last CES survey comment",
+    "description": ""
+  },
+  {
+    "name": "hs_feedback_last_ces_rating",
+    "label": "Last CES survey rating",
+    "description": ""
+  },
+  {
+    "name": "hs_feedback_last_nps_rating_number",
+    "label": "Latest NPS survey rating",
+    "description": ""
+  },
+  {
+    "name": "hs_feedback_last_survey_date",
+    "label": "Last CES survey date",
+    "description": ""
+  },
+  {
+    "name": "hs_file_upload",
+    "label": "File upload",
+    "description": ""
+  },
+  {
+    "name": "hs_first_agent_message_sent_by",
+    "label": "First responding rep",
+    "description": ""
+  },
+  {
+    "name": "hs_first_visitor_message_sentiment",
+    "label": "First message sentiment",
+    "description": ""
+  },
+  {
+    "name": "hs_in_waitlist",
+    "label": "In Waitlist",
+    "description": ""
+  },
+  {
+    "name": "hs_is_one_touch_ticket",
+    "label": "First contact resolution",
+    "description": ""
+  },
+  {
+    "name": "hs_last_closed_date",
+    "label": "Last Closed Date",
+    "description": ""
+  },
+  {
+    "name": "hs_last_csat_comment",
+    "label": "Last CSAT survey comment",
+    "description": ""
+  },
+  {
+    "name": "hs_last_csat_date",
+    "label": "Last CSAT survey date",
+    "description": ""
+  },
+  {
+    "name": "hs_last_csat_rating",
+    "label": "Last CSAT survey rating",
+    "description": ""
+  },
+  {
+    "name": "hs_last_message_from_visitor",
+    "label": "Last message from visitor",
+    "description": ""
+  },
+  {
+    "name": "hs_last_message_received_at",
+    "label": "Last message received date",
+    "description": ""
+  },
+  {
+    "name": "hs_last_message_sent_at",
+    "label": "Last response date",
+    "description": ""
+  },
+  {
+    "name": "hs_last_nps_survey_comment",
+    "label": "Last NPS survey comment",
+    "description": ""
+  },
+  {
+    "name": "hs_last_visitor_message_sentiment",
+    "label": "Last message sentiment",
+    "description": ""
+  },
+  {
+    "name": "hs_lastactivitydate",
+    "label": "Last activity date",
+    "description": ""
+  },
+  {
+    "name": "hs_lastcontacted",
+    "label": "Last contacted date",
+    "description": ""
+  },
+  {
+    "name": "hs_lastmodifieddate",
+    "label": "Last modified date",
+    "description": ""
+  },
+  {
+    "name": "hs_latest_message_is_thread_comment",
+    "label": "Latest message is thread comment",
+    "description": ""
+  },
+  {
+    "name": "hs_merged_object_ids",
+    "label": "Merged Ticket IDs",
+    "description": ""
+  },
+  {
+    "name": "hs_nextactivitydate",
+    "label": "Next activity date",
+    "description": ""
+  },
+  {
+    "name": "hs_num_associated_companies",
+    "label": "Number of Associated Companies",
+    "description": ""
+  },
+  {
+    "name": "hs_num_times_contacted",
+    "label": "Number of times contacted",
+    "description": ""
+  },
+  {
+    "name": "hs_number_of_touches",
+    "label": "Number of touches",
+    "description": ""
+  },
+  {
+    "name": "hs_object_id",
+    "label": "Record ID",
+    "description": ""
+  },
+  {
+    "name": "hs_object_source_detail_1",
+    "label": "Record source detail 1",
+    "description": ""
+  },
+  {
+    "name": "hs_object_source_detail_2",
+    "label": "Record source detail 2",
+    "description": ""
+  },
+  {
+    "name": "hs_object_source_detail_3",
+    "label": "Record source detail 3",
+    "description": ""
+  },
+  {
+    "name": "hs_object_source_label",
+    "label": "Record source",
+    "description": ""
+  },
+  {
+    "name": "hs_originating_channel_instance_id",
+    "label": "Originating channel account",
+    "description": ""
+  },
+  {
+    "name": "hs_originating_generic_channel_id",
+    "label": "Originating channel type",
+    "description": ""
+  },
+  {
+    "name": "hs_outbound_ticket",
+    "label": "Outbound ticket",
+    "description": ""
+  },
+  {
+    "name": "hs_overall_visitor_messages_sentiment",
+    "label": "Average ticket sentiment",
+    "description": ""
+  },
+  {
+    "name": "hs_pipeline",
+    "label": "Pipeline",
+    "description": ""
+  },
+  {
+    "name": "hs_pipeline_stage",
+    "label": "Ticket status",
+    "description": ""
+  },
+  {
+    "name": "hs_predicted_cx_score",
+    "label": "CX Score",
+    "description": ""
+  },
+  {
+    "name": "hs_predicted_cx_score_evidence",
+    "label": "CX Score explanation",
+    "description": ""
+  },
+  {
+    "name": "hs_resolution",
+    "label": "Resolution",
+    "description": ""
+  },
+  {
+    "name": "hs_shared_team_ids",
+    "label": "Shared teams",
+    "description": ""
+  },
+  {
+    "name": "hs_shared_user_ids",
+    "label": "Shared users",
+    "description": ""
+  },
+  {
+    "name": "hs_sla_pause_status",
+    "label": "SLA Pause Status",
+    "description": ""
+  },
+  {
+    "name": "hs_snoozed_for_portal",
+    "label": "Portal-wide snooze",
+    "description": ""
+  },
+  {
+    "name": "hs_source_url",
+    "label": "Source url",
+    "description": ""
+  },
+  {
+    "name": "hs_summarized_ticket_owner_type",
+    "label": "Summarized Ticket Owner Type",
+    "description": ""
+  },
+  {
+    "name": "hs_tag_ids",
+    "label": "Ticket Tags",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_category",
+    "label": "Category",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_id",
+    "label": "Ticket ID",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_language_ai_tag",
+    "label": "Language",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_owner_type",
+    "label": "Ticket Owner Type",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_priority",
+    "label": "Priority",
+    "description": ""
+  },
+  {
+    "name": "hs_ticket_reopened_at",
+    "label": "Ticket reopen date",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_close_in_operating_hours",
+    "label": "Time to close in SLA hours",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_close_sla_at",
+    "label": "Time to Close SLA Due Date",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_close_sla_status",
+    "label": "Time to Close SLA Ticket Status",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_first_rep_assignment",
+    "label": "Time to first rep assignment",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_first_response_in_operating_hours",
+    "label": "Time to first response in SLA hours",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_first_response_sla_at",
+    "label": "Time to First Response SLA Due Date",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_first_response_sla_status",
+    "label": "Time to First Response SLA Status",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_next_response_sla_at",
+    "label": "Time to Next Response SLA Due Date",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_next_response_sla_status",
+    "label": "Time to Next Response SLA Status",
+    "description": ""
+  },
+  {
+    "name": "hs_updated_by_user_id",
+    "label": "Updated by user ID",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1",
+    "label": "Cumulative time in New (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_2",
+    "label": "Cumulative time in Waiting on contact (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_3",
+    "label": "Cumulative time in Waiting on us (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4",
+    "label": "Cumulative time in Closed (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_entered_1",
+    "label": "Date entered New (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_entered_2",
+    "label": "Date entered Waiting on contact (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_entered_3",
+    "label": "Date entered Waiting on us (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_entered_4",
+    "label": "Date entered Closed (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_entered_current_stage",
+    "label": "Date entered current stage",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_exited_1",
+    "label": "Date exited New (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_exited_2",
+    "label": "Date exited Waiting on contact (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_exited_3",
+    "label": "Date exited Waiting on us (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_date_exited_4",
+    "label": "Date exited Closed (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_latest_time_in_1",
+    "label": "Latest time in New (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_latest_time_in_2",
+    "label": "Latest time in Waiting on contact (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_latest_time_in_3",
+    "label": "Latest time in Waiting on us (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_latest_time_in_4",
+    "label": "Latest time in Closed (Support Pipeline)",
+    "description": ""
+  },
+  {
+    "name": "hs_v2_time_in_current_stage",
+    "label": "Time in current stage",
+    "description": ""
+  },
+  {
+    "name": "hubspot_owner_assigneddate",
+    "label": "Owner assigned date",
+    "description": ""
+  },
+  {
+    "name": "hubspot_owner_id",
+    "label": "Ticket owner",
+    "description": ""
+  },
+  {
+    "name": "hubspot_team_id",
+    "label": "HubSpot team",
+    "description": ""
+  },
+  {
+    "name": "last_reply_date",
+    "label": "Last customer reply date",
+    "description": ""
+  },
+  {
+    "name": "num_notes",
+    "label": "Number of Sales Activities",
+    "description": ""
+  },
+  {
+    "name": "source_type",
+    "label": "Source",
+    "description": ""
+  },
+  {
+    "name": "subject",
+    "label": "Ticket name",
+    "description": ""
+  },
+  {
+    "name": "time_to_close",
+    "label": "Time to close",
+    "description": ""
+  },
+  {
+    "name": "time_to_first_agent_reply",
+    "label": "Time to first agent email reply",
+    "description": ""
+  }
+]

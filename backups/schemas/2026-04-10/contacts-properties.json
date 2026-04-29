@@ -1,0 +1,1772 @@
+[
+  {
+    "name": "account_expiration_date__c",
+    "label": "Account Expiration Date",
+    "description": ""
+  },
+  {
+    "name": "address",
+    "label": "Street Address",
+    "description": "A contact's street address, including apartment or unit #"
+  },
+  {
+    "name": "ai_experience",
+    "label": "AI Experience",
+    "description": ""
+  },
+  {
+    "name": "ai_interest",
+    "label": "AI Interest",
+    "description": ""
+  },
+  {
+    "name": "amount__c",
+    "label": "Amount",
+    "description": ""
+  },
+  {
+    "name": "annualrevenue",
+    "label": "Annual Revenue",
+    "description": "Annual company revenue"
+  },
+  {
+    "name": "blog_digication_community_25890416137_subscription",
+    "label": "Make Learning Visible Email Subscription",
+    "description": ""
+  },
+  {
+    "name": "blog_the_digication_blog_79039179362_subscription",
+    "label": "The Digication Blog Email Subscription (English)",
+    "description": ""
+  },
+  {
+    "name": "candidate_current_company",
+    "label": "Candidate Current Company",
+    "description": ""
+  },
+  {
+    "name": "candidate_current_job_title",
+    "label": "Candidate Current Job Title",
+    "description": ""
+  },
+  {
+    "name": "candidate_info",
+    "label": "Candidate Info",
+    "description": "Feel free to provide any additional information."
+  },
+  {
+    "name": "candidate_job_search_status",
+    "label": "Candidate Job Search Status",
+    "description": ""
+  },
+  {
+    "name": "candidate_location__city",
+    "label": "Candidate location: City",
+    "description": ""
+  },
+  {
+    "name": "candidate_location__country",
+    "label": "Candidate location: Country",
+    "description": ""
+  },
+  {
+    "name": "candidate_online_profile",
+    "label": "Candidate Online Profile",
+    "description": "LinkedIn or any other online profile"
+  },
+  {
+    "name": "city",
+    "label": "City",
+    "description": "A contact's city of residence"
+  },
+  {
+    "name": "closedate",
+    "label": "Close Date",
+    "description": "The date that a contact became a customer. This property is set automatically by HubSpot when a deal or opportunity is marked as closed-won. It can also be set manually or programmatically."
+  },
+  {
+    "name": "company",
+    "label": "Company Name",
+    "description": "The name of the contact's company. This is separate from the Name property of the contact's associated company and can be set independently."
+  },
+  {
+    "name": "company_size",
+    "label": "Company size",
+    "description": "A contact's company size. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "conferences_workshops_attended__c",
+    "label": "Conferences and Workshops Attended",
+    "description": ""
+  },
+  {
+    "name": "contact_for_conferences__c",
+    "label": "Contact for Conferences?",
+    "description": ""
+  },
+  {
+    "name": "contact_status__c",
+    "label": "Contact Status",
+    "description": ""
+  },
+  {
+    "name": "country",
+    "label": "Country/Region",
+    "description": "The contact's country/region of residence. This might be set via import, form, or integration."
+  },
+  {
+    "name": "createdate",
+    "label": "Create Date",
+    "description": "The date that a contact entered the system"
+  },
+  {
+    "name": "currentlyinworkflow",
+    "label": "Currently in workflow (discontinued)",
+    "description": "If the contact is currently enrolled in any workflow"
+  },
+  {
+    "name": "customers",
+    "label": "Customers",
+    "description": ""
+  },
+  {
+    "name": "date_of_birth",
+    "label": "Date of birth",
+    "description": "A contact's date of birth. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "days_to_close",
+    "label": "Days To Close",
+    "description": "The days that elapsed from when a contact was created until they closed as a customer. This is set automatically by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "decision_maker__c",
+    "label": "Decision Maker %",
+    "description": ""
+  },
+  {
+    "name": "degree",
+    "label": "Degree",
+    "description": "A contact's degree. This property is required for the Facebook Ads Integration. This property will be automatically synced to via Lead Ads tool"
+  },
+  {
+    "name": "demo_account__c",
+    "label": "Demo Account %",
+    "description": ""
+  },
+  {
+    "name": "demo_presentation__c",
+    "label": "Demo Presentation %",
+    "description": ""
+  },
+  {
+    "name": "department__c",
+    "label": "Department",
+    "description": ""
+  },
+  {
+    "name": "digication_open_position",
+    "label": "Digication Open Position",
+    "description": ""
+  },
+  {
+    "name": "digicon_2019__c",
+    "label": "DigiCon 2019",
+    "description": ""
+  },
+  {
+    "name": "email",
+    "label": "Email",
+    "description": "A contact's email address"
+  },
+  {
+    "name": "email_group__c",
+    "label": "Email Group (old)",
+    "description": ""
+  },
+  {
+    "name": "email_list",
+    "label": "Email list",
+    "description": ""
+  },
+  {
+    "name": "engagements_last_meeting_booked",
+    "label": "Date of last meeting booked in meetings tool",
+    "description": "The date of the last meeting that has been scheduled by a contact through the meetings tool. If multiple meetings have been scheduled, the date of the last chronological meeting in the timeline is shown."
+  },
+  {
+    "name": "engagements_last_meeting_booked_campaign",
+    "label": "Campaign of last booking in meetings tool",
+    "description": "This UTM parameter shows which marketing campaign (e.g. a specific email) referred the contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link."
+  },
+  {
+    "name": "engagements_last_meeting_booked_medium",
+    "label": "Medium of last booking in meetings tool",
+    "description": "This UTM parameter shows which channel (e.g. email) referred the contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link."
+  },
+  {
+    "name": "engagements_last_meeting_booked_source",
+    "label": "Source of last booking in meetings tool",
+    "description": "This UTM parameter shows which site (e.g. Twitter) referred the contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link."
+  },
+  {
+    "name": "expertise",
+    "label": "Academic Expertise",
+    "description": ""
+  },
+  {
+    "name": "fax",
+    "label": "Fax Number",
+    "description": "A contact's primary fax number"
+  },
+  {
+    "name": "features_desired__c",
+    "label": "Features Desired",
+    "description": ""
+  },
+  {
+    "name": "field_of_study",
+    "label": "Field of study",
+    "description": "A contact's field of study. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "final_negotiations__c",
+    "label": "Closing %",
+    "description": ""
+  },
+  {
+    "name": "first_conversion_date",
+    "label": "First Conversion Date",
+    "description": "The date this contact first submitted a form"
+  },
+  {
+    "name": "first_conversion_event_name",
+    "label": "First Conversion",
+    "description": "The first form this contact submitted"
+  },
+  {
+    "name": "first_deal_created_date",
+    "label": "First Deal Created Date",
+    "description": "The date the first deal for a contact was created. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "firstname",
+    "label": "First Name",
+    "description": "A contact's first name"
+  },
+  {
+    "name": "flag_to_discuss__c",
+    "label": "Flag to Discuss",
+    "description": ""
+  },
+  {
+    "name": "followercount",
+    "label": "Follower Count",
+    "description": "The number of Twitter followers a contact has"
+  },
+  {
+    "name": "gender",
+    "label": "Gender",
+    "description": ""
+  },
+  {
+    "name": "graduation_date",
+    "label": "Graduation date",
+    "description": "A contact's graduation date. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "have_digi_account__c",
+    "label": "Have Digi Account?",
+    "description": ""
+  },
+  {
+    "name": "hs_all_assigned_business_unit_ids",
+    "label": "Brands",
+    "description": "The brands this record is assigned to."
+  },
+  {
+    "name": "hs_analytics_average_page_views",
+    "label": "Average Pageviews",
+    "description": "The average number of pages a contact sees. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_first_referrer",
+    "label": "First Referring Site",
+    "description": "The first website that referred a contact to your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_first_timestamp",
+    "label": "Time First Seen",
+    "description": "The first time a contact has been seen. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_first_touch_converting_campaign",
+    "label": "First Touch Converting Campaign",
+    "description": "The campaign responsible for the first touch creation of this contact"
+  },
+  {
+    "name": "hs_analytics_first_url",
+    "label": "First Page Seen",
+    "description": "The first page a contact saw on your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_first_visit_timestamp",
+    "label": "Time of First Session",
+    "description": "The first time a contact visited your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_last_referrer",
+    "label": "Last Referring Site",
+    "description": "The last website that referred a contact to your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_last_timestamp",
+    "label": "Time Last Seen",
+    "description": "The last time and date a contact has viewed a page on your website."
+  },
+  {
+    "name": "hs_analytics_last_touch_converting_campaign",
+    "label": "Last Touch Converting Campaign",
+    "description": "The campaign responsible for the last touch creation of this contact"
+  },
+  {
+    "name": "hs_analytics_last_url",
+    "label": "Last Page Seen",
+    "description": "The last page a contact saw on your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_last_visit_timestamp",
+    "label": "Time of Last Session",
+    "description": "The last time and date a contact visited your website."
+  },
+  {
+    "name": "hs_analytics_num_event_completions",
+    "label": "Number of event completions",
+    "description": "The sum of all events a contact has experienced. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_num_page_views",
+    "label": "Number of Pageviews",
+    "description": "The sum of all pages a contact has seen on your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_num_visits",
+    "label": "Number of Sessions",
+    "description": "The sum of all sessions a contact has made to your website. This is automatically set by HubSpot for each contact."
+  },
+  {
+    "name": "hs_analytics_revenue",
+    "label": "Event Revenue",
+    "description": "Event revenue can be set on a contact though HubSpot's enterprise Events. http://help.hubspot.com/articles/KCS_Article/Reports/How-do-I-create-Events-in-HubSpot"
+  },
+  {
+    "name": "hs_analytics_source",
+    "label": "Original Source",
+    "description": "First known source the contact used to find your website. Set automatically, but may be updated manually."
+  },
+  {
+    "name": "hs_analytics_source_data_1",
+    "label": "Original Source Drill-Down 1",
+    "description": "Additional information about the source through which a contact first found your website. This property is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_analytics_source_data_2",
+    "label": "Original Source Drill-Down 2",
+    "description": "Additional information about the source through which a contact first found your website. This property is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_bing_click_id",
+    "label": "Bing click id",
+    "description": "The msclkid url parameter extracted from the Activity recorded when a visitor lands on a tracked webpage"
+  },
+  {
+    "name": "hs_chat_assistant_iql_date",
+    "label": "Chat Assistant IQL Date",
+    "description": "Date that an automated chat assistant IQL was triggered based on chat intent"
+  },
+  {
+    "name": "hs_chat_assistant_source",
+    "label": "Chat Assistant Source",
+    "description": "Which chat assistant the QL is being generated from"
+  },
+  {
+    "name": "hs_chat_assistant_summary",
+    "label": "Chat Assistant:Summary",
+    "description": "AI-generated rich summary of a chat conversation when a customer expresses buying intent or requests to speak with Sales. Used to populate the Support Assistant QL card in the BDR prospecting workspace. This is populated by our HighIntentQlTool."
+  },
+  {
+    "name": "hs_contact_creation_legal_basis_source_instance_id",
+    "label": "Contact creation legal basis source instance ID",
+    "description": "The source instance responsible for creating this contact and determining the legal basis for processing"
+  },
+  {
+    "name": "hs_contact_enrichment_opt_out",
+    "label": "Enrichment opt out",
+    "description": ""
+  },
+  {
+    "name": "hs_contact_enrichment_opt_out_timestamp",
+    "label": "Enrichment opt out timestamp",
+    "description": "Timestamp of when the contact opted out of being included in the HubSpot Enrichment database"
+  },
+  {
+    "name": "hs_content_membership_email",
+    "label": "Member email",
+    "description": "Email used to send private content information to members"
+  },
+  {
+    "name": "hs_content_membership_email_confirmed",
+    "label": "Email Confirmed",
+    "description": "Email Confirmation status of user of Content Membership"
+  },
+  {
+    "name": "hs_content_membership_follow_up_enqueued_at",
+    "label": "Time enrolled in registration follow up emails",
+    "description": "The time when the contact was first enrolled in the registration follow up email flow"
+  },
+  {
+    "name": "hs_content_membership_notes",
+    "label": "Membership Notes",
+    "description": "The notes relating to the contact's content membership."
+  },
+  {
+    "name": "hs_content_membership_registered_at",
+    "label": "Registered At",
+    "description": "Datetime at which this user was set up for Content Membership"
+  },
+  {
+    "name": "hs_content_membership_registration_domain_sent_to",
+    "label": "Domain to which registration email was sent",
+    "description": "Domain to which the registration invitation email for Content Membership was sent to"
+  },
+  {
+    "name": "hs_content_membership_registration_email_sent_at",
+    "label": "Time registration email was sent",
+    "description": "Datetime at which this user was sent a registration invitation email for Content Membership"
+  },
+  {
+    "name": "hs_content_membership_status",
+    "label": "Status",
+    "description": "The status of the contact's content membership."
+  },
+  {
+    "name": "hs_country_region_code",
+    "label": "Country/Region Code",
+    "description": "The contact's two-letter country code."
+  },
+  {
+    "name": "hs_created_by_user_id",
+    "label": "Created by user ID",
+    "description": "The user who created this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_current_customer",
+    "label": "Current Customer",
+    "description": "Indicates whether this record matches the portal's Current Customer filter criteria. Managed automatically by Customer Success Workspace."
+  },
+  {
+    "name": "hs_currently_enrolled_in_prospecting_agent",
+    "label": "Currently Enrolled in Prospecting Agent",
+    "description": "Indicates whether or not the contact has an active prospecting agent enrollment"
+  },
+  {
+    "name": "hs_customer_agent_lead_status",
+    "label": "Customer Agent Lead Status",
+    "description": "The lead status determined by Customer Agent. This also indicates the level of qualification."
+  },
+  {
+    "name": "hs_email_bad_address",
+    "label": "Invalid email address",
+    "description": "The email address associated with this contact is invalid."
+  },
+  {
+    "name": "hs_email_bounce",
+    "label": "Marketing emails bounced",
+    "description": "The number of marketing emails that bounced for the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_click",
+    "label": "Marketing emails clicked",
+    "description": "The number of marketing emails which have had link clicks for the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_customer_quarantined_reason",
+    "label": "Email address quarantine reason",
+    "description": "The reason why the email address has been quarantined."
+  },
+  {
+    "name": "hs_email_delivered",
+    "label": "Marketing emails delivered",
+    "description": "The number of marketing emails delivered for the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_domain",
+    "label": "Email Domain",
+    "description": "A contact's email address domain"
+  },
+  {
+    "name": "hs_email_first_click_date",
+    "label": "First marketing email click date",
+    "description": "The date of the earliest link click for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_first_open_date",
+    "label": "First marketing email open date",
+    "description": "The date of the earliest open for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_first_reply_date",
+    "label": "First marketing email reply date",
+    "description": "The date of the earliest reply for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_first_send_date",
+    "label": "First marketing email send date",
+    "description": "The date of the earliest delivery for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_hard_bounce_reason_enum",
+    "label": "Email hard bounce reason",
+    "description": "The issue that caused a contact to hard bounce from your emails. If this is an error or a temporary issue, you can unbounce this contact from the contact record."
+  },
+  {
+    "name": "hs_email_last_click_date",
+    "label": "Last marketing email click date",
+    "description": "The date of the most recent link click for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_last_email_name",
+    "label": "Last marketing email name",
+    "description": "The name of the last marketing email sent to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_last_open_date",
+    "label": "Last marketing email open date",
+    "description": "The date of the most recent open for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_last_reply_date",
+    "label": "Last marketing email reply date",
+    "description": "The date of the latest reply for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_last_send_date",
+    "label": "Last marketing email send date",
+    "description": "The date of the most recent delivery for any marketing email to the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_live_sourcing_restricted",
+    "label": "Email live sourcing restricted",
+    "description": "Denotes if the email property on this record has been restricted from having enrichment data sourced"
+  },
+  {
+    "name": "hs_email_open",
+    "label": "Marketing emails opened",
+    "description": "The number of marketing emails opened for the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_optout",
+    "label": "Unsubscribed from all email",
+    "description": "Indicates that the current email address has opted out of all email."
+  },
+  {
+    "name": "hs_email_optout_256286686",
+    "label": "Opted out of email: The Digication Blog Subscription",
+    "description": "Indicates that the current email address has opted out of this email type."
+  },
+  {
+    "name": "hs_email_optout_778636986",
+    "label": "Opted out of email: OAIR",
+    "description": "Indicates that the current email address has opted out of this email type."
+  },
+  {
+    "name": "hs_email_optout_8496199",
+    "label": "Opted out of email: Marketing Information",
+    "description": "Indicates that the current email address has opted out of this email type."
+  },
+  {
+    "name": "hs_email_optout_8498307",
+    "label": "Opted out of email: One to One",
+    "description": "Indicates that the current email address has opted out of this email type."
+  },
+  {
+    "name": "hs_email_optout_9298852",
+    "label": "Opted out of email: Make Learning Visible Subscription",
+    "description": "Indicates that the current email address has opted out of this email type."
+  },
+  {
+    "name": "hs_email_quarantined",
+    "label": "Email Address Quarantined",
+    "description": "Indicates that the current email address has been quarantined for anti-abuse reasons and any marketing email sends to it will be blocked. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_quarantined_reason",
+    "label": "Email address automated quarantine reason",
+    "description": "The automated reason why the email address has been quarantined."
+  },
+  {
+    "name": "hs_email_replied",
+    "label": "Marketing emails replied",
+    "description": "The number of marketing emails replied to by the current email address. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_sends_since_last_engagement",
+    "label": "Sends Since Last Engagement",
+    "description": "The number of marketing emails that have been sent to the current email address since the last engagement (open or link click). This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_email_type",
+    "label": "Email type",
+    "description": "Used to determine if a given property is a personal email or work email"
+  },
+  {
+    "name": "hs_emailconfirmationstatus",
+    "label": "Marketing email confirmation status",
+    "description": "The status of a contact's eligibility to receive marketing email. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_employment_change_detected_date",
+    "label": "Employment change detected date",
+    "description": "Date contact confirmed no longer employed at current company"
+  },
+  {
+    "name": "hs_enriched_email_bounce_detected",
+    "label": "Enriched Email Bounce Detected (Deprecated)",
+    "description": "Bounce Detected attribute is no longer being populated/updated after 10/31/2025. In order to receive signals about an email address becoming undeliverable or no longer valid for the contact, please use Intent Signals."
+  },
+  {
+    "name": "hs_facebook_click_id",
+    "label": "Facebook click id",
+    "description": ""
+  },
+  {
+    "name": "hs_feedback_last_csat_survey_date",
+    "label": "Last CSAT survey date",
+    "description": "The time that this contact last submitted a CSAT survey response. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_feedback_last_csat_survey_follow_up",
+    "label": "Last CSAT survey comment",
+    "description": "Last CSAT survey comment from this contact."
+  },
+  {
+    "name": "hs_feedback_last_csat_survey_rating",
+    "label": "Last CSAT survey rating",
+    "description": "Last CSAT survey rating from this contact."
+  },
+  {
+    "name": "hs_feedback_last_nps_follow_up",
+    "label": "Last NPS survey comment",
+    "description": "Last NPS survey comment that this contact gave"
+  },
+  {
+    "name": "hs_feedback_last_nps_rating",
+    "label": "Last NPS survey rating",
+    "description": "Last NPS survey rating that this contact gave"
+  },
+  {
+    "name": "hs_feedback_last_nps_rating_number",
+    "label": "Latest NPS survey rating",
+    "description": "Latest NPS survey rating that this contact gave"
+  },
+  {
+    "name": "hs_feedback_last_survey_date",
+    "label": "Last NPS survey date",
+    "description": "The time that this contact last submitted a NPS survey response. This is automatically set by HubSpot."
+  },
+  {
+    "name": "hs_first_closed_order_id",
+    "label": "First Closed Order ID",
+    "description": "The id of the associated order that was first to be closed"
+  },
+  {
+    "name": "hs_first_engagement_object_id",
+    "label": "ID of first engagement",
+    "description": "The object id of the current contact owner's first engagement with the contact."
+  },
+  {
+    "name": "hs_first_order_closed_date",
+    "label": "First Order Closed Date",
+    "description": "Date first order was closed. Set Automatically"
+  },
+  {
+    "name": "hs_google_click_id",
+    "label": "Google ad click id",
+    "description": ""
+  },
+  {
+    "name": "hs_gps_error",
+    "label": "GPS Error",
+    "description": "Specifies any errors that may have occurred while geocoding a contact."
+  },
+  {
+    "name": "hs_inferred_language_codes",
+    "label": "Inferred Language Codes",
+    "description": "Inferred languages based on location.  ISO 639-1"
+  },
+  {
+    "name": "hs_intent_signals_enabled",
+    "label": "Intent Signals active",
+    "description": "Indicates whether intent signal tracking is currently active for this record"
+  },
+  {
+    "name": "hs_ip_timezone",
+    "label": "IP Timezone",
+    "description": "The timezone reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "hs_is_enriched",
+    "label": "Has been enriched",
+    "description": "Indicates whether this object has ever had enriched properties written to it."
+  },
+  {
+    "name": "hs_is_unworked",
+    "label": "Contact unworked",
+    "description": "Contact has not been assigned or has not been engaged after last owner assignment/re-assignment"
+  },
+  {
+    "name": "hs_job_change_detected_date",
+    "label": "Job change detected date",
+    "description": "Date contact confirmed no longer employed at current company"
+  },
+  {
+    "name": "hs_journey_stage",
+    "label": "Journey Stage",
+    "description": "Track the status of a contact through a customer journey. It can be set through journeys, manually on a per contact basis, and through other tools."
+  },
+  {
+    "name": "hs_language",
+    "label": "Preferred language",
+    "description": "Set your contact's preferred language for communications. This property can be changed from an import, form, or integration."
+  },
+  {
+    "name": "hs_last_sales_activity_timestamp",
+    "label": "Last Engagement Date",
+    "description": "The last time a contact engaged with your site or a form, document, meetings link, or tracked email. This doesn't include marketing emails or emails to multiple contacts."
+  },
+  {
+    "name": "hs_latest_disqualified_lead_date",
+    "label": "Latest Disqualified Lead Date",
+    "description": "The most recent time at which an associated lead currently in a disqualified stage was moved to that stage"
+  },
+  {
+    "name": "hs_latest_open_lead_date",
+    "label": "Latest Open Lead Date",
+    "description": "The most recent time an associated open lead was moved to a NEW or IN_PROGRESS state"
+  },
+  {
+    "name": "hs_latest_qualified_lead_date",
+    "label": "Latest Qualified Lead Date",
+    "description": "The most recent time at which an associated lead currently in a qualified stage was moved to that stage"
+  },
+  {
+    "name": "hs_latest_sequence_ended_date",
+    "label": "Last sequence ended date",
+    "description": "The last sequence ended date."
+  },
+  {
+    "name": "hs_latest_sequence_enrolled",
+    "label": "Last sequence enrolled",
+    "description": "The last sequence enrolled."
+  },
+  {
+    "name": "hs_latest_sequence_enrolled_date",
+    "label": "Last sequence enrolled date",
+    "description": "The last sequence enrolled date."
+  },
+  {
+    "name": "hs_latest_source",
+    "label": "Latest Traffic Source",
+    "description": "The source of the latest session for a contact"
+  },
+  {
+    "name": "hs_latest_source_data_1",
+    "label": "Latest Traffic Source Drill-Down 1",
+    "description": "Additional information about the latest source for the last session the contact used to find your website. Set automatically."
+  },
+  {
+    "name": "hs_latest_source_data_2",
+    "label": "Latest Traffic Source Drill-Down 2",
+    "description": "Additional information about the source for the last session the contact used to find your website. Set automatically."
+  },
+  {
+    "name": "hs_latest_source_timestamp",
+    "label": "Latest Traffic Source Date",
+    "description": "The time of the latest session for a contact"
+  },
+  {
+    "name": "hs_latitude",
+    "label": "Latitude",
+    "description": "A contact's latitude"
+  },
+  {
+    "name": "hs_lead_status",
+    "label": "Lead Status",
+    "description": "The contact's sales, prospecting or outreach status"
+  },
+  {
+    "name": "hs_legal_basis",
+    "label": "Legal basis for processing contact's data",
+    "description": "Legal basis for processing contact's data; 'Not applicable' will exempt the contact from GDPR protections"
+  },
+  {
+    "name": "hs_linkedin_click_id",
+    "label": "LinkedIn click id",
+    "description": "The li_fat_id url parameter extracted from the Activity recorded when a visitor lands on a tracked webpage"
+  },
+  {
+    "name": "hs_linkedin_url",
+    "label": "LinkedIn URL",
+    "description": "The URL of the contact's LinkedIn page."
+  },
+  {
+    "name": "hs_longitude",
+    "label": "Longitude",
+    "description": "A contact's longitude"
+  },
+  {
+    "name": "hs_marketable_reason_id",
+    "label": "Marketing contact status source name",
+    "description": "The ID of the activity that set the contact as a marketing contact"
+  },
+  {
+    "name": "hs_marketable_reason_type",
+    "label": "Marketing contact status source type",
+    "description": "The type of the activity that set the contact as a marketing contact"
+  },
+  {
+    "name": "hs_marketable_status",
+    "label": "Marketing contact status",
+    "description": "The marketing status of a contact"
+  },
+  {
+    "name": "hs_marketable_until_renewal",
+    "label": "Marketing contact until next update",
+    "description": "Specifies if this contact will be set as non-marketing on renewal"
+  },
+  {
+    "name": "hs_membership_has_accessed_private_content",
+    "label": "Member has accessed private content",
+    "description": "1 if a member has accessed any private content, 0 or null if not"
+  },
+  {
+    "name": "hs_membership_last_private_content_access_date",
+    "label": "Membership last private content access date",
+    "description": "The last date a contact accessed private content"
+  },
+  {
+    "name": "hs_merged_object_ids",
+    "label": "Merged Contact IDs",
+    "description": "The list of Contact record IDs that have been merged into this Contact. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_object_id",
+    "label": "Record ID",
+    "description": "The unique ID for this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_object_source_detail_1",
+    "label": "Record source detail 1",
+    "description": "First level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_detail_2",
+    "label": "Record source detail 2",
+    "description": "Second level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_detail_3",
+    "label": "Record source detail 3",
+    "description": "Third level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_label",
+    "label": "Record source",
+    "description": "How this record was created."
+  },
+  {
+    "name": "hs_persona",
+    "label": "Persona",
+    "description": "A contact's persona"
+  },
+  {
+    "name": "hs_predictivecontactscore",
+    "label": "Predictive Lead Score",
+    "description": "A score calculated by HubSpot that represents a contact's likelihood to become a customer"
+  },
+  {
+    "name": "hs_predictivecontactscore_v2",
+    "label": "Likelihood to close",
+    "description": "The probability that a contact will become a customer within the next 90 days. This score is based on standard contact properties and behavior."
+  },
+  {
+    "name": "hs_predictivecontactscorebucket",
+    "label": "Lead Rating",
+    "description": "The rating of this contact based on their predictive lead score"
+  },
+  {
+    "name": "hs_predictivescoringtier",
+    "label": "Contact priority",
+    "description": "A ranking system of contacts evenly assigned into four tiers. Contacts in tier one are more likely to become customers than contacts in tier four."
+  },
+  {
+    "name": "hs_prospecting_agent_last_enrolled",
+    "label": "Prospecting Agent Last Enrolled",
+    "description": "The last time the Prospecting Agent enrolled this contact"
+  },
+  {
+    "name": "hs_prospecting_agent_total_enrolled_count",
+    "label": "Prospecting Agent Total Enrolled Count",
+    "description": ""
+  },
+  {
+    "name": "hs_quarantined_emails",
+    "label": "Quarantined Emails",
+    "description": "Lists all emails associated with this contact that have been quarantined, with a source and reason."
+  },
+  {
+    "name": "hs_recent_closed_order_date",
+    "label": "Recent Closed Order Date",
+    "description": "Date last order was closed. Set automatically."
+  },
+  {
+    "name": "hs_registered_member",
+    "label": "Registered member",
+    "description": "Whether or not a contact is registered"
+  },
+  {
+    "name": "hs_registration_method",
+    "label": "Registration Method",
+    "description": "The method used for registration"
+  },
+  {
+    "name": "hs_returning_to_office_detected_date",
+    "label": "Returning to office detected date",
+    "description": "Date detected from email that contact will return to the office"
+  },
+  {
+    "name": "hs_role",
+    "label": "Employment Role",
+    "description": "Job role"
+  },
+  {
+    "name": "hs_sa_first_engagement_date",
+    "label": "Date of first engagement",
+    "description": "The date the current contact owner first engaged with the contact."
+  },
+  {
+    "name": "hs_sa_first_engagement_descr",
+    "label": "Description of first engagement",
+    "description": "A description of the current contact owner's first engagement with the contact."
+  },
+  {
+    "name": "hs_sa_first_engagement_object_type",
+    "label": "Type of first engagement",
+    "description": "The object type of the current contact owner's first engagement with the contact."
+  },
+  {
+    "name": "hs_sales_email_last_clicked",
+    "label": "Recent Sales Email Clicked Date",
+    "description": "The last time a tracked sales email was clicked by this user"
+  },
+  {
+    "name": "hs_sales_email_last_opened",
+    "label": "Recent Sales Email Opened Date",
+    "description": "The last time a tracked sales email was opened by this contact. This property does not update for emails that were sent to more than one contact."
+  },
+  {
+    "name": "hs_sales_email_last_replied",
+    "label": "Recent Sales Email Replied Date",
+    "description": "The most recent email from this contact that was received and logged by HubSpot. This value is automatically set by HubSpot and may not be modified."
+  },
+  {
+    "name": "hs_seniority",
+    "label": "Employment Seniority",
+    "description": "Job Seniority"
+  },
+  {
+    "name": "hs_sequences_enrolled_count",
+    "label": "Number of sequences enrolled",
+    "description": "The number of sequences enrolled."
+  },
+  {
+    "name": "hs_sequences_is_enrolled",
+    "label": "Currently in Sequence",
+    "description": "A yes/no field that indicates whether the contact is currently in a Sequence."
+  },
+  {
+    "name": "hs_shared_team_ids",
+    "label": "Shared teams",
+    "description": "Additional teams whose users can access the Contact based on their permissions. This can be set manually or through Workflows or APIs."
+  },
+  {
+    "name": "hs_shared_user_ids",
+    "label": "Shared users",
+    "description": "Additional users that can access the Contact based on their permissions. This can be set manually or through Workflows and APIs."
+  },
+  {
+    "name": "hs_social_facebook_clicks",
+    "label": "Facebook Clicks",
+    "description": "The number clicks on links shared on Facebook"
+  },
+  {
+    "name": "hs_social_google_plus_clicks",
+    "label": "Google Plus Clicks",
+    "description": "The number clicks on links shared on Google Plus"
+  },
+  {
+    "name": "hs_social_last_engagement",
+    "label": "Most Recent Social Click",
+    "description": "The date of the most recent click on a published social message. This is set automatically by HubSpot for each contact."
+  },
+  {
+    "name": "hs_social_linkedin_clicks",
+    "label": "LinkedIn Clicks",
+    "description": "The number clicks on links shared on LinkedIn"
+  },
+  {
+    "name": "hs_social_num_broadcast_clicks",
+    "label": "Broadcast Clicks",
+    "description": "The number of clicks on published social messages. This is set automatically by HubSpot for each contact."
+  },
+  {
+    "name": "hs_social_twitter_clicks",
+    "label": "Twitter Clicks",
+    "description": "The number of times a contact clicked on links you shared on Twitter through HubSpot. This is set automatically by HubSpot and can be used for segmentation."
+  },
+  {
+    "name": "hs_state_code",
+    "label": "State/Region Code",
+    "description": "The contact's state or region code."
+  },
+  {
+    "name": "hs_sub_role",
+    "label": "Employment Sub Role",
+    "description": "Job sub role"
+  },
+  {
+    "name": "hs_tiktok_click_id",
+    "label": "TikTok click id",
+    "description": "The ttclid url parameter extracted from the Activity recorded when a visitor lands on a tracked webpage"
+  },
+  {
+    "name": "hs_time_between_contact_creation_and_deal_close",
+    "label": "Time between contact creation and deal close",
+    "description": ""
+  },
+  {
+    "name": "hs_time_between_contact_creation_and_deal_creation",
+    "label": "Time between contact creation and deal creation",
+    "description": ""
+  },
+  {
+    "name": "hs_time_to_first_engagement",
+    "label": "Lead response time",
+    "description": "The time it took the current owner to perform a qualifying action on the contact. Qualifying actions include sending an email, calling, using chat, recording a meeting outcome, or marking a task as in progress or completed."
+  },
+  {
+    "name": "hs_time_to_move_from_lead_to_customer",
+    "label": "Time to move from lead to customer",
+    "description": " How long it takes for a contact to move from the HubSpot lead stage to the HubSpot customer stage."
+  },
+  {
+    "name": "hs_time_to_move_from_marketingqualifiedlead_to_customer",
+    "label": "Time to move from marketing qualified lead to customer",
+    "description": " How long it takes for a contact to move from the HubSpot marketing qualified lead stage to the HubSpot customer stage."
+  },
+  {
+    "name": "hs_time_to_move_from_opportunity_to_customer",
+    "label": "Time to move from opportunity to customer",
+    "description": " How long it takes for a contact to move from the HubSpot opportunity stage to the HubSpot customer stage."
+  },
+  {
+    "name": "hs_time_to_move_from_salesqualifiedlead_to_customer",
+    "label": "Time to move from sales qualified lead to customer",
+    "description": " How long it takes for a contact to move from the HubSpot sales qualified lead stage to the HubSpot customer stage."
+  },
+  {
+    "name": "hs_time_to_move_from_subscriber_to_customer",
+    "label": "Time to move from subscriber to customer",
+    "description": " How long it takes for a contact to move from the HubSpot subscriber stage to the HubSpot customer stage."
+  },
+  {
+    "name": "hs_timezone",
+    "label": "Time Zone",
+    "description": "The contact\u2019s time zone. This can be set automatically by HubSpot based on other contact properties. It can also be set manually for each contact."
+  },
+  {
+    "name": "hs_updated_by_user_id",
+    "label": "Updated by user ID",
+    "description": "The user who last updated this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_customer",
+    "label": "Cumulative time in \"Customer (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_evangelist",
+    "label": "Cumulative time in \"Evangelist (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Evangelist' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_lead",
+    "label": "Cumulative time in \"Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_marketingqualifiedlead",
+    "label": "Cumulative time in \"Marketing Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_opportunity",
+    "label": "Cumulative time in \"Opportunity (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Opportunity' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_other",
+    "label": "Cumulative time in \"Other (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_salesqualifiedlead",
+    "label": "Cumulative time in \"Sales Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Sales Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_subscriber",
+    "label": "Cumulative time in \"Subscriber (Lifecycle Stage Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the contact in the 'Subscriber' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_current_stage",
+    "label": "Date entered current stage",
+    "description": "The date this object entered its current pipeline stage"
+  },
+  {
+    "name": "hs_v2_date_entered_customer",
+    "label": "Date entered \"Customer (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_evangelist",
+    "label": "Date entered \"Evangelist (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Evangelist' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_lead",
+    "label": "Date entered \"Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_marketingqualifiedlead",
+    "label": "Date entered \"Marketing Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_opportunity",
+    "label": "Date entered \"Opportunity (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Opportunity' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_other",
+    "label": "Date entered \"Other (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_salesqualifiedlead",
+    "label": "Date entered \"Sales Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Sales Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_subscriber",
+    "label": "Date entered \"Subscriber (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact entered the 'Subscriber' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_customer",
+    "label": "Date exited \"Customer (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_evangelist",
+    "label": "Date exited \"Evangelist (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Evangelist' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_lead",
+    "label": "Date exited \"Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_marketingqualifiedlead",
+    "label": "Date exited \"Marketing Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_opportunity",
+    "label": "Date exited \"Opportunity (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Opportunity' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_other",
+    "label": "Date exited \"Other (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_salesqualifiedlead",
+    "label": "Date exited \"Sales Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Sales Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_subscriber",
+    "label": "Date exited \"Subscriber (Lifecycle Stage Pipeline)\"",
+    "description": "The date and time when the contact exited the 'Subscriber' stage, 'Lifecycle Stage Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_latest_time_in_customer",
+    "label": "Latest time in \"Customer (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_evangelist",
+    "label": "Latest time in \"Evangelist (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Evangelist' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_lead",
+    "label": "Latest time in \"Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_marketingqualifiedlead",
+    "label": "Latest time in \"Marketing Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_opportunity",
+    "label": "Latest time in \"Opportunity (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Opportunity' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_other",
+    "label": "Latest time in \"Other (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_salesqualifiedlead",
+    "label": "Latest time in \"Sales Qualified Lead (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Sales Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_subscriber",
+    "label": "Latest time in \"Subscriber (Lifecycle Stage Pipeline)\"",
+    "description": "The total time in seconds spent by the contact in the 'Subscriber' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_time_in_current_stage",
+    "label": "Time in current stage",
+    "description": "The time this object has spent in the current pipeline stage"
+  },
+  {
+    "name": "hs_whatsapp_phone_number",
+    "label": "WhatsApp Phone Number",
+    "description": "The phone number associated with the contact\u2019s WhatsApp account."
+  },
+  {
+    "name": "hubspot_owner_assigneddate",
+    "label": "Owner assigned date",
+    "description": "The most recent timestamp of when an owner was assigned to this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hubspot_owner_id",
+    "label": "Contact owner",
+    "description": "The owner of a contact. This can be any HubSpot user or Salesforce integration user, and can be set manually or via Workflows."
+  },
+  {
+    "name": "hubspot_team_id",
+    "label": "HubSpot Team",
+    "description": "The team of the owner of a contact."
+  },
+  {
+    "name": "hubspotscore",
+    "label": "HubSpot Score",
+    "description": "The number that shows qualification of contacts to sales readiness. It can be set in HubSpot's Lead Scoring app."
+  },
+  {
+    "name": "identify_close_date__c",
+    "label": "Identify Close Date %",
+    "description": ""
+  },
+  {
+    "name": "identify_customer_needs__c",
+    "label": "Identify Customer Needs %",
+    "description": ""
+  },
+  {
+    "name": "identify_funding_source__c",
+    "label": "Identify Funding Source %",
+    "description": ""
+  },
+  {
+    "name": "imported_from_salesforce",
+    "label": "Imported from Salesforce",
+    "description": ""
+  },
+  {
+    "name": "income_category__c",
+    "label": "Income Category",
+    "description": ""
+  },
+  {
+    "name": "industry",
+    "label": "Industry",
+    "description": "The industry a contact is in"
+  },
+  {
+    "name": "ip_city",
+    "label": "IP City",
+    "description": "The city reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "ip_country",
+    "label": "IP Country",
+    "description": "The country reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "ip_country_code",
+    "label": "IP Country Code",
+    "description": "The country code reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "ip_state",
+    "label": "IP State/Region",
+    "description": "The state or region reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "ip_state_code",
+    "label": "IP State Code/Region Code",
+    "description": "The state code or region code reported by a contact's IP address. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "job_function",
+    "label": "Job function",
+    "description": "A contact's job function. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "jobtitle",
+    "label": "Job Title",
+    "description": "A contact's job title"
+  },
+  {
+    "name": "kloutscoregeneral",
+    "label": "Klout Score",
+    "description": "A contact's Klout score, a measure of Internet influence"
+  },
+  {
+    "name": "known_expertise",
+    "label": "Skills",
+    "description": ""
+  },
+  {
+    "name": "lastmodifieddate",
+    "label": "Last Modified Date",
+    "description": "The date any property on this contact was modified"
+  },
+  {
+    "name": "lastname",
+    "label": "Last Name",
+    "description": "A contact's last name"
+  },
+  {
+    "name": "lead__c",
+    "label": "Lead Report",
+    "description": ""
+  },
+  {
+    "name": "leadership_circle__c",
+    "label": "Leadership Circle",
+    "description": ""
+  },
+  {
+    "name": "leadsource",
+    "label": "Lead Source",
+    "description": ""
+  },
+  {
+    "name": "leadstatus",
+    "label": "Status custom",
+    "description": ""
+  },
+  {
+    "name": "lifecyclestage",
+    "label": "Lifecycle Stage",
+    "description": "The qualification of contacts to sales readiness. It can be set through imports, forms, workflows, and manually on a per contact basis."
+  },
+  {
+    "name": "linkedinbio",
+    "label": "LinkedIn Bio",
+    "description": "A contact's LinkedIn bio"
+  },
+  {
+    "name": "linkedinconnections",
+    "label": "LinkedIn Connections",
+    "description": "How many LinkedIn connections they have"
+  },
+  {
+    "name": "marital_status",
+    "label": "Marital Status",
+    "description": "A contact's marital status. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "message",
+    "label": "Message",
+    "description": "A default property to be used for any message or comments a contact may want to leave on a form."
+  },
+  {
+    "name": "military_status",
+    "label": "Military status",
+    "description": "A contact's military status. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "mobilephone",
+    "label": "Mobile Phone Number",
+    "description": "A contact's mobile phone number"
+  },
+  {
+    "name": "name_pronunciation",
+    "label": "Name pronunciation",
+    "description": ""
+  },
+  {
+    "name": "next_step__c",
+    "label": "Next Step",
+    "description": ""
+  },
+  {
+    "name": "next_step_date__c",
+    "label": "Next Step Date",
+    "description": ""
+  },
+  {
+    "name": "nickname_preferred_name__c",
+    "label": "Nickname / Preferred Name",
+    "description": ""
+  },
+  {
+    "name": "notes_last_contacted",
+    "label": "Last Contacted",
+    "description": "The last time a call, email, or meeting was logged for a contact. This is set automatically by HubSpot based on user actions in the contact record."
+  },
+  {
+    "name": "notes_last_updated",
+    "label": "Last Activity Date",
+    "description": "The last time a note, call, email, meeting, or task was logged for a contact. This is set automatically by HubSpot based on user actions in the contact record."
+  },
+  {
+    "name": "notes_next_activity_date",
+    "label": "Next Activity Date",
+    "description": "The date of the next upcoming activity for a contact. This is set automatically by HubSpot based on user actions in the contact record."
+  },
+  {
+    "name": "num_associated_deals",
+    "label": "Number of Associated Deals",
+    "description": "The number of deals associated with this contact. This is set automatically by HubSpot."
+  },
+  {
+    "name": "num_contacted_notes",
+    "label": "Number of times contacted",
+    "description": "The number of times a call, email, or meeting was logged for a contact. This is set automatically by HubSpot based on user actions in the contact record."
+  },
+  {
+    "name": "num_conversion_events",
+    "label": "Number of Form Submissions",
+    "description": "The number of forms this contact has submitted"
+  },
+  {
+    "name": "num_notes",
+    "label": "Number of Sales Activities",
+    "description": "The number of sales activities for a contact. This is set automatically by HubSpot based on user actions in the contact record."
+  },
+  {
+    "name": "num_unique_conversion_events",
+    "label": "Number of Unique Forms Submitted",
+    "description": "The number of different forms this contact has submitted"
+  },
+  {
+    "name": "numberofemployees",
+    "label": "Employees",
+    "description": ""
+  },
+  {
+    "name": "numemployees",
+    "label": "Number of Employees",
+    "description": "The number of company employees"
+  },
+  {
+    "name": "options_desired__c",
+    "label": "Options Desired",
+    "description": ""
+  },
+  {
+    "name": "owneremail",
+    "label": "HubSpot Owner Email (legacy)",
+    "description": "A legacy property used to identify the email address of the owner of the contact. This property is no longer in use."
+  },
+  {
+    "name": "ownername",
+    "label": "HubSpot Owner Name (legacy)",
+    "description": "A legacy property used to identify the name of the owner of the contact. This property is no longer in use."
+  },
+  {
+    "name": "phone",
+    "label": "Phone Number",
+    "description": "A contact's primary phone number"
+  },
+  {
+    "name": "position_url",
+    "label": "Position URL",
+    "description": ""
+  },
+  {
+    "name": "preferred_name",
+    "label": "Preferred name",
+    "description": "Include title, such as \"Dr. Martin\""
+  },
+  {
+    "name": "pricing_info_presented__c",
+    "label": "Pricing Info Presented %",
+    "description": ""
+  },
+  {
+    "name": "pronoun_he_she_they_",
+    "label": "Pronoun (he/she/they)",
+    "description": ""
+  },
+  {
+    "name": "pronoun_him_her_them_",
+    "label": "Pronoun (him/her/them)",
+    "description": ""
+  },
+  {
+    "name": "pronoun_his_hers_theirs_",
+    "label": "Pronoun (his/hers/theirs)",
+    "description": ""
+  },
+  {
+    "name": "proposal_quote__c",
+    "label": "Proposal / Quote %",
+    "description": ""
+  },
+  {
+    "name": "rating",
+    "label": "Rating",
+    "description": ""
+  },
+  {
+    "name": "recent_conversion_date",
+    "label": "Recent Conversion Date",
+    "description": "The date this contact last submitted a form"
+  },
+  {
+    "name": "recent_conversion_event_name",
+    "label": "Recent Conversion",
+    "description": "The last form this contact submitted"
+  },
+  {
+    "name": "recent_deal_amount",
+    "label": "Recent Deal Amount",
+    "description": "The amount of the last closed won deal associated with a contact. This is set automatically by HubSpot based on information from the Deals object."
+  },
+  {
+    "name": "recent_deal_close_date",
+    "label": "Recent Deal Close Date",
+    "description": "The date that the last deal associated with a contact was won. This is automatically set by HubSpot based on information from the Deals object."
+  },
+  {
+    "name": "recruiter_email",
+    "label": "Recruiter Email",
+    "description": ""
+  },
+  {
+    "name": "relationship_status",
+    "label": "Relationship Status",
+    "description": "A contact's relationship status. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "resume___cv",
+    "label": "Resume / CV",
+    "description": ""
+  },
+  {
+    "name": "role",
+    "label": "Role",
+    "description": ""
+  },
+  {
+    "name": "salary_range",
+    "label": "Salary Range",
+    "description": ""
+  },
+  {
+    "name": "sales_date__c",
+    "label": "Sales Date",
+    "description": ""
+  },
+  {
+    "name": "salesforceaccountid",
+    "label": "Salesforce Account ID",
+    "description": ""
+  },
+  {
+    "name": "salesforcecampaignids",
+    "label": "Salesforce Campaign IDs",
+    "description": ""
+  },
+  {
+    "name": "salesforcecontactid",
+    "label": "Salesforce Contact ID",
+    "description": ""
+  },
+  {
+    "name": "salesforcelastsynctime",
+    "label": "Last Salesforce Sync Time",
+    "description": ""
+  },
+  {
+    "name": "salesforceleadid",
+    "label": "Salesforce Lead ID",
+    "description": ""
+  },
+  {
+    "name": "salesforceopportunitystage",
+    "label": "Opportunity Stage",
+    "description": ""
+  },
+  {
+    "name": "salutation",
+    "label": "Salutation",
+    "description": "The title used to address a contact"
+  },
+  {
+    "name": "school",
+    "label": "School",
+    "description": "A contact's school. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "send_holiday_cards__c",
+    "label": "Send Holiday Cards",
+    "description": ""
+  },
+  {
+    "name": "seniority",
+    "label": "Seniority",
+    "description": "A contact's seniority. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "special_sf__c",
+    "label": "Special SF",
+    "description": ""
+  },
+  {
+    "name": "start_conversation_phone_email__c",
+    "label": "Start conversation %",
+    "description": ""
+  },
+  {
+    "name": "start_date",
+    "label": "Start date",
+    "description": "A contact's start date. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "state",
+    "label": "State/Region",
+    "description": "The contact's state of residence. This might be set via import, form, or integration."
+  },
+  {
+    "name": "submission_date",
+    "label": "Submission date",
+    "description": "Recruiter submission date"
+  },
+  {
+    "name": "system_url__c",
+    "label": "System URL",
+    "description": ""
+  },
+  {
+    "name": "total_revenue",
+    "label": "Total Revenue",
+    "description": "The sum from all closed won deal revenue associated with a contact. This is automatically set by HubSpot and can be used for segmentation and reporting."
+  },
+  {
+    "name": "totalstudents__c",
+    "label": "TotalStudents",
+    "description": ""
+  },
+  {
+    "name": "twitterbio",
+    "label": "Twitter Bio",
+    "description": "The contact's Twitter bio. This is set by HubSpot using the contact's email address."
+  },
+  {
+    "name": "twitterhandle",
+    "label": "Twitter Username",
+    "description": "The contact's Twitter handle."
+  },
+  {
+    "name": "twitterprofilephoto",
+    "label": "Twitter Profile Photo",
+    "description": "The contact's Twitter profile photo. This is set by HubSpot using the contact's email address."
+  },
+  {
+    "name": "type__c",
+    "label": "Type",
+    "description": ""
+  },
+  {
+    "name": "vip_group",
+    "label": "VIP Group",
+    "description": "Contacts suitable for special program, such as Digi Scholars, BLM, case studies, etc"
+  },
+  {
+    "name": "website",
+    "label": "Website URL",
+    "description": "The contact's company website"
+  },
+  {
+    "name": "where_did_you_find_this_candidate_",
+    "label": "Where did you find this candidate?",
+    "description": "Personal contact, company database, LinkedIn, etc. Please provide details."
+  },
+  {
+    "name": "work_email",
+    "label": "Work email",
+    "description": "A contact's work email. This property is required for the Facebook Ads Integration. This property will be automatically synced via the Lead Ads tool"
+  },
+  {
+    "name": "zip",
+    "label": "Postal Code",
+    "description": "The contact's zip code. This might be set via import, form, or integration."
+  },
+  {
+    "name": "zoom_webinar_attendance_average_duration",
+    "label": "Average Zoom webinar attendance duration",
+    "description": "The average amount of time this contact attends your Zoom webinars. 100% would mean the contact stays until the end of each Zoom webinar they attend."
+  },
+  {
+    "name": "zoom_webinar_attendance_count",
+    "label": "Total number of Zoom webinars attended",
+    "description": "Total number of Zoom webinars this contact has attended."
+  },
+  {
+    "name": "zoom_webinar_joinlink",
+    "label": "Last registered Zoom webinar",
+    "description": "The name of the last Zoom webinar this contact registered for. This property is updated every time they register for a new Zoom webinar."
+  },
+  {
+    "name": "zoom_webinar_registration_count",
+    "label": "Total number of Zoom webinar registrations",
+    "description": "Total number of Zoom webinars this contact has registered for."
+  }
+]

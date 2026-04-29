@@ -1,0 +1,1837 @@
+[
+  {
+    "name": "account_setup_import_integration__c",
+    "label": "Account setup (import / integration)",
+    "description": ""
+  },
+  {
+    "name": "active_student_users_in_subscription_yr__c",
+    "label": "Active Student Users in Subscription Yr",
+    "description": ""
+  },
+  {
+    "name": "ai_initial_fee",
+    "label": "AI Initial Fee",
+    "description": "One-time initial AI usage fee charged at signing."
+  },
+  {
+    "name": "amount",
+    "label": "Amount",
+    "description": "The total amount of the deal"
+  },
+  {
+    "name": "amount_in_home_currency",
+    "label": "Amount in company currency",
+    "description": "The amount of the deal, using the exchange rate, in your company's currency"
+  },
+  {
+    "name": "amount_per_year__c",
+    "label": "Amount Per Year",
+    "description": ""
+  },
+  {
+    "name": "annual_total_revenue",
+    "label": "Annual total revenue",
+    "description": ""
+  },
+  {
+    "name": "arr",
+    "label": "ARR",
+    "description": "Annual Recurring Revenue (ARR) is a core financial metric used by SaaS companies to measure the predictable and recurring revenue generated from subscriptions over a one-year period. \n\nIt excludes one-time payments such as setup fees, training fees, or professional services.\n\nThis field is automatically calculated based on license fees x number of license. It does not take into account any one-time fees such as setup fees.\n\nNote:\n1. We are not yet taking into account AI credit fees as it is not a predictable annual recurring charge at this time.\n\n2. ARR = the annualized value of active recurring subscription contracts.\nIt is contract-based, not revenue-recognition-based. This means ARR should not be based on deferred revenue, which is used in accounting and tax purposes."
+  },
+  {
+    "name": "closed_lost_reason",
+    "label": "Closed Lost Reason",
+    "description": "Reason why this deal was lost"
+  },
+  {
+    "name": "closed_won_reason",
+    "label": "Closed Won Reason",
+    "description": "Reason why this deal was won"
+  },
+  {
+    "name": "closedate",
+    "label": "Close Date",
+    "description": "The expected close date of the deal"
+  },
+  {
+    "name": "closing__c",
+    "label": "Closing %",
+    "description": ""
+  },
+  {
+    "name": "contract_auto_renewal",
+    "label": "Contract auto-renewal",
+    "description": ""
+  },
+  {
+    "name": "contract_year__current_",
+    "label": "Contract year (current/total)",
+    "description": "If this is year 1 of 5, enter \"1/5\". If this is year 5 of 5, enter \"5/5\". If this is year 1 of 1, enter \"1/1\""
+  },
+  {
+    "name": "course_quantity__c",
+    "label": "Course quantity",
+    "description": ""
+  },
+  {
+    "name": "createdate",
+    "label": "Create Date",
+    "description": "The date the deal was created. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "customization_specs__c",
+    "label": "Customization Specs",
+    "description": ""
+  },
+  {
+    "name": "days_to_close",
+    "label": "Days to close",
+    "description": "The number of days the deal took to close"
+  },
+  {
+    "name": "deal_currency_code",
+    "label": "Currency",
+    "description": "Currency code for the deal."
+  },
+  {
+    "name": "dealname",
+    "label": "Deal Name",
+    "description": "The name given to this deal."
+  },
+  {
+    "name": "dealstage",
+    "label": "Deal Stage",
+    "description": "The stage of the deal. Deal stages allow you to categorize and track the progress of the deals that you are working on."
+  },
+  {
+    "name": "dealtype",
+    "label": "Deal Type",
+    "description": "The type of deal. By default, categorize your deal as either a New Business or Existing Business."
+  },
+  {
+    "name": "decision_maker__c",
+    "label": "Decision Maker %",
+    "description": ""
+  },
+  {
+    "name": "demo_account__c",
+    "label": "Demo Account %",
+    "description": ""
+  },
+  {
+    "name": "demo_presentation__c",
+    "label": "Demo Presentation %",
+    "description": ""
+  },
+  {
+    "name": "description",
+    "label": "Deal Description",
+    "description": "Description of the deal"
+  },
+  {
+    "name": "due_date__c",
+    "label": "Due Date",
+    "description": ""
+  },
+  {
+    "name": "e_portfolio_popularity__c",
+    "label": "e-Portfolio popularity",
+    "description": ""
+  },
+  {
+    "name": "e_portfolio_quality__c",
+    "label": "e-Portfolio quality",
+    "description": ""
+  },
+  {
+    "name": "e_portfolio_quantity__c",
+    "label": "e-Portfolio quantity",
+    "description": ""
+  },
+  {
+    "name": "e_portfolio_update_frequency__c",
+    "label": "e-Portfolio update frequency",
+    "description": ""
+  },
+  {
+    "name": "engagements_last_meeting_booked",
+    "label": "Date of last meeting booked in meetings tool",
+    "description": "The date of the most recent meeting an associated contact has booked through the meetings tool."
+  },
+  {
+    "name": "engagements_last_meeting_booked_campaign",
+    "label": "Campaign of last booking in meetings tool",
+    "description": "This UTM parameter shows which marketing campaign (e.g. a specific email) referred an associated contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link."
+  },
+  {
+    "name": "engagements_last_meeting_booked_medium",
+    "label": "Medium of last booking in meetings tool",
+    "description": "This UTM parameter shows which channel (e.g. email) referred an associated contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link."
+  },
+  {
+    "name": "engagements_last_meeting_booked_source",
+    "label": "Source of last booking in meetings tool",
+    "description": "This UTM parameter shows which site (e.g. Twitter) referred an associated contact to the meetings tool for their most recent booking. This property is only populated when you add tracking parameters to your meeting link. "
+  },
+  {
+    "name": "established_pd_training__c",
+    "label": "Established PD / training",
+    "description": ""
+  },
+  {
+    "name": "features_enabled__c",
+    "label": "Features Enabled",
+    "description": ""
+  },
+  {
+    "name": "fiscal_year",
+    "label": "Fiscal Year - By license start date",
+    "description": "Digication's fiscal year starts on 7/1 and ends on 6/30"
+  },
+  {
+    "name": "fiscal_year_by_invoice_date",
+    "label": "Fiscal Year - By invoice due date",
+    "description": "Digication's fiscal year starts on 7/1 and ends on 6/30"
+  },
+  {
+    "name": "fiscal_year_by_payment_date",
+    "label": "Fiscal Year - By payment received date",
+    "description": "Digication's fiscal year starts on 7/1 and ends on 6/30"
+  },
+  {
+    "name": "hs_actual_duration",
+    "label": "Actual duration",
+    "description": "Calculates the time between the create date and close date. If the create date occurs after the close date, the value returned is 0."
+  },
+  {
+    "name": "hs_acv",
+    "label": "Annual contract value",
+    "description": "The annual contract value (ACV) of this deal."
+  },
+  {
+    "name": "hs_all_assigned_business_unit_ids",
+    "label": "Brands",
+    "description": "The brands this record is assigned to."
+  },
+  {
+    "name": "hs_all_collaborator_owner_ids",
+    "label": "Deal Collaborator",
+    "description": "Owner ids of the users involved in closing the deal"
+  },
+  {
+    "name": "hs_all_deal_split_owner_ids",
+    "label": "Deal Split Users",
+    "description": "The owner ids of all associated Deal Splits. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_analytics_latest_source",
+    "label": "Latest Traffic Source",
+    "description": "Source for the contact either directly or indirectly associated with the last session activity for this deal"
+  },
+  {
+    "name": "hs_analytics_latest_source_data_1",
+    "label": "Latest Traffic Source Data 1",
+    "description": "Additional source details of the last session attributed to any contacts that are directly or indirectly associated with this deal"
+  },
+  {
+    "name": "hs_analytics_latest_source_data_2",
+    "label": "Latest Traffic Source Data 2",
+    "description": "Additional source details of the last session attributed to any contacts that are directly or indirectly associated with this deal"
+  },
+  {
+    "name": "hs_analytics_latest_source_timestamp",
+    "label": "Latest Traffic Source Timestamp",
+    "description": "Timestamp of when latest source occurred for either a directly or indirectly associated contact"
+  },
+  {
+    "name": "hs_analytics_source",
+    "label": "Original Traffic Source",
+    "description": "Original source for the contact with the earliest activity for this deal."
+  },
+  {
+    "name": "hs_analytics_source_data_1",
+    "label": "Original Traffic Source Drill-Down 1",
+    "description": "Additional information about the original source for the associated contact, or associated company if there is no contact, with the oldest value for the Time first seen property."
+  },
+  {
+    "name": "hs_analytics_source_data_2",
+    "label": "Original Traffic Source Drill-Down 2",
+    "description": "Additional information about the original source for the associated contact, or associated company if there is no contact, with the oldest value for the Time first seen property."
+  },
+  {
+    "name": "hs_arr",
+    "label": "Annual recurring revenue",
+    "description": "The annual recurring revenue (ARR) of this deal."
+  },
+  {
+    "name": "hs_associated_deal_registration_deal_type",
+    "label": "Associated Shared Deal Type",
+    "description": "The deal type of the associated Shared Deal. (This field is only accurate on Partner portals!)"
+  },
+  {
+    "name": "hs_associated_deal_registration_product_interests",
+    "label": "Associated Shared Deal Product Interests",
+    "description": "The most likely HubSpot product(s) of the deal synced from the associated Shared Deal. (This field is only accurate on Partner portals!)"
+  },
+  {
+    "name": "hs_average_deal_owner_duration_in_current_stage",
+    "label": "Average Deal Owner Duration In Current Stage",
+    "description": "Time duration of the calculated average time of closed-won deals spent in current pipeline stage"
+  },
+  {
+    "name": "hs_closed_won_count",
+    "label": "Closed won count",
+    "description": "This property is 1 if the deal is closed won, otherwise 0."
+  },
+  {
+    "name": "hs_created_by_user_id",
+    "label": "Created by user ID",
+    "description": "The user who created this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_deal_registration_mrr",
+    "label": "HubSpot Shared Deal MRR",
+    "description": "MRR of the quote purchased for this Shared Deal."
+  },
+  {
+    "name": "hs_deal_registration_mrr_currency_code",
+    "label": "HubSpot Shared Deal MRR Currency Code",
+    "description": "Currency code for the MRR of the quote purchased for this Shared Deal."
+  },
+  {
+    "name": "hs_deal_score",
+    "label": "Deal Score",
+    "description": "The predictive deal score calculated by Hubspot AI to score the deal health"
+  },
+  {
+    "name": "hs_deal_stage_probability",
+    "label": "Deal probability",
+    "description": "The probability a deal will close. This defaults to the deal stage probability setting."
+  },
+  {
+    "name": "hs_exchange_rate",
+    "label": "Exchange rate",
+    "description": "This is the exchange rate used to convert the deal amount into your company currency."
+  },
+  {
+    "name": "hs_forecast_amount",
+    "label": "Forecast amount",
+    "description": "The custom forecasted deal value calculated by multiplying the forecast probability and deal amount in your company\u2019s currency."
+  },
+  {
+    "name": "hs_forecast_probability",
+    "label": "Forecast probability",
+    "description": "The custom percent probability a deal will close."
+  },
+  {
+    "name": "hs_form_id",
+    "label": "Form ID",
+    "description": "ID of the form that created the Deal object"
+  },
+  {
+    "name": "hs_has_last_conversation_follow_ups",
+    "label": "Has Last Conversation Follow Ups",
+    "description": "Indicates if the most recent conversation has follow ups. True if hs_last_conversation_with_followups_object_coordinates has a value, false otherwise."
+  },
+  {
+    "name": "hs_has_last_meeting_followups",
+    "label": "Has Last Meeting Follow Ups",
+    "description": "Indicates if the most recent meeting has follow ups. True if hs_last_meeting_id_with_followups has a value, false otherwise."
+  },
+  {
+    "name": "hs_is_active_shared_deal",
+    "label": "Is Active Shared Deal",
+    "description": "Indicates if the current deal is an active shared deal. It is set automatically based on the value of hs_num_associated_active_deal_registrations."
+  },
+  {
+    "name": "hs_is_closed",
+    "label": "Is Deal Closed?",
+    "description": "True if the deal was won or lost."
+  },
+  {
+    "name": "hs_is_closed_count",
+    "label": "Is Closed (numeric)",
+    "description": "This property is 1 if the deal is closed (\"Closed Won\" or \"Closed Lost\"), otherwise 0"
+  },
+  {
+    "name": "hs_is_closed_lost",
+    "label": "Is closed lost",
+    "description": "True if the deal is in the closed lost state, false otherwise"
+  },
+  {
+    "name": "hs_is_closed_won",
+    "label": "Is Closed Won",
+    "description": "True if the deal is in the closed won state, false otherwise"
+  },
+  {
+    "name": "hs_is_deal_split",
+    "label": "Deal Split Added",
+    "description": "Indicates if the deal is split between multiple users."
+  },
+  {
+    "name": "hs_is_open_count",
+    "label": "Is Open (numeric)",
+    "description": "This property is 1 if the deal is not closed won or closed lost, otherwise 0"
+  },
+  {
+    "name": "hs_is_stalled",
+    "label": "Is Stalled",
+    "description": "True if Time in stage is 20% longer than the deal owner\u2019s closed-won average time for that stage, false otherwise."
+  },
+  {
+    "name": "hs_is_stalled_after_timestamp",
+    "label": "Is Stalled After Timestamp",
+    "description": "Timestamp when Time in stage became 20% longer than the deal owner\u2019s closed-won average for that stage."
+  },
+  {
+    "name": "hs_last_conversation_with_followups_object_coordinates",
+    "label": "Last conversation with follow-ups",
+    "description": "Object coordinates of the last conversation with followups"
+  },
+  {
+    "name": "hs_last_gs_shared_message",
+    "label": "Last GS Shared Message",
+    "description": "when was the last gs shared message?"
+  },
+  {
+    "name": "hs_last_partner_shared_message_date",
+    "label": "Last Partner Shared Message Date",
+    "description": "When was the last shared message sent on this deal by a Partner?"
+  },
+  {
+    "name": "hs_lastmodifieddate",
+    "label": "Last Modified Date",
+    "description": "Most recent timestamp of any property update for this deal. This includes HubSpot internal properties, which can be visible or hidden. This property is updated automatically."
+  },
+  {
+    "name": "hs_latest_approval_status",
+    "label": "Latest Approval Status",
+    "description": "The latest approval status. Used by HubSpot to track pipeline approval processes."
+  },
+  {
+    "name": "hs_manual_forecast_category",
+    "label": "Forecast category",
+    "description": "The likelihood a deal will close. This property is used for manual forecasting your deals."
+  },
+  {
+    "name": "hs_merged_object_ids",
+    "label": "Merged Deal IDs",
+    "description": "The list of Deal record IDs that have been merged into this Deal. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_mrr",
+    "label": "Monthly recurring revenue",
+    "description": "The monthly recurring revenue (MRR) of this deal."
+  },
+  {
+    "name": "hs_next_meeting_id",
+    "label": "Next Meeting",
+    "description": ""
+  },
+  {
+    "name": "hs_next_meeting_name",
+    "label": "Next Meeting Name",
+    "description": ""
+  },
+  {
+    "name": "hs_next_meeting_start_time",
+    "label": "Next Meeting Start Time",
+    "description": ""
+  },
+  {
+    "name": "hs_next_step",
+    "label": "Next step",
+    "description": "A short description of the next step for the deal"
+  },
+  {
+    "name": "hs_notes_next_activity",
+    "label": "Next Activity",
+    "description": "The coordinates of the next upcoming activity for a deal. This is set automatically by HubSpot based on user actions in the deal record."
+  },
+  {
+    "name": "hs_num_associated_active_deal_registrations",
+    "label": "Number of Active Deal Registrations",
+    "description": "The number of active deal registrations associated with this deal. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_num_associated_deal_registrations",
+    "label": "Number of Deal Registrations",
+    "description": "The number of deal registrations associated with this deal. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_num_of_associated_line_items",
+    "label": "Number of Associated Line Items",
+    "description": "The number of line items associated with this deal"
+  },
+  {
+    "name": "hs_object_id",
+    "label": "Record ID",
+    "description": "The unique ID for this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_object_source_detail_1",
+    "label": "Record source detail 1",
+    "description": "First level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_detail_2",
+    "label": "Record source detail 2",
+    "description": "Second level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_detail_3",
+    "label": "Record source detail 3",
+    "description": "Third level of detail on how this record was created."
+  },
+  {
+    "name": "hs_object_source_label",
+    "label": "Record source",
+    "description": "How this record was created."
+  },
+  {
+    "name": "hs_partner_tech_win",
+    "label": "Partner Tech Win",
+    "description": "Tech Win field is used to identify where we are in achieving a technical win. Tech Win occurs when HubSpot technically fulfills the customer\u2019s specific needs, marking a pivotal point in the sales process.Set to \"In Progress\" by Partner when joining the first disco call. Set to \"Yes\" by Partner when prospect verbally agrees that HS satisfies their technical/ business needs. Set to \"No\" by Partner when HS is not a fit based on customer feedback. How this property gets set: Manual Entry by Partner Consumer: SalesProperty Create Date: March 19, 2026"
+  },
+  {
+    "name": "hs_priority",
+    "label": "Priority",
+    "description": "The priority level of the deal"
+  },
+  {
+    "name": "hs_projected_amount",
+    "label": "Weighted amount",
+    "description": "Returns the multiplication of the amount times the probability of the deal closing."
+  },
+  {
+    "name": "hs_projected_amount_in_home_currency",
+    "label": "Weighted amount in company currency",
+    "description": "The deal\u2019s amount in home currency multiplied by its probability of closing, which is determined based on the deal\u2019s stage and the probability that was assigned to it in deal pipeline settings."
+  },
+  {
+    "name": "hs_salesforceopportunityid",
+    "label": "Salesforce Opportunity ID",
+    "description": ""
+  },
+  {
+    "name": "hs_shared_team_ids",
+    "label": "Shared teams",
+    "description": "Additional teams whose users can access the Deal based on their permissions. This can be set manually or through Workflows or APIs."
+  },
+  {
+    "name": "hs_shared_user_ids",
+    "label": "Shared users",
+    "description": "Additional users that can access the Deal based on their permissions. This can be set manually or through Workflows and APIs."
+  },
+  {
+    "name": "hs_synced_deal_owner_name_and_email",
+    "label": "HubSpot Sales Lead",
+    "description": "The HubSpot sales lead that owns this Shared Deal."
+  },
+  {
+    "name": "hs_tag_ids",
+    "label": "Deal Tags",
+    "description": "List of tag ids applicable to a deal. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_tcv",
+    "label": "Total contract value",
+    "description": "The total contract value (TCV) of this deal."
+  },
+  {
+    "name": "hs_updated_by_user_id",
+    "label": "Updated by user ID",
+    "description": "The user who last updated this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_0906b08a_bf71_42b1_bbe5_4cc83cafa1ef_52415257",
+    "label": "Cumulative time in \"Closed Won 100% (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed Won 100%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13299831",
+    "label": "Cumulative time in \"Confirmed Renewal (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Confirmed Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13421805",
+    "label": "Cumulative time in \"Review Contract (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Review Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13421806",
+    "label": "Cumulative time in \"Draft Contract (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Draft Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13421807",
+    "label": "Cumulative time in \"Waiting for Signature (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Waiting for Signature' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13421808",
+    "label": "Cumulative time in \"Signed Contract (Auto-renewal) (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Signed Contract (Auto-renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13421809",
+    "label": "Cumulative time in \"Signed Contract (Manual Renewal) (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Signed Contract (Manual Renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_13903860",
+    "label": "Cumulative time in \"Archived Contracts (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Archived Contracts' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005492",
+    "label": "Cumulative time in \"Appointment scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Appointment scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005493",
+    "label": "Cumulative time in \"Qualified to buy (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Qualified to buy' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005494",
+    "label": "Cumulative time in \"Presentation scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Presentation scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005495",
+    "label": "Cumulative time in \"Decision Maker Bought-In (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Decision Maker Bought-In' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005496",
+    "label": "Cumulative time in \"Contract sent (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Contract sent' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005497",
+    "label": "Cumulative time in \"Closed won (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed won' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_16005498",
+    "label": "Cumulative time in \"Closed lost (Hiring - Frontend Engineering)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed lost' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832626",
+    "label": "Cumulative time in \"Received RFP invitation (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Received RFP invitation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832627",
+    "label": "Cumulative time in \"RFP questions (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'RFP questions' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832628",
+    "label": "Cumulative time in \"RFP initial response (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'RFP initial response' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832629",
+    "label": "Cumulative time in \"RFP submission (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'RFP submission' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832630",
+    "label": "Cumulative time in \"RFP demo presentation (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'RFP demo presentation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832631",
+    "label": "Cumulative time in \"Closed won, send to prospects pipeline (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed won, send to prospects pipeline' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832632",
+    "label": "Cumulative time in \"Closed lost (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed lost' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_1832728",
+    "label": "Cumulative time in \"Auto Import (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Auto Import' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_20527655",
+    "label": "Cumulative time in \"No Contract (Contracts)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'No Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_2083449",
+    "label": "Cumulative time in \"Infrequent (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Infrequent' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_2121545",
+    "label": "Cumulative time in \"Non-Sales (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Non-Sales' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_30711575",
+    "label": "Cumulative time in \"Declined (RFP pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Declined' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653961",
+    "label": "Cumulative time in \"Proposed as VIP (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Proposed as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653962",
+    "label": "Cumulative time in \"Accepted as VIP (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Accepted as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653963",
+    "label": "Cumulative time in \"Invite VIP to participate (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Invite VIP to participate' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653964",
+    "label": "Cumulative time in \"Event preparation (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Event preparation' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653965",
+    "label": "Cumulative time in \"Event scheduled and confirmed (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Event scheduled and confirmed' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653966",
+    "label": "Cumulative time in \"Post event follow up to VIP (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Post event follow up to VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4653967",
+    "label": "Cumulative time in \"Rejected by Digication (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Rejected by Digication' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4654386",
+    "label": "Cumulative time in \"Post event production planning (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Post event production planning' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4654387",
+    "label": "Cumulative time in \"Post event production draft (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Post event production draft' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4654388",
+    "label": "Cumulative time in \"Post event production approval (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Post event production approval' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4654389",
+    "label": "Cumulative time in \"Publish production (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Publish production' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4654390",
+    "label": "Cumulative time in \"Rejected by VIP (Digi Scholars Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Rejected by VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_4e7911aa_3562_4437_b984_b9d750138009_1939971226",
+    "label": "Cumulative time in \"Need Confirmation / Likely Renewal (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Need Confirmation / Likely Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_7597951",
+    "label": "Cumulative time in \"Individual Student Signup (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Individual Student Signup' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_a0f6b370_6c6d_44eb_8a32_8f8aedbe4056_453155744",
+    "label": "Cumulative time in \"Fragile / unlikely renewal (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Fragile / unlikely renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_appointmentscheduled",
+    "label": "Cumulative time in \"Initial Contact (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Initial Contact' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_b53312d1_1366_4535_8b97_4d13f03d1c98_1263249613",
+    "label": "Cumulative time in \"Quota (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Quota' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_c1cbe412_d90f_4eb2_ab5b_15daad90c1ff_617422305",
+    "label": "Cumulative time in \"Awaiting renewal payment (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Awaiting renewal payment' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_cc131f27_dd55_4358_9bcb_9cc8f0f86142_955200327",
+    "label": "Cumulative time in \"Closed Lost 0% (Renewal Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed Lost 0%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_closedlost",
+    "label": "Cumulative time in \"Closed Lost (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Closed Lost' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_closedwon",
+    "label": "Cumulative time in \"Invoice Paid (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Invoice Paid' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_contractsent",
+    "label": "Cumulative time in \"Create Invoice (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Create Invoice' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_decisionmakerboughtin",
+    "label": "Cumulative time in \"Create Agreement (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Create Agreement' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_presentationscheduled",
+    "label": "Cumulative time in \"Post Demo Follow Up (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Post Demo Follow Up' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_cumulative_time_in_qualifiedtobuy",
+    "label": "Cumulative time in \"Schedule Demo (Prospects Pipeline)\"",
+    "description": "The cumulative time in seconds spent by the deal in the 'Schedule Demo' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_0906b08a_bf71_42b1_bbe5_4cc83cafa1ef_52415257",
+    "label": "Date entered \"Closed Won 100% (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Closed Won 100%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13299831",
+    "label": "Date entered \"Confirmed Renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Confirmed Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13421805",
+    "label": "Date entered \"Review Contract (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Review Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13421806",
+    "label": "Date entered \"Draft Contract (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Draft Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13421807",
+    "label": "Date entered \"Waiting for Signature (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Waiting for Signature' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13421808",
+    "label": "Date entered \"Signed Contract (Auto-renewal) (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Signed Contract (Auto-renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13421809",
+    "label": "Date entered \"Signed Contract (Manual Renewal) (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Signed Contract (Manual Renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_13903860",
+    "label": "Date entered \"Archived Contracts (Contracts)\"",
+    "description": "The date and time when the deal entered the 'Archived Contracts' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005492",
+    "label": "Date entered \"Appointment scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Appointment scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005493",
+    "label": "Date entered \"Qualified to buy (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Qualified to buy' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005494",
+    "label": "Date entered \"Presentation scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Presentation scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005495",
+    "label": "Date entered \"Decision Maker Bought-In (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Decision Maker Bought-In' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005496",
+    "label": "Date entered \"Contract sent (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Contract sent' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005497",
+    "label": "Date entered \"Closed won (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Closed won' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_16005498",
+    "label": "Date entered \"Closed lost (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal entered the 'Closed lost' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832626",
+    "label": "Date entered \"Received RFP invitation (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'Received RFP invitation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832627",
+    "label": "Date entered \"RFP questions (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'RFP questions' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832628",
+    "label": "Date entered \"RFP initial response (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'RFP initial response' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832629",
+    "label": "Date entered \"RFP submission (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'RFP submission' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832630",
+    "label": "Date entered \"RFP demo presentation (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'RFP demo presentation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832631",
+    "label": "Date entered \"Closed won, send to prospects pipeline (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'Closed won, send to prospects pipeline' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832632",
+    "label": "Date entered \"Closed lost (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'Closed lost' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_1832728",
+    "label": "Date entered \"Auto Import (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Auto Import' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_20527655",
+    "label": "Date entered \"No Contract (Contracts)\"",
+    "description": "The date and time when the deal entered the 'No Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_2083449",
+    "label": "Date entered \"Infrequent (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Infrequent' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_2121545",
+    "label": "Date entered \"Non-Sales (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Non-Sales' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_30711575",
+    "label": "Date entered \"Declined (RFP pipeline)\"",
+    "description": "The date and time when the deal entered the 'Declined' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653961",
+    "label": "Date entered \"Proposed as VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Proposed as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653962",
+    "label": "Date entered \"Accepted as VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Accepted as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653963",
+    "label": "Date entered \"Invite VIP to participate (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Invite VIP to participate' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653964",
+    "label": "Date entered \"Event preparation (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Event preparation' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653965",
+    "label": "Date entered \"Event scheduled and confirmed (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Event scheduled and confirmed' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653966",
+    "label": "Date entered \"Post event follow up to VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Post event follow up to VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4653967",
+    "label": "Date entered \"Rejected by Digication (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Rejected by Digication' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4654386",
+    "label": "Date entered \"Post event production planning (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Post event production planning' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4654387",
+    "label": "Date entered \"Post event production draft (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Post event production draft' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4654388",
+    "label": "Date entered \"Post event production approval (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Post event production approval' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4654389",
+    "label": "Date entered \"Publish production (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Publish production' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4654390",
+    "label": "Date entered \"Rejected by VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Rejected by VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_4e7911aa_3562_4437_b984_b9d750138009_1939971226",
+    "label": "Date entered \"Need Confirmation / Likely Renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Need Confirmation / Likely Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_7597951",
+    "label": "Date entered \"Individual Student Signup (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Individual Student Signup' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_a0f6b370_6c6d_44eb_8a32_8f8aedbe4056_453155744",
+    "label": "Date entered \"Fragile / unlikely renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Fragile / unlikely renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_appointmentscheduled",
+    "label": "Date entered \"Initial Contact (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Initial Contact' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_b53312d1_1366_4535_8b97_4d13f03d1c98_1263249613",
+    "label": "Date entered \"Quota (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Quota' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_c1cbe412_d90f_4eb2_ab5b_15daad90c1ff_617422305",
+    "label": "Date entered \"Awaiting renewal payment (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Awaiting renewal payment' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_cc131f27_dd55_4358_9bcb_9cc8f0f86142_955200327",
+    "label": "Date entered \"Closed Lost 0% (Renewal Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Closed Lost 0%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_closedlost",
+    "label": "Date entered \"Closed Lost (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Closed Lost' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_closedwon",
+    "label": "Date entered \"Invoice Paid (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Invoice Paid' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_contractsent",
+    "label": "Date entered \"Create Invoice (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Create Invoice' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_current_stage",
+    "label": "Date entered current stage",
+    "description": "The date this object entered its current pipeline stage"
+  },
+  {
+    "name": "hs_v2_date_entered_decisionmakerboughtin",
+    "label": "Date entered \"Create Agreement (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Create Agreement' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_presentationscheduled",
+    "label": "Date entered \"Post Demo Follow Up (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Post Demo Follow Up' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_entered_qualifiedtobuy",
+    "label": "Date entered \"Schedule Demo (Prospects Pipeline)\"",
+    "description": "The date and time when the deal entered the 'Schedule Demo' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_0906b08a_bf71_42b1_bbe5_4cc83cafa1ef_52415257",
+    "label": "Date exited \"Closed Won 100% (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Closed Won 100%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13299831",
+    "label": "Date exited \"Confirmed Renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Confirmed Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13421805",
+    "label": "Date exited \"Review Contract (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Review Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13421806",
+    "label": "Date exited \"Draft Contract (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Draft Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13421807",
+    "label": "Date exited \"Waiting for Signature (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Waiting for Signature' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13421808",
+    "label": "Date exited \"Signed Contract (Auto-renewal) (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Signed Contract (Auto-renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13421809",
+    "label": "Date exited \"Signed Contract (Manual Renewal) (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Signed Contract (Manual Renewal)' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_13903860",
+    "label": "Date exited \"Archived Contracts (Contracts)\"",
+    "description": "The date and time when the deal exited the 'Archived Contracts' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005492",
+    "label": "Date exited \"Appointment scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Appointment scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005493",
+    "label": "Date exited \"Qualified to buy (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Qualified to buy' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005494",
+    "label": "Date exited \"Presentation scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Presentation scheduled' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005495",
+    "label": "Date exited \"Decision Maker Bought-In (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Decision Maker Bought-In' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005496",
+    "label": "Date exited \"Contract sent (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Contract sent' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005497",
+    "label": "Date exited \"Closed won (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Closed won' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_16005498",
+    "label": "Date exited \"Closed lost (Hiring - Frontend Engineering)\"",
+    "description": "The date and time when the deal exited the 'Closed lost' stage, 'Hiring - Frontend Engineering' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832626",
+    "label": "Date exited \"Received RFP invitation (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'Received RFP invitation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832627",
+    "label": "Date exited \"RFP questions (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'RFP questions' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832628",
+    "label": "Date exited \"RFP initial response (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'RFP initial response' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832629",
+    "label": "Date exited \"RFP submission (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'RFP submission' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832630",
+    "label": "Date exited \"RFP demo presentation (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'RFP demo presentation' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832631",
+    "label": "Date exited \"Closed won, send to prospects pipeline (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'Closed won, send to prospects pipeline' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832632",
+    "label": "Date exited \"Closed lost (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'Closed lost' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_1832728",
+    "label": "Date exited \"Auto Import (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Auto Import' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_20527655",
+    "label": "Date exited \"No Contract (Contracts)\"",
+    "description": "The date and time when the deal exited the 'No Contract' stage, 'Contracts' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_2083449",
+    "label": "Date exited \"Infrequent (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Infrequent' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_2121545",
+    "label": "Date exited \"Non-Sales (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Non-Sales' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_30711575",
+    "label": "Date exited \"Declined (RFP pipeline)\"",
+    "description": "The date and time when the deal exited the 'Declined' stage, 'RFP pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653961",
+    "label": "Date exited \"Proposed as VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Proposed as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653962",
+    "label": "Date exited \"Accepted as VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Accepted as VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653963",
+    "label": "Date exited \"Invite VIP to participate (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Invite VIP to participate' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653964",
+    "label": "Date exited \"Event preparation (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Event preparation' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653965",
+    "label": "Date exited \"Event scheduled and confirmed (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Event scheduled and confirmed' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653966",
+    "label": "Date exited \"Post event follow up to VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Post event follow up to VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4653967",
+    "label": "Date exited \"Rejected by Digication (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Rejected by Digication' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4654386",
+    "label": "Date exited \"Post event production planning (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Post event production planning' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4654387",
+    "label": "Date exited \"Post event production draft (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Post event production draft' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4654388",
+    "label": "Date exited \"Post event production approval (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Post event production approval' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4654389",
+    "label": "Date exited \"Publish production (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Publish production' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4654390",
+    "label": "Date exited \"Rejected by VIP (Digi Scholars Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Rejected by VIP' stage, 'Digi Scholars Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_4e7911aa_3562_4437_b984_b9d750138009_1939971226",
+    "label": "Date exited \"Need Confirmation / Likely Renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Need Confirmation / Likely Renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_7597951",
+    "label": "Date exited \"Individual Student Signup (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Individual Student Signup' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_a0f6b370_6c6d_44eb_8a32_8f8aedbe4056_453155744",
+    "label": "Date exited \"Fragile / unlikely renewal (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Fragile / unlikely renewal' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_appointmentscheduled",
+    "label": "Date exited \"Initial Contact (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Initial Contact' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_b53312d1_1366_4535_8b97_4d13f03d1c98_1263249613",
+    "label": "Date exited \"Quota (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Quota' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_c1cbe412_d90f_4eb2_ab5b_15daad90c1ff_617422305",
+    "label": "Date exited \"Awaiting renewal payment (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Awaiting renewal payment' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_cc131f27_dd55_4358_9bcb_9cc8f0f86142_955200327",
+    "label": "Date exited \"Closed Lost 0% (Renewal Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Closed Lost 0%' stage, 'Renewal Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_closedlost",
+    "label": "Date exited \"Closed Lost (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Closed Lost' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_closedwon",
+    "label": "Date exited \"Invoice Paid (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Invoice Paid' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_contractsent",
+    "label": "Date exited \"Create Invoice (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Create Invoice' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_decisionmakerboughtin",
+    "label": "Date exited \"Create Agreement (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Create Agreement' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_presentationscheduled",
+    "label": "Date exited \"Post Demo Follow Up (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Post Demo Follow Up' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_date_exited_qualifiedtobuy",
+    "label": "Date exited \"Schedule Demo (Prospects Pipeline)\"",
+    "description": "The date and time when the deal exited the 'Schedule Demo' stage, 'Prospects Pipeline' pipeline"
+  },
+  {
+    "name": "hs_v2_latest_time_in_0906b08a_bf71_42b1_bbe5_4cc83cafa1ef_52415257",
+    "label": "Latest time in \"Closed Won 100% (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed Won 100%' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13299831",
+    "label": "Latest time in \"Confirmed Renewal (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Confirmed Renewal' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13421805",
+    "label": "Latest time in \"Review Contract (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Review Contract' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13421806",
+    "label": "Latest time in \"Draft Contract (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Draft Contract' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13421807",
+    "label": "Latest time in \"Waiting for Signature (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Waiting for Signature' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13421808",
+    "label": "Latest time in \"Signed Contract (Auto-renewal) (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Signed Contract (Auto-renewal)' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13421809",
+    "label": "Latest time in \"Signed Contract (Manual Renewal) (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Signed Contract (Manual Renewal)' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_13903860",
+    "label": "Latest time in \"Archived Contracts (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'Archived Contracts' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005492",
+    "label": "Latest time in \"Appointment scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Appointment scheduled' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005493",
+    "label": "Latest time in \"Qualified to buy (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Qualified to buy' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005494",
+    "label": "Latest time in \"Presentation scheduled (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Presentation scheduled' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005495",
+    "label": "Latest time in \"Decision Maker Bought-In (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Decision Maker Bought-In' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005496",
+    "label": "Latest time in \"Contract sent (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Contract sent' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005497",
+    "label": "Latest time in \"Closed won (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed won' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_16005498",
+    "label": "Latest time in \"Closed lost (Hiring - Frontend Engineering)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed lost' stage, 'Hiring - Frontend Engineering' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832626",
+    "label": "Latest time in \"Received RFP invitation (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Received RFP invitation' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832627",
+    "label": "Latest time in \"RFP questions (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'RFP questions' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832628",
+    "label": "Latest time in \"RFP initial response (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'RFP initial response' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832629",
+    "label": "Latest time in \"RFP submission (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'RFP submission' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832630",
+    "label": "Latest time in \"RFP demo presentation (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'RFP demo presentation' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832631",
+    "label": "Latest time in \"Closed won, send to prospects pipeline (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed won, send to prospects pipeline' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832632",
+    "label": "Latest time in \"Closed lost (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed lost' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_1832728",
+    "label": "Latest time in \"Auto Import (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Auto Import' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_20527655",
+    "label": "Latest time in \"No Contract (Contracts)\"",
+    "description": "The total time in seconds spent by the deal in the 'No Contract' stage, 'Contracts' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_2083449",
+    "label": "Latest time in \"Infrequent (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Infrequent' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_2121545",
+    "label": "Latest time in \"Non-Sales (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Non-Sales' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_30711575",
+    "label": "Latest time in \"Declined (RFP pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Declined' stage, 'RFP pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653961",
+    "label": "Latest time in \"Proposed as VIP (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Proposed as VIP' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653962",
+    "label": "Latest time in \"Accepted as VIP (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Accepted as VIP' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653963",
+    "label": "Latest time in \"Invite VIP to participate (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Invite VIP to participate' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653964",
+    "label": "Latest time in \"Event preparation (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Event preparation' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653965",
+    "label": "Latest time in \"Event scheduled and confirmed (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Event scheduled and confirmed' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653966",
+    "label": "Latest time in \"Post event follow up to VIP (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Post event follow up to VIP' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4653967",
+    "label": "Latest time in \"Rejected by Digication (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Rejected by Digication' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4654386",
+    "label": "Latest time in \"Post event production planning (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Post event production planning' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4654387",
+    "label": "Latest time in \"Post event production draft (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Post event production draft' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4654388",
+    "label": "Latest time in \"Post event production approval (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Post event production approval' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4654389",
+    "label": "Latest time in \"Publish production (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Publish production' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4654390",
+    "label": "Latest time in \"Rejected by VIP (Digi Scholars Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Rejected by VIP' stage, 'Digi Scholars Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_4e7911aa_3562_4437_b984_b9d750138009_1939971226",
+    "label": "Latest time in \"Need Confirmation / Likely Renewal (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Need Confirmation / Likely Renewal' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_7597951",
+    "label": "Latest time in \"Individual Student Signup (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Individual Student Signup' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_a0f6b370_6c6d_44eb_8a32_8f8aedbe4056_453155744",
+    "label": "Latest time in \"Fragile / unlikely renewal (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Fragile / unlikely renewal' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_appointmentscheduled",
+    "label": "Latest time in \"Initial Contact (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Initial Contact' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_b53312d1_1366_4535_8b97_4d13f03d1c98_1263249613",
+    "label": "Latest time in \"Quota (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Quota' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_c1cbe412_d90f_4eb2_ab5b_15daad90c1ff_617422305",
+    "label": "Latest time in \"Awaiting renewal payment (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Awaiting renewal payment' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_cc131f27_dd55_4358_9bcb_9cc8f0f86142_955200327",
+    "label": "Latest time in \"Closed Lost 0% (Renewal Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed Lost 0%' stage, 'Renewal Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_closedlost",
+    "label": "Latest time in \"Closed Lost (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Closed Lost' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_closedwon",
+    "label": "Latest time in \"Invoice Paid (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Invoice Paid' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_contractsent",
+    "label": "Latest time in \"Create Invoice (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Create Invoice' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_decisionmakerboughtin",
+    "label": "Latest time in \"Create Agreement (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Create Agreement' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_presentationscheduled",
+    "label": "Latest time in \"Post Demo Follow Up (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Post Demo Follow Up' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_latest_time_in_qualifiedtobuy",
+    "label": "Latest time in \"Schedule Demo (Prospects Pipeline)\"",
+    "description": "The total time in seconds spent by the deal in the 'Schedule Demo' stage, 'Prospects Pipeline' pipeline since it last entered this stage"
+  },
+  {
+    "name": "hs_v2_time_in_current_stage",
+    "label": "Time in current stage",
+    "description": "The time this object has spent in the current pipeline stage"
+  },
+  {
+    "name": "hs_weighted_pipeline_in_company_currency",
+    "label": "Weighted open pipeline in company currency",
+    "description": "Sum in company currency of open deal amount, weighted by pipeline stage"
+  },
+  {
+    "name": "hubspot_owner_assigneddate",
+    "label": "Owner assigned date",
+    "description": "The most recent timestamp of when an owner was assigned to this record. This value is set automatically by HubSpot."
+  },
+  {
+    "name": "hubspot_owner_id",
+    "label": "Deal owner",
+    "description": "The owner of the deal"
+  },
+  {
+    "name": "hubspot_team_id",
+    "label": "HubSpot Team",
+    "description": "The team of the owner of the deal."
+  },
+  {
+    "name": "identify_close_date__c",
+    "label": "Identify Close Date %",
+    "description": ""
+  },
+  {
+    "name": "identify_customer_needs__c",
+    "label": "Identify Customer Needs %",
+    "description": ""
+  },
+  {
+    "name": "identify_funding_source__c",
+    "label": "Identify Funding Source %",
+    "description": ""
+  },
+  {
+    "name": "imported_from_salesforce",
+    "label": "Imported from Salesforce",
+    "description": ""
+  },
+  {
+    "name": "income_category__c",
+    "label": "Income Category",
+    "description": ""
+  },
+  {
+    "name": "invoice__c",
+    "label": "Invoice #",
+    "description": ""
+  },
+  {
+    "name": "invoice_date__c",
+    "label": "Invoice Date",
+    "description": ""
+  },
+  {
+    "name": "license_end_date__c",
+    "label": "License End Date",
+    "description": ""
+  },
+  {
+    "name": "license_length_in_month__c",
+    "label": "License Length (in Months)",
+    "description": ""
+  },
+  {
+    "name": "license_start_date__c",
+    "label": "License Start Date",
+    "description": ""
+  },
+  {
+    "name": "multi_year_subscription_pre_paid",
+    "label": "multi_year_subscription_pre_paid",
+    "description": ""
+  },
+  {
+    "name": "notes_last_contacted",
+    "label": "Last Contacted",
+    "description": "The last time a call, sales email, or meeting was logged for this deal. This is set automatically by HubSpot based on user actions."
+  },
+  {
+    "name": "notes_last_updated",
+    "label": "Last Activity Date",
+    "description": "The last time a note, call, email, meeting, or task was logged for a deal. This is set automatically by HubSpot based on user actions in the deal record."
+  },
+  {
+    "name": "notes_next_activity_date",
+    "label": "Next Activity Date",
+    "description": "The date of the next upcoming activity for a deal. This property is set automatically by HubSpot based on user action. This includes logging a future call, sales email, or meeting using the Log feature, as well as creating a future task or scheduling a future meeting. This is updated automatically by HubSpot."
+  },
+  {
+    "name": "num_associated_contacts",
+    "label": "Number of Associated Contacts",
+    "description": "The number of contacts associated with this deal. This property is set automatically by HubSpot."
+  },
+  {
+    "name": "num_contacted_notes",
+    "label": "Number of times contacted",
+    "description": "The number of times a call, email or meeting was logged for this deal"
+  },
+  {
+    "name": "num_notes",
+    "label": "Number of Sales Activities",
+    "description": "The total number of sales activities (notes, calls, emails, meetings, or tasks) logged for a deal. This is updated automatically by HubSpot."
+  },
+  {
+    "name": "of_years_to_clone",
+    "label": "# of Years to Clone",
+    "description": "For example, if you want to clone this deal three times, select 3"
+  },
+  {
+    "name": "option__c",
+    "label": "Options",
+    "description": ""
+  },
+  {
+    "name": "options__c",
+    "label": "Options",
+    "description": ""
+  },
+  {
+    "name": "options_price__c",
+    "label": "Options Price",
+    "description": ""
+  },
+  {
+    "name": "pipeline",
+    "label": "Pipeline",
+    "description": "The pipeline the deal is in. This determines which stages are options for the deal."
+  },
+  {
+    "name": "post_pilot_roll_out_quantity__c",
+    "label": "Post-pilot roll out quantity",
+    "description": ""
+  },
+  {
+    "name": "post_sales_activities__c",
+    "label": "Post Sales Activities",
+    "description": ""
+  },
+  {
+    "name": "pricing_info_presented__c",
+    "label": "Pricing Info Presented %",
+    "description": ""
+  },
+  {
+    "name": "proposal_quote__c",
+    "label": "Proposal / Quote %",
+    "description": ""
+  },
+  {
+    "name": "quantity__c",
+    "label": "Licensed Student Accounts",
+    "description": ""
+  },
+  {
+    "name": "recurring_revenue_amount",
+    "label": "Recurring revenue amount",
+    "description": "Amount of recurring revenue associated with this deal"
+  },
+  {
+    "name": "recurring_revenue_deal_type",
+    "label": "Recurring revenue deal type",
+    "description": "Deal type for recurring revenue reporting"
+  },
+  {
+    "name": "recurring_revenue_inactive_date",
+    "label": "Recurring revenue inactive date",
+    "description": "Date at which recurring revenue for this deal is no longer collected"
+  },
+  {
+    "name": "recurring_revenue_inactive_reason",
+    "label": "Recurring revenue inactive reason",
+    "description": "Reason the recurring revenue for this ideal is no longer collected"
+  },
+  {
+    "name": "roll_out_to_course__c",
+    "label": "Roll out to course",
+    "description": ""
+  },
+  {
+    "name": "roll_out_to_faculty__c",
+    "label": "Roll out to faculty",
+    "description": ""
+  },
+  {
+    "name": "roll_out_to_student__c",
+    "label": "Roll out to student",
+    "description": ""
+  },
+  {
+    "name": "salesforcelastsynctime",
+    "label": "Last Salesforce Sync Time",
+    "description": ""
+  },
+  {
+    "name": "set_up_assignments__c",
+    "label": "Set up assignments",
+    "description": ""
+  },
+  {
+    "name": "set_up_rubrics__c",
+    "label": "Set up rubrics",
+    "description": ""
+  },
+  {
+    "name": "set_up_standards__c",
+    "label": "Set up standards",
+    "description": ""
+  },
+  {
+    "name": "start_conversation__c",
+    "label": "Start Conversation %",
+    "description": ""
+  },
+  {
+    "name": "support_options__c",
+    "label": "Support Options",
+    "description": ""
+  },
+  {
+    "name": "system_setup__c",
+    "label": "System setup",
+    "description": ""
+  },
+  {
+    "name": "template_setup__c",
+    "label": "Template setup",
+    "description": ""
+  },
+  {
+    "name": "type_of_invoice__c",
+    "label": "Type of Invoice",
+    "description": ""
+  },
+  {
+    "name": "unit_price__c",
+    "label": "Unit Price",
+    "description": ""
+  }
+]

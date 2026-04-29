@@ -11,3 +11,7 @@ build/
 .claude/skills/*/.plugin-data/
 .claude/rubrics/
 tmp/
+
+# Customer data backups — NEVER commit. Schema backups (backups/schemas/) are safe.
+backups/data/
+backups/phase2-pre-execution/

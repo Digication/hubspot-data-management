@@ -1,0 +1,23 @@
+{
+  "name": "hubspot-data-management",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Digication HubSpot CRM cleanup and migration tooling",
+  "type": "commonjs",
+  "scripts": {
+    "phase2:snapshot-schemas": "tsx scripts/phase2/snapshot-schemas.ts",
+    "phase2:dump-fields": "tsx scripts/phase2/dump-field-values.ts",
+    "phase2:dump-rfp": "tsx scripts/phase2/dump-rfp-deals.ts",
+    "phase2:dump-candidates": "tsx scripts/phase2/dump-candidate-contacts.ts",
+    "phase2:backup-all": "pnpm phase2:snapshot-schemas && pnpm phase2:dump-rfp && pnpm phase2:dump-candidates && pnpm phase2:dump-fields"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
