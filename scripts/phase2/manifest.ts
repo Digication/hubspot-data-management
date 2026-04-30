@@ -53,10 +53,17 @@ const review1: FieldTarget[] = [
 export const HUBSPOT_DEFINED_NOT_ARCHIVABLE: Array<
   Omit<FieldTarget, "action"> & { discoveredOn: string }
 > = [
-  { name: "googleplus_page",     object: "companies", review: 1, approxRecords: 0,   reason: "Google+ shut down 2019; HubSpot-defined, not archivable", discoveredOn: "2026-04-29" },
-  { name: "facebookfans",        object: "companies", review: 1, approxRecords: 0,   reason: "HubSpot-defined social field, not archivable",            discoveredOn: "2026-04-29" },
-  { name: "kloutscoregeneral",   object: "contacts",  review: 1, approxRecords: 0,   reason: "Klout shut down 2018; HubSpot-defined, not archivable",   discoveredOn: "2026-04-29" },
-  { name: "salesforceaccountid", object: "companies", review: 3, approxRecords: 426, reason: "Salesforce chapter closed; HubSpot-defined SF sync field, not archivable", discoveredOn: "2026-04-30" },
+  { name: "googleplus_page",          object: "companies", review: 1, approxRecords: 0,   reason: "Google+ shut down 2019; HubSpot-defined, not archivable",   discoveredOn: "2026-04-29" },
+  { name: "facebookfans",             object: "companies", review: 1, approxRecords: 0,   reason: "HubSpot-defined social field, not archivable",              discoveredOn: "2026-04-29" },
+  { name: "kloutscoregeneral",        object: "contacts",  review: 1, approxRecords: 0,   reason: "Klout shut down 2018; HubSpot-defined, not archivable",     discoveredOn: "2026-04-29" },
+  { name: "salesforceaccountid",      object: "companies", review: 3, approxRecords: 426, reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "numemployees",             object: "contacts",  review: 4, approxRecords: 0,   reason: "HubSpot-defined contact-level employee count",              discoveredOn: "2026-04-30" },
+  { name: "company_size",             object: "contacts",  review: 4, approxRecords: 0,   reason: "HubSpot-defined company-size field",                        discoveredOn: "2026-04-30" },
+  { name: "salesforcecontactid",      object: "contacts",  review: 8, approxRecords: 807, reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "salesforceaccountid",      object: "contacts",  review: 8, approxRecords: 0,   reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "salesforceleadid",         object: "contacts",  review: 8, approxRecords: 0,   reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "salesforcecampaignids",    object: "contacts",  review: 8, approxRecords: 0,   reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "salesforceopportunitystage", object: "contacts", review: 8, approxRecords: 0, reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
 ];
 
 /**
@@ -79,8 +86,7 @@ export interface BlockedField {
 
 export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
   // 2026-04-30: workflow 29356620 deleted by team — field is now unblocked
-  // and will be archived on next step3 run. Keeping the entry here as
-  // historical record of what was blocking it.
+  // and was archived. Keeping the entry as historical record.
   {
     name: "renewal_date__c",
     object: "companies",
@@ -89,6 +95,28 @@ export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
   },
   // next_licensed_renewal_date is no longer in the deletion list (moved to
   // Pending Migration in review-decisions.md). The 3 reports stay in place.
+
+  // 2026-04-30 (Step 4): Recruiting form 0-eb0923fb-5d66-41ce-8252-4eb671e25f94
+  // deleted by team, which unblocked 7 of 10 candidate fields. Three remain
+  // blocked by 1 list and 1 workflow — small cleanup left.
+  {
+    name: "recruiter_email",
+    object: "contacts",
+    blockingArtifacts: [{ type: "LIST", id: "303" }],
+    discoveredOn: "2026-04-30",
+  },
+  {
+    name: "digication_open_position",
+    object: "contacts",
+    blockingArtifacts: [{ type: "WORKFLOW", id: "178668883" }],
+    discoveredOn: "2026-04-30",
+  },
+  {
+    name: "position_url",
+    object: "contacts",
+    blockingArtifacts: [{ type: "WORKFLOW", id: "178668883" }],
+    discoveredOn: "2026-04-30",
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -128,10 +156,12 @@ const review3: FieldTarget[] = [
 
 // -----------------------------------------------------------------------------
 // Review 4 — Misplaced Fields on Contacts
+//
+// Removed during Step 4 execution (2026-04-30):
+// - numemployees and company_size are HubSpot-defined; moved to
+//   HUBSPOT_DEFINED_NOT_ARCHIVABLE.
 // -----------------------------------------------------------------------------
 const review4: FieldTarget[] = [
-  { name: "numemployees",                         object: "contacts", review: 4, approxRecords: "varies", reason: "Custom duplicate of standard field; company-level",   action: "delete" },
-  { name: "company_size",                         object: "contacts", review: 4, approxRecords: "varies", reason: "Company-level data",                                   action: "delete" },
   { name: "decision_maker__c",                    object: "contacts", review: 4, approxRecords: "varies", reason: "Misplaced sales pipeline %",                           action: "delete" },
   { name: "demo_account__c",                      object: "contacts", review: 4, approxRecords: "varies", reason: "Misplaced sales pipeline %",                           action: "delete" },
   { name: "demo_presentation__c",                 object: "contacts", review: 4, approxRecords: "varies", reason: "Misplaced sales pipeline %",                           action: "delete" },
@@ -206,16 +236,17 @@ const review7B: FieldTarget[] = [ // Onboarding/Adoption Tracking
 
 // -----------------------------------------------------------------------------
 // Review 8 — Remaining Contact Salesforce Fields
+//
+// Removed during Step 4 execution (2026-04-30):
+// - salesforcecontactid, salesforceaccountid, salesforceleadid,
+//   salesforcecampaignids, salesforceopportunitystage are all
+//   HubSpot-defined SF sync fields → HUBSPOT_DEFINED_NOT_ARCHIVABLE.
+// - contact_status__c moved to Pending Migration — 33 HubSpot lists
+//   filter on it. Need to design a replacement (likely lifecycle stage
+//   or a new status field), migrate the lists, then archive the field.
 // -----------------------------------------------------------------------------
 const review8: FieldTarget[] = [
-  // Group 1 — Salesforce ID/Reference
-  { name: "salesforcecontactid",       object: "contacts", review: 8, approxRecords: 807,       reason: "Salesforce discontinued",              action: "delete" },
-  { name: "salesforceaccountid",       object: "contacts", review: 8, approxRecords: "varies",  reason: "Salesforce discontinued",              action: "delete" },
-  { name: "salesforceleadid",          object: "contacts", review: 8, approxRecords: "varies",  reason: "Salesforce discontinued",              action: "delete" },
-  { name: "salesforcecampaignids",     object: "contacts", review: 8, approxRecords: "varies",  reason: "Salesforce discontinued",              action: "delete" },
-  { name: "salesforceopportunitystage",object: "contacts", review: 8, approxRecords: "varies",  reason: "Salesforce discontinued",              action: "delete" },
   // Group 2 — Sales Activity
-  { name: "contact_status__c",         object: "contacts", review: 8, approxRecords: "varies",  reason: "Replaced by HubSpot lifecycle/activity", action: "delete" },
   { name: "lead__c",                   object: "contacts", review: 8, approxRecords: "varies",  reason: "Obsolete SF sales tracking",            action: "delete" },
   { name: "next_step__c",              object: "contacts", review: 8, approxRecords: "varies",  reason: "Replaced by HubSpot tasks",             action: "delete" },
   { name: "next_step_date__c",         object: "contacts", review: 8, approxRecords: "varies",  reason: "Replaced by HubSpot tasks",             action: "delete" },
@@ -308,10 +339,12 @@ export const CANDIDATE_CONTACT_PROPERTIES = [
   "candidate_location__city",
   "candidate_location__country",
   "candidate_online_profile",
-  "candidate_job_search_status",
   "recruiter_email",
   "where_did_you_find_this_candidate_",
   "digication_open_position",
+  "resume___cv",
+  // Note: removed accidental duplicate of candidate_job_search_status
+  // and added resume___cv (also a recruiting-only field).
 ] as const;
 
 // -----------------------------------------------------------------------------
@@ -360,7 +393,11 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 // 2026-04-30 (later): Reduced 105 → 104 after moving next_licensed_renewal_date
 // to Pending Migration — the 2 populated records hold real renewal-date data
 // that should be migrated to a deal-level field rather than discarded.
-const EXPECTED_DELETES = 104;
+// 2026-04-30 (Step 4): Reduced 104 → 96 after Step 4 execution discovered
+// 7 more HubSpot-defined fields (numemployees, company_size, and 5 more
+// salesforce* sync fields on contacts), and contact_status__c moved to
+// Pending Migration (33 lists depend on it; needs designed replacement).
+const EXPECTED_DELETES = 96;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {

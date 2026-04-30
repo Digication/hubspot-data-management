@@ -54,6 +54,17 @@ const STEPS: Record<string, StepDef> = {
     // being so strict that ordinary growth trips it.
     maxAllowedPopulation: 10000,
   },
+  step4: {
+    name: "step4",
+    description:
+      "Contact-object field cleanup (Reviews 4, 5, 8) — run AFTER candidate contacts are archived",
+    filter: (f) =>
+      f.action === "delete" &&
+      (f.review === 4 || f.review === 5 || f.review === 8),
+    // Highest manifest expectation is 807 (salesforcecontactid). 10,000
+    // catches surprises but allows ordinary populations through.
+    maxAllowedPopulation: 10000,
+  },
 };
 
 type Status =

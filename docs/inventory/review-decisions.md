@@ -5,7 +5,7 @@
 
 ---
 
-## Confirmed Deletions (104 fields + ~182 contacts + 1 pipeline) + 4 archives
+## Confirmed Deletions (96 fields + ~182 contacts + 1 pipeline) + 4 archives
 
 > **Note (2026-04-29):** Original count was 109. During Step 1 execution, 3 fields
 > (`googleplus_page`, `facebookfans`, `kloutscoregeneral`) turned out to be
@@ -23,6 +23,25 @@
 > `next_licensed_renewal_date` was moved to **Pending Migration** — the
 > 2 populated records hold real renewal-date data that should migrate
 > to a deal-level field. Count: 105 → 104.
+>
+> **Note (2026-04-30, Step 4):** Step 4 archived 182 candidate contacts
+> (165 + 17 from a fixed filter that found ones the original missed),
+> 28 fields in the first run, then 7 more after the team deleted the
+> recruiting form `0-eb0923fb-...` that was blocking 7 of 10 candidate
+> field deletions.
+>
+> Step 4 also discovered:
+> - **7 more HubSpot-defined fields** (numemployees, company_size on
+>   contacts, plus 5 more SF sync fields: salesforcecontactid,
+>   salesforceaccountid, salesforceleadid, salesforcecampaignids,
+>   salesforceopportunitystage on contacts).
+> - **`contact_status__c` moved to Pending Migration** — 33 HubSpot
+>   lists filter on it. Need to design a replacement and migrate the
+>   lists before archival.
+> - **3 fields still pending small-blocker cleanup** (1 list + 1 workflow):
+>   recruiter_email, digication_open_position, position_url.
+>
+> Total deletes count: 104 → 96.
 
 ### Review 1: Obvious Deletions (zero or near-zero records)
 
@@ -48,14 +67,32 @@ practical impact of leaving them is minimal.
 | `googleplus_page` | Company | 0 | 2026-04-29 | Google+ shut down 2019; HubSpot-defined |
 | `facebookfans` | Company | 0 | 2026-04-29 | HubSpot-defined social field |
 | `kloutscoregeneral` | Contact | 0 | 2026-04-29 | Klout shut down 2018; HubSpot-defined |
-| `salesforceaccountid` | Company | 426 | 2026-04-30 | HubSpot-defined SF sync field; cannot archive even though Salesforce is discontinued |
+| `salesforceaccountid` | Company | 426 | 2026-04-30 | HubSpot-defined SF sync field |
+| `numemployees` | Contact | 0 | 2026-04-30 | HubSpot-defined contact-level employee count |
+| `company_size` | Contact | 0 | 2026-04-30 | HubSpot-defined company-size field |
+| `salesforcecontactid` | Contact | 807 | 2026-04-30 | HubSpot-defined SF sync field |
+| `salesforceaccountid` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
+| `salesforceleadid` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
+| `salesforcecampaignids` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
+| `salesforceopportunitystage` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
 
-#### Blocked pending HubSpot cleanup — historical record
+#### Blocked pending HubSpot cleanup
+
+**Active blockers (need cleanup before re-running step4):**
+
+| Field | Object | Records | Blocked by | What to do |
+|-------|--------|---------|------------|------------|
+| `recruiter_email` | Contact | 0 | List `303` | Delete or modify the list to not filter on `recruiter_email` |
+| `digication_open_position` | Contact | 0 | Workflow `178668883` | Delete or remove the field reference from this workflow |
+| `position_url` | Contact | 0 | Workflow `178668883` (same) | Same workflow as above — one fix unblocks both |
+
+**Historical record:**
 
 | Field | Object | Records | Was blocked by | Resolution |
 |-------|--------|---------|----------------|------------|
-| `renewal_date__c` | Company | 86 | Workflow `29356620` (1) | Workflow deleted by team 2026-04-30 → field unblocked, ready to archive |
-| `next_licensed_renewal_date` | Company | 2 | Reports `156079701`, `155303618`, `155907976` (3) | Reports kept (still in active use). Field moved to Pending Migration. |
+| `renewal_date__c` | Company | 86 | Workflow `29356620` | Workflow deleted by team 2026-04-30 → field archived |
+| `next_licensed_renewal_date` | Company | 2 | 3 reports | Reports kept; field moved to Pending Migration |
+| 7 candidate fields | Contact | varies | Form `0-eb0923fb-...` | Form deleted by team 2026-04-30 → fields archived |
 
 ### Review 2: Archived/Obsolete Fields
 
@@ -87,20 +124,18 @@ practical impact of leaving them is minimal.
 
 | # | Field | Object | Records | Reason |
 |---|-------|--------|---------|--------|
-| 25 | `numemployees` | Contact | varies | Custom duplicate of standard field, company-level data |
-| 26 | `company_size` | Contact | varies | Company-level data |
-| 27 | `decision_maker__c` | Contact | varies | Misplaced sales pipeline % |
-| 28 | `demo_account__c` | Contact | varies | Misplaced sales pipeline % |
-| 29 | `demo_presentation__c` | Contact | varies | Misplaced sales pipeline % |
-| 30 | `final_negotiations__c` | Contact | varies | Misplaced sales pipeline % |
-| 31 | `identify_close_date__c` | Contact | varies | Misplaced sales pipeline % |
-| 32 | `identify_customer_needs__c` | Contact | varies | Misplaced sales pipeline % |
-| 33 | `identify_funding_source__c` | Contact | varies | Misplaced sales pipeline % |
-| 34 | `pricing_info_presented__c` | Contact | varies | Misplaced sales pipeline % |
-| 35 | `proposal_quote__c` | Contact | varies | Misplaced sales pipeline % |
-| 36 | `start_conversation_phone_email__c` | Contact | varies | Misplaced sales pipeline % |
+| 25 | `decision_maker__c` | Contact | 11 | Misplaced sales pipeline % |
+| 26 | `demo_account__c` | Contact | 11 | Misplaced sales pipeline % |
+| 27 | `demo_presentation__c` | Contact | 11 | Misplaced sales pipeline % |
+| 28 | `final_negotiations__c` | Contact | 11 | Misplaced sales pipeline % |
+| 29 | `identify_close_date__c` | Contact | 11 | Misplaced sales pipeline % |
+| 30 | `identify_customer_needs__c` | Contact | 11 | Misplaced sales pipeline % |
+| 31 | `identify_funding_source__c` | Contact | 11 | Misplaced sales pipeline % |
+| 32 | `pricing_info_presented__c` | Contact | 11 | Misplaced sales pipeline % |
+| 33 | `proposal_quote__c` | Contact | 11 | Misplaced sales pipeline % |
+| 34 | `start_conversation_phone_email__c` | Contact | 11 | Misplaced sales pipeline % |
 
-Note: Standard HubSpot fields (`annualrevenue`, `numberofemployees`) are kept as-is — not worth fighting HubSpot defaults.
+Note: Standard HubSpot fields (`annualrevenue`, `numberofemployees`) are kept as-is — not worth fighting HubSpot defaults. `numemployees` and `company_size` (both originally listed here) turned out to be HubSpot-defined too, moved to "HubSpot-defined / not archivable" below (discovered 2026-04-30).
 
 ### Review 5: Recruiting/Candidate Fields + Contacts
 
@@ -120,7 +155,9 @@ Note: Standard HubSpot fields (`annualrevenue`, `numberofemployees`) are kept as
 | 48 | `salary_range` | Contact | varies | Recruiting |
 | 49 | `position_url` | Contact | varies | Recruiting |
 
-**Also delete ~182 candidate contact records.** Verified zero overlap with customers (no deals, no customer lifecycle stage). Recruiting now done through breezy.hr, not HubSpot.
+**Also delete ~182 candidate contact records.** Recruiting now done through breezy.hr, not HubSpot.
+
+**Status (2026-04-30):** All 182 candidate contacts archived (165 + 17 from a fixed filter pass that caught ones the original missed). 11 of 13 recruiting fields archived after the team deleted blocking form `0-eb0923fb-...`. **3 remaining:** `recruiter_email` (1 list `303` blocking), `digication_open_position` and `position_url` (workflow `178668883` blocking). See "Blocked pending HubSpot cleanup" below.
 
 ### Review 6: Duplicate Fields
 
@@ -169,24 +206,19 @@ All confirmed as no longer used — old Salesforce-era data, incomplete, not ref
 
 #### Group 1 — Salesforce ID/Reference Fields
 
-| # | Field | Object | Records | Reason |
-|---|-------|--------|---------|--------|
-| 74 | `salesforcecontactid` | Contact | 807 | Salesforce discontinued |
-| 75 | `salesforceaccountid` | Contact | varies | Salesforce discontinued |
-| 76 | `salesforceleadid` | Contact | varies | Salesforce discontinued |
-| 77 | `salesforcecampaignids` | Contact | varies | Salesforce discontinued |
-| 78 | `salesforceopportunitystage` | Contact | varies | Salesforce discontinued |
+All 5 turned out to be HubSpot-defined SF sync fields (discovered 2026-04-30 during Step 4) — moved to "HubSpot-defined / not archivable" section. They cannot be archived via API.
 
 #### Group 2 — Sales Activity Fields
 
 | # | Field | Object | Records | Reason |
 |---|-------|--------|---------|--------|
-| 79 | `contact_status__c` | Contact | varies | Replaced by HubSpot lifecycle/activity |
-| 80 | `lead__c` | Contact | varies | Obsolete SF sales tracking |
-| 81 | `next_step__c` | Contact | varies | Replaced by HubSpot tasks |
-| 82 | `next_step_date__c` | Contact | varies | Replaced by HubSpot tasks |
-| 83 | `sales_date__c` | Contact | varies | Obsolete SF sales tracking |
-| 84 | `flag_to_discuss__c` | Contact | varies | Obsolete SF sales tracking |
+| 74 | `lead__c` | Contact | 0 | Obsolete SF sales tracking |
+| 75 | `next_step__c` | Contact | 0 | Replaced by HubSpot tasks |
+| 76 | `next_step_date__c` | Contact | 0 | Replaced by HubSpot tasks |
+| 77 | `sales_date__c` | Contact | 0 | Obsolete SF sales tracking |
+| 78 | `flag_to_discuss__c` | Contact | 11 | Obsolete SF sales tracking |
+
+`contact_status__c` was originally listed here but was deferred to **Pending Migration** during Step 4 — 33 HubSpot lists filter on it (972 records). Needs designed replacement (likely lifecycle stage migration) before archival.
 
 #### Group 3 — Conference/Event Fields
 
@@ -285,6 +317,7 @@ All confirmed as no longer used — old Salesforce-era data, incomplete, not ref
 | `income_category__c` | QuickBooks income categorization (e.g. "5005 · Higher Education", "5030 · Custom Development") | 1,877 (all pre-2021) | Needs backfill for recent years + redesign of categories to match current business. Multi-phase project — old categories are outdated relative to where Digication is today. |
 | `customer_creation_date__c` | True customer-since dates, going back to 2005 | 230 | HubSpot `createdate` is just the 2020 migration date. Merge the two into a single customer-since field. See follow-up task below. |
 | `next_licensed_renewal_date` (companies) | Real renewal dates (added 2026-04-30) | 2 | Will move to a deal-level field in Phase 3. Until then, keep on companies — 3 active reports (`156079701`, `155303618`, `155907976`) depend on it. |
+| `contact_status__c` (contacts) | SF-era contact status (added 2026-04-30) | 972 | 33 HubSpot lists filter on this field. Need to design a replacement (likely lifecycle stage or a new status field), migrate all 33 lists to the new field, then archive. Significant Phase 3 work. |
 
 **Why we're waiting:** As more review happens, more things like these will surface. Better to design one right field than three wrong ones. The engagement/participation field in particular may need to cover events (DigiCon), programs (Digi Scholars), conferences (AAC&U), and more.
 
@@ -388,9 +421,10 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Fields to **delete** | 104 | Across Contact, Company, Deal objects (originally 109; see notes above for the 5 fields removed from this count) |
-| Fields HubSpot-defined / not archivable | 4 | `googleplus_page`, `facebookfans`, `kloutscoregeneral`, `salesforceaccountid` — left in place |
-| Fields moved to Pending Migration | 1 | `next_licensed_renewal_date` — 2 records hold real renewal dates; will migrate to deal-level field in Phase 3 |
+| Fields to **delete** | 96 | Across Contact, Company, Deal objects (originally 109; 11 HubSpot-defined and 2 deferred to Pending Migration) |
+| Fields HubSpot-defined / not archivable | 11 | 4 from Steps 1-3 + 7 more found in Step 4 — left in place |
+| Fields moved to Pending Migration | 2 | `next_licensed_renewal_date` (deal-level migration) and `contact_status__c` (33 lists need migration) |
+| Fields blocked pending small HubSpot UI cleanup | 3 | `recruiter_email` (1 list), `digication_open_position` + `position_url` (1 workflow) |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |
 | **Contacts** to delete | ~182 | Recruiting candidates (Review 5) |
 | **Pipelines** to delete immediately | 1 | Hiring - Frontend Engineering (0 deals) |

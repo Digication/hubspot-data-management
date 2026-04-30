@@ -267,3 +267,25 @@ export async function updateObject(
     { method: "PATCH", body: JSON.stringify({ properties }) },
   );
 }
+
+/**
+ * Batch-archive (soft-delete) up to 100 records per call. Records are
+ * recoverable from HubSpot's Recently Deleted view for ~90 days.
+ *
+ * HubSpot's batch endpoint returns 204 with no body on success.
+ */
+export async function batchArchiveObjects(
+  objectType: string,
+  ids: string[],
+): Promise<void> {
+  if (ids.length === 0) return;
+  if (ids.length > 100) {
+    throw new Error(
+      `batchArchiveObjects: max 100 IDs per call, got ${ids.length}`,
+    );
+  }
+  await request<void>(`/crm/v3/objects/${objectType}/batch/archive`, {
+    method: "POST",
+    body: JSON.stringify({ inputs: ids.map((id) => ({ id })) }),
+  });
+}
