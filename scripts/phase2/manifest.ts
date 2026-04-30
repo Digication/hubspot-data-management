@@ -78,22 +78,17 @@ export interface BlockedField {
 }
 
 export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
+  // 2026-04-30: workflow 29356620 deleted by team — field is now unblocked
+  // and will be archived on next step3 run. Keeping the entry here as
+  // historical record of what was blocking it.
   {
     name: "renewal_date__c",
     object: "companies",
     blockingArtifacts: [{ type: "WORKFLOW", id: "29356620" }],
     discoveredOn: "2026-04-30",
   },
-  {
-    name: "next_licensed_renewal_date",
-    object: "companies",
-    blockingArtifacts: [
-      { type: "REPORT", id: "156079701" },
-      { type: "REPORT", id: "155303618" },
-      { type: "REPORT", id: "155907976" },
-    ],
-    discoveredOn: "2026-04-30",
-  },
+  // next_licensed_renewal_date is no longer in the deletion list (moved to
+  // Pending Migration in review-decisions.md). The 3 reports stay in place.
 ];
 
 // -----------------------------------------------------------------------------
@@ -111,17 +106,20 @@ const review2: FieldTarget[] = [
 // -----------------------------------------------------------------------------
 // Review 3 — Salesforce Legacy Fields (Companies)
 //
-// Discovered during Step 3 execution (2026-04-30):
+// Three fields originally in this review are no longer in the deletion list:
 // - salesforceaccountid is HubSpot-defined → moved to HUBSPOT_DEFINED_NOT_ARCHIVABLE
-//   (removed from this array — cannot be deleted via API)
-// - renewal_date__c and next_licensed_renewal_date are blocked by workflow
-//   and report references → still here (we still intend to delete them) but
-//   ALSO listed in BLOCKED_PENDING_HUBSPOT_CLEANUP. Re-running step3 after
-//   the HubSpot UI cleanup will retry them.
+//   (discovered 2026-04-30 during Step 3 execution)
+// - next_licensed_renewal_date is moved to Pending Migration (Phase 3) —
+//   the 2 populated records hold real renewal-date data that should be
+//   migrated to a deal-level field rather than discarded. (Decision made
+//   2026-04-30 after seeing the 3 reports that depend on it are still
+//   actively used.)
+// - renewal_date__c stays here — text strings like "July 1," not real
+//   dates. The workflow that was blocking deletion (29356620) has been
+//   removed by the team, so it's archivable on the next step3 run.
 // -----------------------------------------------------------------------------
 const review3: FieldTarget[] = [
-  { name: "renewal_date__c",                            object: "companies", review: 3, approxRecords: 86,  reason: "Text strings, not real dates, stale (blocked by workflow 29356620)",        action: "delete" },
-  { name: "next_licensed_renewal_date",                 object: "companies", review: 3, approxRecords: 2,   reason: "Never adopted, renewal tracking moving to deal level (blocked by 3 reports)", action: "delete" },
+  { name: "renewal_date__c",                            object: "companies", review: 3, approxRecords: 86,  reason: "Text strings, not real dates, stale",               action: "delete" },
   { name: "primary_sales_rep__c",                       object: "companies", review: 3, approxRecords: 282, reason: "Redundant with HubSpot owner",                      action: "delete" },
   { name: "adoption_path__c",                           object: "companies", review: 3, approxRecords: 259, reason: "Concept useful but values not accurate; revisit later", action: "delete" },
   { name: "adoption_status__c",                         object: "companies", review: 3, approxRecords: 92,  reason: "Subset of adoption_path, same decision",            action: "delete" },
@@ -358,11 +356,11 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 // properties (googleplus_page, facebookfans, kloutscoregeneral) cannot be
 // archived via the API. See HUBSPOT_DEFINED_NOT_ARCHIVABLE above.
 // 2026-04-30: Reduced 106 → 105 after discovering salesforceaccountid
-// (companies) is also HubSpot-defined. Two other fields (renewal_date__c,
-// next_licensed_renewal_date) remain in the count — they'll be deleted
-// once their HubSpot workflow/report dependencies are cleaned up. See
-// BLOCKED_PENDING_HUBSPOT_CLEANUP above.
-const EXPECTED_DELETES = 105;
+// (companies) is also HubSpot-defined.
+// 2026-04-30 (later): Reduced 105 → 104 after moving next_licensed_renewal_date
+// to Pending Migration — the 2 populated records hold real renewal-date data
+// that should be migrated to a deal-level field rather than discarded.
+const EXPECTED_DELETES = 104;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {

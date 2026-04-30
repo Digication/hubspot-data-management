@@ -5,7 +5,7 @@
 
 ---
 
-## Confirmed Deletions (105 fields + ~182 contacts + 1 pipeline) + 4 archives
+## Confirmed Deletions (104 fields + ~182 contacts + 1 pipeline) + 4 archives
 
 > **Note (2026-04-29):** Original count was 109. During Step 1 execution, 3 fields
 > (`googleplus_page`, `facebookfans`, `kloutscoregeneral`) turned out to be
@@ -16,12 +16,13 @@
 >
 > **Note (2026-04-30):** During Step 3 execution we found one more
 > HubSpot-defined field (`salesforceaccountid` on companies) — count
-> dropped to 105. We also found 2 fields HubSpot refuses to delete
-> because they're still referenced by workflows/reports:
-> `renewal_date__c` (workflow 29356620) and `next_licensed_renewal_date`
-> (3 reports). They stay in the deletion list and will be deleted once
-> the referencing artifacts are cleaned up — see "Blocked pending HubSpot
-> cleanup" below.
+> dropped to 105. We also found 2 fields HubSpot refused to delete
+> because they were referenced by HubSpot workflows/reports:
+> `renewal_date__c` (workflow 29356620, since deleted by the team) and
+> `next_licensed_renewal_date` (3 reports, kept). After review,
+> `next_licensed_renewal_date` was moved to **Pending Migration** — the
+> 2 populated records hold real renewal-date data that should migrate
+> to a deal-level field. Count: 105 → 104.
 
 ### Review 1: Obvious Deletions (zero or near-zero records)
 
@@ -49,17 +50,12 @@ practical impact of leaving them is minimal.
 | `kloutscoregeneral` | Contact | 0 | 2026-04-29 | Klout shut down 2018; HubSpot-defined |
 | `salesforceaccountid` | Company | 426 | 2026-04-30 | HubSpot-defined SF sync field; cannot archive even though Salesforce is discontinued |
 
-#### Blocked pending HubSpot cleanup (discovered 2026-04-30)
+#### Blocked pending HubSpot cleanup — historical record
 
-HubSpot refuses to delete these because they're still referenced by
-workflows or reports. They stay in the deletion list — once the
-referencing artifacts are cleaned up in HubSpot UI, re-running Step 3
-will archive them.
-
-| Field | Object | Records | Blocked by | What to do |
-|-------|--------|---------|------------|------------|
-| `renewal_date__c` | Company | 86 | Workflow `29356620` (1) | In HubSpot: Automation → Workflows → find ID 29356620 → either remove the `renewal_date__c` reference or delete/disable the workflow |
-| `next_licensed_renewal_date` | Company | 2 | Reports `156079701`, `155303618`, `155907976` (3) | In HubSpot: Reports → find each by ID → either rebuild without the field or delete the report |
+| Field | Object | Records | Was blocked by | Resolution |
+|-------|--------|---------|----------------|------------|
+| `renewal_date__c` | Company | 86 | Workflow `29356620` (1) | Workflow deleted by team 2026-04-30 → field unblocked, ready to archive |
+| `next_licensed_renewal_date` | Company | 2 | Reports `156079701`, `155303618`, `155907976` (3) | Reports kept (still in active use). Field moved to Pending Migration. |
 
 ### Review 2: Archived/Obsolete Fields
 
@@ -76,16 +72,16 @@ will archive them.
 
 | # | Field | Object | Records | Reason |
 |---|-------|--------|---------|--------|
-| 18 | `primary_sales_rep__c` | Company | 282 | Redundant with HubSpot owner |
-| 19 | `adoption_path__c` | Company | 259 | Concept useful but existing values not accurate. Revisit concept later. |
-| 20 | `adoption_status__c` | Company | 92 | Subset of adoption_path, same decision |
-| 21 | `institution_success_indicator_isi__c` | Company | 135 | No longer referenced |
+| 18 | `renewal_date__c` | Company | 86 | Text strings ("July 1"), not real dates, stale (workflow 29356620 deleted 2026-04-30 → unblocked) |
+| 19 | `primary_sales_rep__c` | Company | 282 | Redundant with HubSpot owner |
+| 20 | `adoption_path__c` | Company | 259 | Concept useful but existing values not accurate. Revisit concept later. |
+| 21 | `adoption_status__c` | Company | 92 | Subset of adoption_path, same decision |
+| 22 | `institution_success_indicator_isi__c` | Company | 135 | No longer referenced |
 
-#### Originally in Review 3, now elsewhere (discovered 2026-04-30)
+#### Originally in Review 3, now elsewhere (decisions 2026-04-30)
 
 - `salesforceaccountid` → moved to "HubSpot-defined / not archivable" below
-- `renewal_date__c` → moved to "Blocked pending HubSpot cleanup" below
-- `next_licensed_renewal_date` → moved to "Blocked pending HubSpot cleanup" below
+- `next_licensed_renewal_date` → moved to "Pending Migration List" below — the 2 populated records hold meaningful renewal dates that should be migrated to a deal-level field, not discarded. The 3 reports that depend on it (`156079701`, `155303618`, `155907976`) remain in active use.
 
 ### Review 4: Misplaced Fields on Contacts
 
@@ -288,6 +284,7 @@ All confirmed as no longer used — old Salesforce-era data, incomplete, not ref
 | `options__c` | Special pricing, fees, discounts (free text) | 103 | Will be transformed into structured discount/pricing field in later phase |
 | `income_category__c` | QuickBooks income categorization (e.g. "5005 · Higher Education", "5030 · Custom Development") | 1,877 (all pre-2021) | Needs backfill for recent years + redesign of categories to match current business. Multi-phase project — old categories are outdated relative to where Digication is today. |
 | `customer_creation_date__c` | True customer-since dates, going back to 2005 | 230 | HubSpot `createdate` is just the 2020 migration date. Merge the two into a single customer-since field. See follow-up task below. |
+| `next_licensed_renewal_date` (companies) | Real renewal dates (added 2026-04-30) | 2 | Will move to a deal-level field in Phase 3. Until then, keep on companies — 3 active reports (`156079701`, `155303618`, `155907976`) depend on it. |
 
 **Why we're waiting:** As more review happens, more things like these will surface. Better to design one right field than three wrong ones. The engagement/participation field in particular may need to cover events (DigiCon), programs (Digi Scholars), conferences (AAC&U), and more.
 
@@ -391,9 +388,9 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Fields to **delete** | 105 | Across Contact, Company, Deal objects (originally 109; see notes above for the 4 fields removed from this count) |
+| Fields to **delete** | 104 | Across Contact, Company, Deal objects (originally 109; see notes above for the 5 fields removed from this count) |
 | Fields HubSpot-defined / not archivable | 4 | `googleplus_page`, `facebookfans`, `kloutscoregeneral`, `salesforceaccountid` — left in place |
-| Fields blocked pending HubSpot cleanup | 2 | `renewal_date__c` (1 workflow), `next_licensed_renewal_date` (3 reports) — counted in deletes; needs HubSpot UI cleanup before re-attempt |
+| Fields moved to Pending Migration | 1 | `next_licensed_renewal_date` — 2 records hold real renewal dates; will migrate to deal-level field in Phase 3 |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |
 | **Contacts** to delete | ~182 | Recruiting candidates (Review 5) |
 | **Pipelines** to delete immediately | 1 | Hiring - Frontend Engineering (0 deals) |
