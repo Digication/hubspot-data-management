@@ -53,9 +53,47 @@ const review1: FieldTarget[] = [
 export const HUBSPOT_DEFINED_NOT_ARCHIVABLE: Array<
   Omit<FieldTarget, "action"> & { discoveredOn: string }
 > = [
-  { name: "googleplus_page",   object: "companies", review: 1, approxRecords: 0, reason: "Google+ shut down 2019; HubSpot-defined, not archivable", discoveredOn: "2026-04-29" },
-  { name: "facebookfans",      object: "companies", review: 1, approxRecords: 0, reason: "HubSpot-defined social field, not archivable",            discoveredOn: "2026-04-29" },
-  { name: "kloutscoregeneral", object: "contacts",  review: 1, approxRecords: 0, reason: "Klout shut down 2018; HubSpot-defined, not archivable",   discoveredOn: "2026-04-29" },
+  { name: "googleplus_page",     object: "companies", review: 1, approxRecords: 0,   reason: "Google+ shut down 2019; HubSpot-defined, not archivable", discoveredOn: "2026-04-29" },
+  { name: "facebookfans",        object: "companies", review: 1, approxRecords: 0,   reason: "HubSpot-defined social field, not archivable",            discoveredOn: "2026-04-29" },
+  { name: "kloutscoregeneral",   object: "contacts",  review: 1, approxRecords: 0,   reason: "Klout shut down 2018; HubSpot-defined, not archivable",   discoveredOn: "2026-04-29" },
+  { name: "salesforceaccountid", object: "companies", review: 3, approxRecords: 426, reason: "Salesforce chapter closed; HubSpot-defined SF sync field, not archivable", discoveredOn: "2026-04-30" },
+];
+
+/**
+ * Fields HubSpot refuses to delete because they're still referenced by
+ * workflows, reports, lists, or other HubSpot artifacts. To delete these,
+ * the referencing artifact has to be removed/edited in the HubSpot UI first.
+ *
+ * Field stays in FIELD_TARGETS (we still intend to delete it) — this list
+ * just records what's blocking and the IDs to clean up.
+ */
+export interface BlockedField {
+  name: string;
+  object: HubSpotObjectType;
+  blockingArtifacts: Array<{
+    type: "WORKFLOW" | "REPORT" | "LIST" | "DASHBOARD" | "OTHER";
+    id: string;
+  }>;
+  discoveredOn: string;
+}
+
+export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
+  {
+    name: "renewal_date__c",
+    object: "companies",
+    blockingArtifacts: [{ type: "WORKFLOW", id: "29356620" }],
+    discoveredOn: "2026-04-30",
+  },
+  {
+    name: "next_licensed_renewal_date",
+    object: "companies",
+    blockingArtifacts: [
+      { type: "REPORT", id: "156079701" },
+      { type: "REPORT", id: "155303618" },
+      { type: "REPORT", id: "155907976" },
+    ],
+    discoveredOn: "2026-04-30",
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -72,11 +110,18 @@ const review2: FieldTarget[] = [
 
 // -----------------------------------------------------------------------------
 // Review 3 — Salesforce Legacy Fields (Companies)
+//
+// Discovered during Step 3 execution (2026-04-30):
+// - salesforceaccountid is HubSpot-defined → moved to HUBSPOT_DEFINED_NOT_ARCHIVABLE
+//   (removed from this array — cannot be deleted via API)
+// - renewal_date__c and next_licensed_renewal_date are blocked by workflow
+//   and report references → still here (we still intend to delete them) but
+//   ALSO listed in BLOCKED_PENDING_HUBSPOT_CLEANUP. Re-running step3 after
+//   the HubSpot UI cleanup will retry them.
 // -----------------------------------------------------------------------------
 const review3: FieldTarget[] = [
-  { name: "renewal_date__c",                            object: "companies", review: 3, approxRecords: 86,  reason: "Text strings, not real dates, stale",               action: "delete" },
-  { name: "next_licensed_renewal_date",                 object: "companies", review: 3, approxRecords: 2,   reason: "Never adopted, renewal tracking moving to deal level", action: "delete" },
-  { name: "salesforceaccountid",                        object: "companies", review: 3, approxRecords: 426, reason: "Salesforce chapter closed",                         action: "delete" },
+  { name: "renewal_date__c",                            object: "companies", review: 3, approxRecords: 86,  reason: "Text strings, not real dates, stale (blocked by workflow 29356620)",        action: "delete" },
+  { name: "next_licensed_renewal_date",                 object: "companies", review: 3, approxRecords: 2,   reason: "Never adopted, renewal tracking moving to deal level (blocked by 3 reports)", action: "delete" },
   { name: "primary_sales_rep__c",                       object: "companies", review: 3, approxRecords: 282, reason: "Redundant with HubSpot owner",                      action: "delete" },
   { name: "adoption_path__c",                           object: "companies", review: 3, approxRecords: 259, reason: "Concept useful but values not accurate; revisit later", action: "delete" },
   { name: "adoption_status__c",                         object: "companies", review: 3, approxRecords: 92,  reason: "Subset of adoption_path, same decision",            action: "delete" },
@@ -312,7 +357,12 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 // 2026-04-29: Reduced from 109 to 106 after discovering 3 HubSpot-defined
 // properties (googleplus_page, facebookfans, kloutscoregeneral) cannot be
 // archived via the API. See HUBSPOT_DEFINED_NOT_ARCHIVABLE above.
-const EXPECTED_DELETES = 106;
+// 2026-04-30: Reduced 106 → 105 after discovering salesforceaccountid
+// (companies) is also HubSpot-defined. Two other fields (renewal_date__c,
+// next_licensed_renewal_date) remain in the count — they'll be deleted
+// once their HubSpot workflow/report dependencies are cleaned up. See
+// BLOCKED_PENDING_HUBSPOT_CLEANUP above.
+const EXPECTED_DELETES = 105;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {

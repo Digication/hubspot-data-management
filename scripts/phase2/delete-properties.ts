@@ -38,6 +38,22 @@ const STEPS: Record<string, StepDef> = {
     filter: (f) => f.action === "delete" && f.approxRecords === 0,
     maxAllowedPopulation: 0,
   },
+  step3: {
+    name: "step3",
+    description:
+      "Low-population SF legacy deletions (Reviews 1-remainder, 3, 6, 9)",
+    filter: (f) =>
+      f.action === "delete" &&
+      ((f.review === 1 && f.approxRecords !== 0) ||
+        f.review === 3 ||
+        f.review === 6 ||
+        f.review === 9),
+    // Highest manifest expectation is 1,511 (features_enabled__c). 10,000
+    // gives ~6.5x headroom — catches a field that's been silently
+    // reactivated (suggesting our deletion decision is now wrong) without
+    // being so strict that ordinary growth trips it.
+    maxAllowedPopulation: 10000,
+  },
 };
 
 type Status =
@@ -46,13 +62,53 @@ type Status =
   | "skipped_missing"
   | "skipped_populated"
   | "skipped_not_archivable"
+  | "skipped_in_use"
   | "error";
+
+interface BlockingArtifact {
+  type: string; // WORKFLOW, REPORT, etc.
+  id: string;
+}
+
+/**
+ * Parses HubSpot's CANNOT_DELETE_PROPERTY_IN_USE error body to extract
+ * which workflows/reports/etc. are blocking the deletion.
+ */
+function parseInUseError(
+  errBody: string,
+): BlockingArtifact[] | null {
+  try {
+    const parsed = JSON.parse(errBody) as {
+      subCategory?: string;
+      errors?: Array<{
+        subCategory?: string;
+        context?: { parentDisplayType?: string[]; parentName?: string[] };
+      }>;
+    };
+    if (
+      parsed.subCategory !==
+      "PropertyValidationError.CANNOT_DELETE_PROPERTY_IN_USE"
+    ) {
+      return null;
+    }
+    const artifacts: BlockingArtifact[] = [];
+    for (const e of parsed.errors ?? []) {
+      const type = e.context?.parentDisplayType?.[0] ?? "UNKNOWN";
+      const id = e.context?.parentName?.[0] ?? "?";
+      artifacts.push({ type, id });
+    }
+    return artifacts;
+  } catch {
+    return null;
+  }
+}
 
 interface Result {
   field: string;
   object: string;
   status: Status;
   populationCount?: number;
+  blockingArtifacts?: BlockingArtifact[];
   error?: string;
 }
 
@@ -117,11 +173,25 @@ async function processField(
       populationCount: count,
     };
   } catch (err) {
+    // Detect HubSpot's "in use" error and route it to its own status —
+    // the property is referenced by a workflow/report/etc. and HubSpot
+    // refuses to delete until that's cleaned up.
+    const errAny = err as { body?: string; message: string };
+    const blocking = errAny.body ? parseInUseError(errAny.body) : null;
+    if (blocking) {
+      return {
+        field: target.name,
+        object: target.object,
+        status: "skipped_in_use",
+        populationCount: count,
+        blockingArtifacts: blocking,
+      };
+    }
     return {
       field: target.name,
       object: target.object,
       status: "error",
-      error: (err as Error).message,
+      error: errAny.message,
     };
   }
 }
@@ -133,6 +203,7 @@ function formatResult(r: Result): string {
     skipped_missing: "·",
     skipped_populated: "⚠",
     skipped_not_archivable: "🔒",
+    skipped_in_use: "⛔",
     error: "✗",
   };
   const target = `${r.object.padEnd(10)} ${r.field.padEnd(40)}`;
@@ -147,6 +218,12 @@ function formatResult(r: Result): string {
       return `  ${icon.skipped_populated} ${target}  STOPPED — ${r.populationCount} records (expected 0)`;
     case "skipped_not_archivable":
       return `  ${icon.skipped_not_archivable} ${target}  HubSpot-defined, not archivable — skipping`;
+    case "skipped_in_use": {
+      const refs = (r.blockingArtifacts ?? [])
+        .map((a) => `${a.type} ${a.id}`)
+        .join(", ");
+      return `  ${icon.skipped_in_use} ${target}  blocked — in use by ${refs}`;
+    }
     case "error":
       return `  ${icon.error} ${target}  ERROR — ${r.error}`;
   }
@@ -203,6 +280,7 @@ async function main(): Promise<void> {
     skipped_missing: results.filter((r) => r.status === "skipped_missing").length,
     skipped_populated: results.filter((r) => r.status === "skipped_populated").length,
     skipped_not_archivable: results.filter((r) => r.status === "skipped_not_archivable").length,
+    skipped_in_use: results.filter((r) => r.status === "skipped_in_use").length,
     error: results.filter((r) => r.status === "error").length,
   };
 
@@ -216,6 +294,7 @@ async function main(): Promise<void> {
   console.log(`  already missing:    ${counts.skipped_missing}`);
   console.log(`  blocked (pop > 0):  ${counts.skipped_populated}`);
   console.log(`  not archivable:     ${counts.skipped_not_archivable}`);
+  console.log(`  in use (blocked):   ${counts.skipped_in_use}`);
   console.log(`  errors:             ${counts.error}`);
   console.log("");
   console.log(`Audit log: ${logFile}`);
