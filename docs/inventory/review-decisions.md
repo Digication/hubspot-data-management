@@ -5,7 +5,7 @@
 
 ---
 
-## Confirmed Deletions (96 fields + ~182 contacts + 1 pipeline) + 4 archives
+## Confirmed Deletions (92 fields + ~182 contacts + 1 pipeline) + 4 archives
 
 > **Note (2026-04-29):** Original count was 109. During Step 1 execution, 3 fields
 > (`googleplus_page`, `facebookfans`, `kloutscoregeneral`) turned out to be
@@ -42,6 +42,17 @@
 >   recruiter_email, digication_open_position, position_url.
 >
 > Total deletes count: 104 → 96.
+>
+> **Note (2026-05-01, Step 6):** All 4 `zoom_webinar_*` fields turned out to
+> be HubSpot-defined (likely managed by HubSpot's Zoom integration), even
+> though their metadata didn't expose `hubspotDefined: true`. HubSpot
+> rejected archive with `PROPERTY_INVALID`. Moved to HubSpot-defined list.
+> Total deletes count: 96 → 92.
+>
+> Step 6 also archived 8 of 12 candidate fields successfully (4 company
+> fields originally tagged `delete` + all 4 originally tagged `archive`).
+> The script was hardened to auto-detect PROPERTY_INVALID errors and
+> route them to "not archivable" instead of generic error.
 
 ### Review 1: Obvious Deletions (zero or near-zero records)
 
@@ -75,6 +86,10 @@ practical impact of leaving them is minimal.
 | `salesforceleadid` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
 | `salesforcecampaignids` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
 | `salesforceopportunitystage` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
+| `zoom_webinar_attendance_count` | Contact | 152 | 2026-05-01 | HubSpot-defined Zoom integration field |
+| `zoom_webinar_attendance_average_duration` | Contact | 152 | 2026-05-01 | HubSpot-defined Zoom integration field |
+| `zoom_webinar_registration_count` | Contact | 191 | 2026-05-01 | HubSpot-defined Zoom integration field |
+| `zoom_webinar_joinlink` | Contact | 191 | 2026-05-01 | HubSpot-defined Zoom integration field |
 
 #### Blocked pending HubSpot cleanup — historical record
 
@@ -267,16 +282,14 @@ All 5 turned out to be HubSpot-defined SF sync fields (discovered 2026-04-30 dur
 
 | # | Field | Object | Records | Reason |
 |---|-------|--------|---------|--------|
-| 100 | `zoom_webinar_attendance_count` | Contact | 152 | Zoom webinar experiment didn't stick |
-| 101 | `zoom_webinar_attendance_average_duration` | Contact | 152 | Same |
-| 102 | `zoom_webinar_registration_count` | Contact | 152 | Same |
-| 103 | `zoom_webinar_joinlink` | Contact | 152 | Same |
-| 104 | `rating` | Contact | 0 | Empty — no records populated |
-| 105 | `submission_date` | Contact | 0 | Empty — no records populated |
-| 106 | `account_fte_potential__c` | Company | low | Not useful — old SF prospect sizing |
-| 107 | `account_name_abbreviation__c` | Company | low | Not useful (see new IPEDS field below) |
-| 108 | `comments__c` | Company | 63 | All content is 2014–2019 era. No edits to comment content in years. |
-| 109 | `email_domain__c` | Company | low | Derivable from standard `domain` field |
+| 96 | `rating` | Contact | 0 | Empty — no records populated |
+| 97 | `submission_date` | Contact | 0 | Empty — no records populated |
+| 98 | `account_fte_potential__c` | Company | 0 | Not useful — old SF prospect sizing |
+| 99 | `account_name_abbreviation__c` | Company | 69 | Not useful (see new IPEDS field below) |
+| 100 | `comments__c` | Company | 63 | All content is 2014–2019 era. No edits to comment content in years. |
+| 101 | `email_domain__c` | Company | 35 | Derivable from standard `domain` field |
+
+The 4 `zoom_webinar_*` fields originally listed here turned out to be HubSpot-defined (managed by HubSpot's Zoom integration). Discovered 2026-05-01 during Step 6 — moved to "HubSpot-defined / not archivable" above.
 
 #### Archive (soft-remove, preserves data)
 
@@ -415,8 +428,8 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Fields to **delete** | 96 | Across Contact, Company, Deal objects (originally 109; 11 HubSpot-defined and 2 deferred to Pending Migration) |
-| Fields HubSpot-defined / not archivable | 11 | 4 from Steps 1-3 + 7 more found in Step 4 — left in place |
+| Fields to **delete** | 92 | Across Contact, Company, Deal objects (originally 109; 15 HubSpot-defined and 2 deferred to Pending Migration) |
+| Fields HubSpot-defined / not archivable | 15 | 4 from Steps 1-3 + 7 from Step 4 + 4 Zoom integration fields from Step 6 — left in place |
 | Fields moved to Pending Migration | 2 | `next_licensed_renewal_date` (deal-level migration) and `contact_status__c` (33 lists need migration) |
 | Fields blocked pending small HubSpot UI cleanup | 0 | All resolved 2026-05-01 (list 303 + workflow 178668883 deleted by team) |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |

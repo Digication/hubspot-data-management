@@ -74,6 +74,18 @@ const STEPS: Record<string, StepDef> = {
     // 10,000 catches reactivation surprises.
     maxAllowedPopulation: 10000,
   },
+  step6: {
+    name: "step6",
+    description:
+      "Review 10: Zoom fields + other low-pop custom fields + 4 'archive' duplicates",
+    // Includes both action=delete and action=archive — HubSpot's API
+    // treats them identically (soft archive, recoverable). The action
+    // distinction in the manifest reflects intent, not execution.
+    // rating + submission_date will show as already-archived; they were
+    // picked up by step1's zero-record filter.
+    filter: (f) => f.review === 10,
+    maxAllowedPopulation: 10000,
+  },
 };
 
 type Status =
@@ -193,10 +205,11 @@ async function processField(
       populationCount: count,
     };
   } catch (err) {
+    const errAny = err as { body?: string; message: string };
+
     // Detect HubSpot's "in use" error and route it to its own status —
     // the property is referenced by a workflow/report/etc. and HubSpot
     // refuses to delete until that's cleaned up.
-    const errAny = err as { body?: string; message: string };
     const blocking = errAny.body ? parseInUseError(errAny.body) : null;
     if (blocking) {
       return {
@@ -207,6 +220,19 @@ async function processField(
         blockingArtifacts: blocking,
       };
     }
+
+    // Detect PROPERTY_INVALID — HubSpot rejecting archive of a property it
+    // considers internally-managed (Zoom integration fields, certain SF
+    // sync fields). The metadata pre-check above doesn't always catch
+    // these because hubspotDefined isn't always set to true on them.
+    if (errAny.body && errAny.body.includes("PROPERTY_INVALID")) {
+      return {
+        field: target.name,
+        object: target.object,
+        status: "skipped_not_archivable",
+      };
+    }
+
     return {
       field: target.name,
       object: target.object,

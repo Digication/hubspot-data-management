@@ -64,6 +64,10 @@ export const HUBSPOT_DEFINED_NOT_ARCHIVABLE: Array<
   { name: "salesforceleadid",         object: "contacts",  review: 8, approxRecords: 0,   reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
   { name: "salesforcecampaignids",    object: "contacts",  review: 8, approxRecords: 0,   reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
   { name: "salesforceopportunitystage", object: "contacts", review: 8, approxRecords: 0, reason: "HubSpot-defined SF sync field, not archivable",             discoveredOn: "2026-04-30" },
+  { name: "zoom_webinar_attendance_count",            object: "contacts", review: 10, approxRecords: 152, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
+  { name: "zoom_webinar_attendance_average_duration", object: "contacts", review: 10, approxRecords: 152, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
+  { name: "zoom_webinar_registration_count",          object: "contacts", review: 10, approxRecords: 191, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
+  { name: "zoom_webinar_joinlink",                    object: "contacts", review: 10, approxRecords: 191, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
 ];
 
 /**
@@ -284,10 +288,11 @@ const review9: FieldTarget[] = [
 // Review 10 — Other Custom Fields
 // -----------------------------------------------------------------------------
 const review10Deletes: FieldTarget[] = [
-  { name: "zoom_webinar_attendance_count",            object: "contacts",  review: 10, approxRecords: 152, reason: "Zoom webinar experiment didn't stick", action: "delete" },
-  { name: "zoom_webinar_attendance_average_duration", object: "contacts",  review: 10, approxRecords: 152, reason: "Same",                                  action: "delete" },
-  { name: "zoom_webinar_registration_count",          object: "contacts",  review: 10, approxRecords: 152, reason: "Same",                                  action: "delete" },
-  { name: "zoom_webinar_joinlink",                    object: "contacts",  review: 10, approxRecords: 152, reason: "Same",                                  action: "delete" },
+  // 2026-05-01: 4 zoom_webinar_* fields turned out to be HubSpot-defined
+  // (likely managed by the official Zoom integration). HubSpot rejected
+  // archive with PROPERTY_INVALID despite metadata not setting
+  // hubspotDefined=true or archivable=false. Moved to
+  // HUBSPOT_DEFINED_NOT_ARCHIVABLE.
   { name: "rating",                                   object: "contacts",  review: 10, approxRecords: 0,   reason: "Empty — no records populated",          action: "delete" },
   { name: "submission_date",                          object: "contacts",  review: 10, approxRecords: 0,   reason: "Empty — no records populated",          action: "delete" },
   { name: "account_fte_potential__c",                 object: "companies", review: 10, approxRecords: "low", reason: "Not useful — old SF prospect sizing", action: "delete" },
@@ -399,7 +404,10 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 // 7 more HubSpot-defined fields (numemployees, company_size, and 5 more
 // salesforce* sync fields on contacts), and contact_status__c moved to
 // Pending Migration (33 lists depend on it; needs designed replacement).
-const EXPECTED_DELETES = 96;
+// 2026-05-01 (Step 6): Reduced 96 → 92 after discovering 4 zoom_webinar_*
+// fields are HubSpot-defined (managed by the Zoom integration), even
+// though they didn't expose hubspotDefined=true in metadata.
+const EXPECTED_DELETES = 92;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {
