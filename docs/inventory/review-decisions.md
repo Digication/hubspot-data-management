@@ -76,23 +76,17 @@ practical impact of leaving them is minimal.
 | `salesforcecampaignids` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
 | `salesforceopportunitystage` | Contact | 0 | 2026-04-30 | HubSpot-defined SF sync field |
 
-#### Blocked pending HubSpot cleanup
+#### Blocked pending HubSpot cleanup — historical record
 
-**Active blockers (need cleanup before re-running step4):**
-
-| Field | Object | Records | Blocked by | What to do |
-|-------|--------|---------|------------|------------|
-| `recruiter_email` | Contact | 0 | List `303` | Delete or modify the list to not filter on `recruiter_email` |
-| `digication_open_position` | Contact | 0 | Workflow `178668883` | Delete or remove the field reference from this workflow |
-| `position_url` | Contact | 0 | Workflow `178668883` (same) | Same workflow as above — one fix unblocks both |
-
-**Historical record:**
+All blockers resolved as of 2026-05-01.
 
 | Field | Object | Records | Was blocked by | Resolution |
 |-------|--------|---------|----------------|------------|
-| `renewal_date__c` | Company | 86 | Workflow `29356620` | Workflow deleted by team 2026-04-30 → field archived |
+| `renewal_date__c` | Company | 86 | Workflow `29356620` | Workflow deleted 2026-04-30 → field archived |
 | `next_licensed_renewal_date` | Company | 2 | 3 reports | Reports kept; field moved to Pending Migration |
-| 7 candidate fields | Contact | varies | Form `0-eb0923fb-...` | Form deleted by team 2026-04-30 → fields archived |
+| 7 candidate fields | Contact | varies | Form `0-eb0923fb-...` | Form deleted 2026-04-30 → fields archived |
+| `recruiter_email` | Contact | 0 | List `303` | List deleted 2026-05-01 → field archived |
+| `digication_open_position`, `position_url` | Contact | 0 | Workflow `178668883` | Workflow deleted 2026-05-01 → fields archived |
 
 ### Review 2: Archived/Obsolete Fields
 
@@ -157,7 +151,7 @@ Note: Standard HubSpot fields (`annualrevenue`, `numberofemployees`) are kept as
 
 **Also delete ~182 candidate contact records.** Recruiting now done through breezy.hr, not HubSpot.
 
-**Status (2026-04-30):** All 182 candidate contacts archived (165 + 17 from a fixed filter pass that caught ones the original missed). 11 of 13 recruiting fields archived after the team deleted blocking form `0-eb0923fb-...`. **3 remaining:** `recruiter_email` (1 list `303` blocking), `digication_open_position` and `position_url` (workflow `178668883` blocking). See "Blocked pending HubSpot cleanup" below.
+**Status (2026-05-01):** All 182 candidate contacts archived. **All 13 recruiting fields archived** — team deleted form `0-eb0923fb-...` (unblocked 7), then list `303` and workflow `178668883` (unblocked the last 3). Review 5 fully complete.
 
 ### Review 6: Duplicate Fields
 
@@ -424,7 +418,7 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 | Fields to **delete** | 96 | Across Contact, Company, Deal objects (originally 109; 11 HubSpot-defined and 2 deferred to Pending Migration) |
 | Fields HubSpot-defined / not archivable | 11 | 4 from Steps 1-3 + 7 more found in Step 4 — left in place |
 | Fields moved to Pending Migration | 2 | `next_licensed_renewal_date` (deal-level migration) and `contact_status__c` (33 lists need migration) |
-| Fields blocked pending small HubSpot UI cleanup | 3 | `recruiter_email` (1 list), `digication_open_position` + `position_url` (1 workflow) |
+| Fields blocked pending small HubSpot UI cleanup | 0 | All resolved 2026-05-01 (list 303 + workflow 178668883 deleted by team) |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |
 | **Contacts** to delete | ~182 | Recruiting candidates (Review 5) |
 | **Pipelines** to delete immediately | 1 | Hiring - Frontend Engineering (0 deals) |

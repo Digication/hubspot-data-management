@@ -97,8 +97,10 @@ export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
   // Pending Migration in review-decisions.md). The 3 reports stay in place.
 
   // 2026-04-30 (Step 4): Recruiting form 0-eb0923fb-5d66-41ce-8252-4eb671e25f94
-  // deleted by team, which unblocked 7 of 10 candidate fields. Three remain
-  // blocked by 1 list and 1 workflow — small cleanup left.
+  // deleted by team, which unblocked 7 of 10 candidate fields. Three remained
+  // blocked by 1 list + 1 workflow.
+  // 2026-05-01: Team deleted list 303 and workflow 178668883 — all 3
+  // remaining recruiting fields archived. Entries kept as historical record.
   {
     name: "recruiter_email",
     object: "contacts",
