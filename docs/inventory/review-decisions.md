@@ -594,14 +594,44 @@ Manual UI deletion for 106 fields is unrealistic. HubSpot MCP tools are designed
 
 ## Where We Left Off
 
-**All 11 reviews complete. Ready to begin Phase 2 when approved.**
+**Phase 2 fully complete (2026-05-01). Verified clean.**
 
-**Immediate next actions for Jeff:**
-1. Review this Phase 2 plan
-2. If approved: begin Step 0 Part A (manual HubSpot exports — these take time to queue)
-3. In parallel: I draft the deletion-manifest TypeScript script for Step 0 Part B
+### Phase 2 final tally
 
-### Phase 0/1 deliverables completed:
+| Step | Operation | Result |
+|------|-----------|--------|
+| 1 | Zero-record fields | 9 archived |
+| 2 | Pipeline cleanup | 11 deals moved + 2 pipelines deleted + 1 stage removed (14 ops total) |
+| 3 | Low-pop SF legacy | 11 archived |
+| 4 | Contact cleanup | **182 candidate contacts archived** + 38 fields archived |
+| 5 | Deal Review 7 (pipeline % + onboarding) | 22 archived |
+| 6 | Review 10 (Zoom + low-pop custom + 4 archives) | 8 archived |
+| 7 | Review 2 (obsolete/archived) | 2 archived |
+| 8 | Post-execution verification | Schema diff confirms manifest matches reality |
+| | **Total fields archived** | **90** |
+| | **Total contact records archived** | **182** |
+| | **Total pipeline operations** | **14** |
+
+### Verification results (Step 8, 2026-05-01)
+
+- Every field in `FIELD_TARGETS` (92 entries) confirmed absent from active HubSpot schema ✓
+- Every field in `HUBSPOT_DEFINED_NOT_ARCHIVABLE` (19 entries) confirmed still present ✓
+- Schema diff against 2026-04-10 baseline: zero unaccounted non-system field changes (the 64 `hs_*` system fields HubSpot retired between Apr 10 and May 1 are platform-side, outside our control)
+- Fresh schema snapshot saved to `backups/schemas/2026-05-01/`
+
+### Manual verification still recommended
+
+The plan's Step 8 also calls for these manual checks in HubSpot UI:
+- Run key saved views/reports to confirm nothing visibly broke
+- Spot-check 5–10 customer records for visible damage
+- Mark `backups/phase2-pre-execution/<DATE>/` folders as immutable archive
+
+### Carryover work into Phase 3
+
+- **Pending Migration List** (2 items): `next_licensed_renewal_date` (move to deal-level), `contact_status__c` (33 lists need migration to a designed replacement)
+- **Notable meta-finding from Phase 2**: HubSpot manages 19 fields that look like custom org-defined ones — useful to know when planning Phase 3 schema changes (`hubspotDefined: true` is the more reliable signal than naming patterns)
+
+### Phase 0/1 deliverables (completed earlier):
 - Schema backups: `backups/schemas/2026-04-10/` (4 files, all objects)
 - Company inventory: `docs/inventory/companies-field-inventory.md`
 - Contact inventory: `docs/inventory/contacts-field-inventory.md`
