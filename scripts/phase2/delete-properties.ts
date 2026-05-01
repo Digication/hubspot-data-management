@@ -65,6 +65,15 @@ const STEPS: Record<string, StepDef> = {
     // catches surprises but allows ordinary populations through.
     maxAllowedPopulation: 10000,
   },
+  step5: {
+    name: "step5",
+    description:
+      "Deal-level Salesforce legacy fields (Review 7: pipeline % + onboarding/adoption)",
+    filter: (f) => f.action === "delete" && f.review === 7,
+    // Highest manifest expectation is 271 (sales pipeline % fields).
+    // 10,000 catches reactivation surprises.
+    maxAllowedPopulation: 10000,
+  },
 };
 
 type Status =
