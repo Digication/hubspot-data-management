@@ -5,7 +5,7 @@
 
 ---
 
-## Confirmed Deletions (92 fields + ~182 contacts + 1 pipeline) + 4 archives
+## Confirmed Deletions (88 fields + ~182 contacts + 1 pipeline) + 4 archives
 
 > **Note (2026-04-29):** Original count was 109. During Step 1 execution, 3 fields
 > (`googleplus_page`, `facebookfans`, `kloutscoregeneral`) turned out to be
@@ -53,6 +53,13 @@
 > fields originally tagged `delete` + all 4 originally tagged `archive`).
 > The script was hardened to auto-detect PROPERTY_INVALID errors and
 > route them to "not archivable" instead of generic error.
+>
+> **Note (2026-05-01, Step 7):** The pre-flight check (now better-tuned
+> after Step 6's hardening) caught 4 of 6 Review 2 fields as HubSpot-defined
+> before any deletion attempt: `salesforcelastsynctime` × 3 (managed by
+> SF sync) and `currentlyinworkflow` (auto-populated when contacts enter
+> any workflow). Total deletes count: 92 → 88. Phase 2 deletion work
+> complete: 2 of 2 archivable Review 2 fields archived.
 
 ### Review 1: Obvious Deletions (zero or near-zero records)
 
@@ -90,6 +97,10 @@ practical impact of leaving them is minimal.
 | `zoom_webinar_attendance_average_duration` | Contact | 152 | 2026-05-01 | HubSpot-defined Zoom integration field |
 | `zoom_webinar_registration_count` | Contact | 191 | 2026-05-01 | HubSpot-defined Zoom integration field |
 | `zoom_webinar_joinlink` | Contact | 191 | 2026-05-01 | HubSpot-defined Zoom integration field |
+| `salesforcelastsynctime` | Company | 0 | 2026-05-01 | HubSpot-defined SF sync timestamp |
+| `salesforcelastsynctime` | Contact | 0 | 2026-05-01 | HubSpot-defined SF sync timestamp |
+| `salesforcelastsynctime` | Deal | 0 | 2026-05-01 | HubSpot-defined SF sync timestamp |
+| `currentlyinworkflow` | Contact | 4,004 | 2026-05-01 | HubSpot-defined; auto-populated when contacts enter workflows |
 
 #### Blocked pending HubSpot cleanup — historical record
 
@@ -109,10 +120,8 @@ All blockers resolved as of 2026-05-01.
 |---|-------|--------|---------|--------|
 | 12 | `customer_status__c` | Company | 423 | Labeled "(archived)", replaced by sales_status |
 | 13 | `prospect_status_history__c` | Company | 153 | Labeled "(archived)", legacy pipeline |
-| 14 | `salesforcelastsynctime` | Company | varies | Salesforce sync discontinued |
-| 15 | `salesforcelastsynctime` | Contact | varies | Salesforce sync discontinued |
-| 16 | `salesforcelastsynctime` | Deal | varies | Salesforce sync discontinued |
-| 17 | `currentlyinworkflow` | Contact | 4,004 | Labeled "discontinued", auto-populated by workflows, not useful |
+
+The 4 other fields originally in Review 2 (`salesforcelastsynctime` × 3 and `currentlyinworkflow`) all turned out to be HubSpot-defined — moved to "HubSpot-defined / not archivable" above. Discovered 2026-05-01 during Step 7.
 
 ### Review 3: Salesforce Legacy Fields (Companies)
 
@@ -428,8 +437,8 @@ Currently tracked on deals but used at company level. Plan is to formalize at de
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| Fields to **delete** | 92 | Across Contact, Company, Deal objects (originally 109; 15 HubSpot-defined and 2 deferred to Pending Migration) |
-| Fields HubSpot-defined / not archivable | 15 | 4 from Steps 1-3 + 7 from Step 4 + 4 Zoom integration fields from Step 6 — left in place |
+| Fields to **delete** | 88 | Across Contact, Company, Deal objects (originally 109; 19 HubSpot-defined and 2 deferred to Pending Migration) |
+| Fields HubSpot-defined / not archivable | 19 | 4 from Steps 1-3 + 7 from Step 4 + 4 Zoom integration fields from Step 6 + 4 SF sync/workflow fields from Step 7 — left in place |
 | Fields moved to Pending Migration | 2 | `next_licensed_renewal_date` (deal-level migration) and `contact_status__c` (33 lists need migration) |
 | Fields blocked pending small HubSpot UI cleanup | 0 | All resolved 2026-05-01 (list 303 + workflow 178668883 deleted by team) |
 | Fields to **archive** (soft-remove) | 4 | Reversible in HubSpot — kept as escape hatch for duplicates/legacy |

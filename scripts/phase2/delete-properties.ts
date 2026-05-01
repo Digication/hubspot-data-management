@@ -86,6 +86,16 @@ const STEPS: Record<string, StepDef> = {
     filter: (f) => f.review === 10,
     maxAllowedPopulation: 10000,
   },
+  step7: {
+    name: "step7",
+    description:
+      "Review 2: Obsolete/archived fields (includes currentlyinworkflow at 4,004 records)",
+    filter: (f) => f.action === "delete" && f.review === 2,
+    // Highest manifest expectation is 4,004 (currentlyinworkflow). Set
+    // ceiling generously since this field auto-grows when contacts enter
+    // workflows, and the count fluctuates.
+    maxAllowedPopulation: 20000,
+  },
 };
 
 type Status =

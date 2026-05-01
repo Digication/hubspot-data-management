@@ -68,6 +68,10 @@ export const HUBSPOT_DEFINED_NOT_ARCHIVABLE: Array<
   { name: "zoom_webinar_attendance_average_duration", object: "contacts", review: 10, approxRecords: 152, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
   { name: "zoom_webinar_registration_count",          object: "contacts", review: 10, approxRecords: 191, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
   { name: "zoom_webinar_joinlink",                    object: "contacts", review: 10, approxRecords: 191, reason: "HubSpot-defined Zoom integration field, not archivable",          discoveredOn: "2026-05-01" },
+  { name: "salesforcelastsynctime",   object: "companies", review: 2, approxRecords: 0,    reason: "HubSpot-defined SF sync timestamp",                                              discoveredOn: "2026-05-01" },
+  { name: "salesforcelastsynctime",   object: "contacts",  review: 2, approxRecords: 0,    reason: "HubSpot-defined SF sync timestamp",                                              discoveredOn: "2026-05-01" },
+  { name: "salesforcelastsynctime",   object: "deals",     review: 2, approxRecords: 0,    reason: "HubSpot-defined SF sync timestamp",                                              discoveredOn: "2026-05-01" },
+  { name: "currentlyinworkflow",      object: "contacts",  review: 2, approxRecords: 4004, reason: "HubSpot-defined; auto-populated when contacts enter any workflow",               discoveredOn: "2026-05-01" },
 ];
 
 /**
@@ -127,14 +131,16 @@ export const BLOCKED_PENDING_HUBSPOT_CLEANUP: BlockedField[] = [
 
 // -----------------------------------------------------------------------------
 // Review 2 — Archived/Obsolete Fields
+//
+// Discovered during Step 7 execution (2026-05-01):
+// - 3 salesforcelastsynctime fields (companies, contacts, deals) and
+//   currentlyinworkflow (contacts) are all HubSpot-defined → moved to
+//   HUBSPOT_DEFINED_NOT_ARCHIVABLE. HubSpot manages these for SF sync
+//   timestamps and workflow-membership tracking respectively.
 // -----------------------------------------------------------------------------
 const review2: FieldTarget[] = [
   { name: "customer_status__c",         object: "companies", review: 2, approxRecords: 423,  reason: "Labeled '(archived)', replaced by sales_status",     action: "delete" },
   { name: "prospect_status_history__c", object: "companies", review: 2, approxRecords: 153,  reason: "Labeled '(archived)', legacy pipeline",              action: "delete" },
-  { name: "salesforcelastsynctime",     object: "companies", review: 2, approxRecords: "varies", reason: "Salesforce sync discontinued",                    action: "delete" },
-  { name: "salesforcelastsynctime",     object: "contacts",  review: 2, approxRecords: "varies", reason: "Salesforce sync discontinued",                    action: "delete" },
-  { name: "salesforcelastsynctime",     object: "deals",     review: 2, approxRecords: "varies", reason: "Salesforce sync discontinued",                    action: "delete" },
-  { name: "currentlyinworkflow",        object: "contacts",  review: 2, approxRecords: 4004, reason: "Labeled 'discontinued', auto-populated by workflows", action: "delete" },
 ];
 
 // -----------------------------------------------------------------------------
@@ -407,7 +413,10 @@ const archiveCount = FIELD_TARGETS.filter((f) => f.action === "archive").length;
 // 2026-05-01 (Step 6): Reduced 96 → 92 after discovering 4 zoom_webinar_*
 // fields are HubSpot-defined (managed by the Zoom integration), even
 // though they didn't expose hubspotDefined=true in metadata.
-const EXPECTED_DELETES = 92;
+// 2026-05-01 (Step 7): Reduced 92 → 88 after discovering 3 salesforcelastsynctime
+// fields and currentlyinworkflow are all HubSpot-defined (caught cleanly
+// by the pre-flight check this time).
+const EXPECTED_DELETES = 88;
 const EXPECTED_ARCHIVES = 4;
 
 if (deleteCount !== EXPECTED_DELETES || archiveCount !== EXPECTED_ARCHIVES) {
